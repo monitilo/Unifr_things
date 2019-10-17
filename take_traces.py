@@ -64,7 +64,7 @@ def take_traces(FILE):
     
     nomax = np.where(np.array(maxvalues) < np.mean(maxvalues))[0]
     
-    print( "\n \n", len(maxvalues), len(nomax))
+    print( "\n \n", "len maxvalues",len(maxvalues),"\n len nomax", len(nomax))
     
     plt.figure("que onda")
     plt.title(len(maxvalues))
@@ -72,29 +72,39 @@ def take_traces(FILE):
     plt.plot(coordinates[:, 1], coordinates[:, 0], 'r.')
     
     for j in range(len(coordinates[:,1])):
-        if j in nomax:
-    #        print("no")
-            2+2
-        else:
+        if j not in nomax:
             plt.plot(coordinates[j, 1], coordinates[j, 0], 'b.')
     
     trace = {}
+    
     p = 0
     for i in range(len(coordinates[:,0])):
         if i not in nomax:
-            trace[p] = []
     
+            trace[p] = []
             for f in range(tiff.shape[0]):
-                trace[p].append(tiff[f][coordinates[i,0],coordinates[i,1]])
+                suming = 0
+                deletear = []
+                try:
+                    for x in range(-4,5): # goes from (-4,-4) to (4,4)
+                        for y in range(-4,5):  # its 81 numbers. 9x9 box
+    
+                            suming += tiff[f][coordinates[i+x,0],coordinates[i+y,1]]
+                    trace[p].append(suming)
+                except:
+    #                print("i",i, "f", f, "p",p,"trace[p]", trace[p])
+                    deletear.append(p)
+    #                trace[p].append(np.nan)
+    
             p += 1
     
-    print(len(trace))
-    print(len(maxvalues)-len(nomax))
+    for d in deletear:
+        print(d)
+        del trace[d]
     
+    print("len trace",len(trace))
+    print("len maxvalues-nomax",len(maxvalues)-len(nomax))
     
-    #for j in range(5):
-    #    plt.plot(trace[j])
-      
     
     Nframes = len(trace[0])
     Ntraces = len(trace)
@@ -106,12 +116,12 @@ def take_traces(FILE):
     hipart = {}
     lowpart = {}
     
-    lessmax = 0.95
-    moremin = 1.05
+    lessmax = 0.97
+    moremin = 1.03
     
     N = Ntraces
     
-    PLOT = False
+    PLOT = True
     graph = np.linspace(1, Ntraces-5, num=10, endpoint=False, dtype=int)
     for i in range(N):
     #    print(i)
@@ -185,13 +195,41 @@ def take_traces(FILE):
     plt.title((len(finaldata)))
     plt.grid()
     print(len(finaldata))
-#    
-#    plt.figure("histo/16")
-#    plt.hist(finaldata, int(len(finaldata)/12))
     
-#    mu = np.mean(np.array(finaldata))
-#    sigma = np.sqrt(((len(finaldata)-1)**(-1))*np.sum((finaldata-mu)**2))
-#    #se = sigma/np.sqrt(Nframes)
-#    
-#    print(mu,"+-", sigma)
+    
+    
+    mu = np.mean(np.array(finaldata))
+    sigma = np.sqrt(((len(finaldata)-1)**(-1))*np.sum((finaldata-mu)**2))
+    #se = sigma/np.sqrt(Nframes)
+    
+    print(mu,"+-", sigma)
+    
+    plt.figure("histo/16")
+    plt.title((len(finaldata)))
+    plt.hist(finaldata, int(len(finaldata)/16), color='m')
+    plt.axvline(mu, linestyle=':', color='k')
+    plt.axvline(mu+sigma, linestyle='-.', color='r')
+    plt.axvline(mu-sigma, linestyle='-.', color='r')
+    plt.axvline(mu+2*sigma, linestyle='--', color='orange')
+    plt.axvline(mu-2*sigma, linestyle='--', color='orange')
+    
+    
+    fixeddata = np.copy(finaldata)
+    fixeddata[fixeddata>mu + (1.6*sigma)] = np.nan 
+    fixeddata[fixeddata<mu - (1.6*sigma)] = np.nan 
+    mu = np.nanmean(np.array(fixeddata))
+    sigma = np.sqrt(((np.count_nonzero(~np.isnan(fixeddata))-1)**(-1))*np.nansum((fixeddata-mu)**2))
+    #se = sigma/np.sqrt(Nframes)
+    
+    print("valor final = ", mu,"+-", sigma)
+    
+    plt.figure("histo centrado")
+    plt.hist(finaldata, int(len(finaldata)/16), color='b')
+    plt.title((np.count_nonzero(~np.isnan(finaldata))))
+    plt.axvline(mu, linestyle=':', color='k')
+    plt.axvline(mu+sigma, linestyle='-.', color='r')
+    plt.axvline(mu-sigma, linestyle='-.', color='r')
+    plt.axvline(mu+2*sigma, linestyle='--', color='orange')
+    plt.axvline(mu-2*sigma, linestyle='--', color='orange')
+    
     return finaldata

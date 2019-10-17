@@ -792,8 +792,8 @@ for i in range(len(coordinates[:,0])):
             deletear = []
             try:
                 for x in range(-4,5): # goes from (-4,-4) to (4,4)
-                    for y in range(-4,5):  # its 100 numbers
-                        
+                    for y in range(-4,5):  # its 81 numbers. 9x9 box
+
                         suming += tiff[f][coordinates[i+x,0],coordinates[i+y,1]]
                 trace[p].append(suming)
             except:
@@ -957,6 +957,7 @@ allfiles = ['C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50m
             'C:/Origami testing Widefield/2019-10-10/oriGreen_reference_AT542-2fmol-200pM-45min_incubation_finish-50mW_532nm-100ms_1/oriGreen_reference_AT542-2fmol-200pM-45min_incubation_finish-50mW_532nm-100ms_1_MMStack_Pos0.ome.tif']#,
 #            'C:/Analizando Imagenes/Time Trace(s)-50mW_200ms-hand.csv']
 
+
 LA_DATA = []
 for i in range(len(allfiles)):
     LA_DATA = np.concatenate((LA_DATA, take_traces(allfiles[i])))
@@ -994,7 +995,7 @@ sigma2 = np.sqrt(((np.count_nonzero(~np.isnan(fixealadata))-1)**(-1))*np.nansum(
 
 
 plt.figure("histo centrado")
-plt.hist(LA_DATA, int(len(LA_DATA)/30), range=(mu2-3*sigma2, mu2+3*sigma2), color='b')
+plt.hist(LA_DATA, int(len(LA_DATA)/16), range=(mu2-3*sigma2, mu2+3*sigma2), color='b')
 plt.title((len(LA_DATA)))
 plt.axvline(mu2, linestyle=':', color='k')
 plt.axvline(mu2+sigma2, linestyle='-.', color='r')
