@@ -959,14 +959,20 @@ allfiles = ['C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50m
 
 
 LA_DATA = []
+length = [0]
 for i in range(len(allfiles)):
-    LA_DATA = np.concatenate((LA_DATA, take_traces(allfiles[i])))
+    LA_DATA = np.concatenate((LA_DATA, take_traces(allfiles[i], True)))
+    length.append(len(LA_DATA)-length[i])
+    print(len(LA_DATA))
 
-plt.figure("LADATA")
-plt.title(len(LA_DATA))
-plt.hist(LA_DATA, int(len(LA_DATA)/12), (0,100), color='m')
+plt.figure("LA_DATA")
+for i in [20, 16, 12, 8, 4]:
+    print(i)
+    plt.hist(LA_DATA, int(len(LA_DATA)/i))
+plt.title((len(LA_DATA)))
+plt.grid()
 print(len(LA_DATA))
-
+    
 
 mu = np.mean(np.array(LA_DATA))
 sigma = np.sqrt(((len(LA_DATA)-1)**(-1))*np.sum((LA_DATA-mu)**2))

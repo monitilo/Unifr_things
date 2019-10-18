@@ -6,7 +6,7 @@ Created on Wed Oct 16 11:24:32 2019
 """
 
 
-def take_traces(FILE):
+def take_traces(FILE, plot = False):
     """ input: .tif file with spots
     Find all the interesting peaks in the second frame
     and all the traces in these points"""
@@ -121,7 +121,7 @@ def take_traces(FILE):
     
     N = Ntraces
     
-    PLOT = True
+    PLOT = plot
     graph = np.linspace(1, Ntraces-5, num=10, endpoint=False, dtype=int)
     for i in range(N):
     #    print(i)
@@ -188,14 +188,14 @@ def take_traces(FILE):
     finaldata = (np.array(realmaxs)-np.array(realmins))
     
     
-    plt.figure("histogram")
-    for i in [20, 16, 12, 8, 4]:
-        print(i)
-        plt.hist(finaldata, int(len(finaldata)/i))
-    plt.title((len(finaldata)))
-    plt.grid()
-    print(len(finaldata))
-    
+#    plt.figure("histogram")
+#    for i in [20, 16, 12, 8, 4]:
+#        print(i)
+#        plt.hist(finaldata, int(len(finaldata)/i))
+#    plt.title((len(finaldata)))
+#    plt.grid()
+#    print(len(finaldata))
+#    
     
     
     mu = np.mean(np.array(finaldata))
