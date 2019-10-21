@@ -445,7 +445,7 @@ plt.plot(waveleng, alldata[10,:],'r')
 #    plt.plot(waveleng, alldata[i+16,:])
 
 #%%
-file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 Antenas 40,50,50Cdiluted/UV-Vis 10_10_2019 8_58_40 AM.tsv'
+file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 NPs 21.10/UV-Vis 10_21_2019 2_22_04 AM.tsv'
 a = 1333
 skip = 9
 N = 7
