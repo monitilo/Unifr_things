@@ -340,7 +340,6 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.times_frames_total_on = self.times_frames_total_on*Exposure_time
         self.times_frames_total_off = self.times_frames_total_off*Exposure_time
         print('[Ton and Toff Calculation finished]')
-        print('[Ton =' + self.times_frames_total_on + ' ]')
         
     # Define export selection of traces       
     def exportTraces(self):

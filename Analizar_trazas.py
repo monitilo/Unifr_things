@@ -1054,3 +1054,5 @@ span = SpanSelector(ax1, onselect, 'horizontal', useblit=True,
 
 plt.show()
 
+
+

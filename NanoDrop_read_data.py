@@ -20,32 +20,32 @@ alldata=np.zeros((N,a-3-skip))
 allxaxis=np.copy(alldata)
 
 dos = 1
-#try:
-for i in range(N):
-    print(i)
-    dos = 2*dos
-    spectrum = np.loadtxt(file, delimiter='\t', skiprows = skip+i*a, max_rows = a-skip) # 1334
-    alldata[i,:] = spectrum[:,1]
-    waveleng = spectrum[:,0]
-    plt.plot(spectrum[:,0], spectrum[:,1]) #, c[i])
-    plt.xlim((340,500))
-
+try:
+    for i in range(N):
+        print(i)
+        dos = 2*dos
+        spectrum = np.loadtxt(file, delimiter='\t', skiprows = skip+i*a, max_rows = a-skip) # 1334
+        alldata[i,:] = spectrum[:,1]
+        waveleng = spectrum[:,0]
+        plt.plot(spectrum[:,0], spectrum[:,1]) #, c[i])
+        plt.xlim((340,500))
     
-    left = np.where(waveleng==340)[0][0]
-    right = np.where(waveleng==500)[0][0]
-    
-    maxpeak = np.where(spectrum[left:right,1]==np.max(spectrum[left:right,1]))[0][0]
-    maxvalue = spectrum[maxpeak+left,1]
-#        plt.ylim((0,maxvalue*1.2))
-    if maxvalue < 0.1:
-        print("Blanck!!!!")
-        dos = 1
-    print( "maxpeak = ", waveleng[maxpeak+left], "\n maxvalue y=", maxvalue, dos)
-    print("\n concentration 40 =", maxvalue * dos /336 )
-    print("\n concentration 50 =", maxvalue * dos /537 )
+        
+        left = np.where(waveleng==340)[0][0]
+        right = np.where(waveleng==500)[0][0]
+        
+        maxpeak = np.where(spectrum[left:right,1]==np.max(spectrum[left:right,1]))[0][0]
+        maxvalue = spectrum[maxpeak+left,1]
+    #        plt.ylim((0,maxvalue*1.2))
+        if maxvalue < 0.1:
+            print("\n BLANK!!!! \n")
+            dos = 1
+        print( "maxpeak = ", waveleng[maxpeak+left], "\n maxvalue y=", maxvalue, dos)
+        print("\n concentration 40 (nM)=", maxvalue * dos /33.6 )
+        print("\n concentration 50 (nM)=", maxvalue * dos /53.7 )
 
-#except:
-#     print("el i maximo es", i)
+except:
+     print("el i maximo es", i)
 #plt.figure()
 #plt.grid()
 #plt.plot(spectrum[:,0], spectrum[:,1])
