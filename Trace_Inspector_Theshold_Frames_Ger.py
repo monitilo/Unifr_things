@@ -53,7 +53,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('Trace Inspector')
-        self.w.resize(1500, 1000)
+        self.w.resize(1000, 800)
 
         # Create ImagePlot
         self.graph = pg.PlotWidget()
@@ -72,7 +72,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.traceindex = QtGui.QLabel('Show Trace:')
         self.traceindexEdit = QtGui.QLineEdit('0')
         self.ExposureTime = QtGui.QLabel('Exposure Time [ms]')
-        self.ExposureTimeEdit = QtGui.QLineEdit()
+        self.ExposureTimeEdit = QtGui.QLineEdit("100")
 #        self.ThesholdIndex= QtGui.QLabel('Threshold:')
 #        self.ThesholdIndexEdit = QtGui.QLineEdit()
 #        self.StartFrame = QtGui.QLabel('Start frame:')
@@ -233,7 +233,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.thresholdSlider.setMaximum((np.max(self.data[:, int(self.traceSlider.value())])))
         self.thresholdSlider.setValue(int(self.selection[int(self.traceSlider.value()), 2]))
         self.PlotBinaryTrace()
-        self.lr = pg.LinearRegionItem([int(self.selection[format(int(self.traceSlider.value())),3]),int(self.selection[format(int(self.traceSlider.value())),4])])
+        self.lr = pg.LinearRegionItem([int(self.selection[(int(self.traceSlider.value())),3]),int(self.selection[(int(self.traceSlider.value())),4])])
         self.lr.setZValue(10)
         self.graph.addItem(self.lr)
         
@@ -262,7 +262,10 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.selection[int(self.traceSlider.value()), 2] = int(self.thresholdSlider.value())
         self.selection[int(self.traceSlider.value()), 3] = int(self.lr.getRegion()[0])
         self.selection[int(self.traceSlider.value()), 4] = int(self.lr.getRegion()[1])
-        print(self.selection)
+        print("GOODselection traces")
+#        print(self.selection)
+#        print("\n")
+        print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
         self.next_trace()
         self.update_trace()
         self.update_threshold()
@@ -273,10 +276,13 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
     def save_badSelection_traces(self):
         self.selection[int(self.traceSlider.value()), 1] = -1
         self.colorgraph = (250, 150, 50)
+        print("BADselection traces")
+        print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
         self.next_trace()
         self.update_trace()
         self.update_threshold()
-        
+
+
     # Calculate On times
     def Calculate_TON_times(self):
 
