@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #%%
-file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 NPs 21.10.19 + concentrated/UV-Vis 10_21_2019 8_01_01 AM.tsv'
+file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 NP + Trying antennas/UV-Vis 10_24_2019 3_05_32 AM.tsv'
 a = 1333
 skip = 9
 N = 50
@@ -27,6 +27,7 @@ try:
         spectrum = np.loadtxt(file, delimiter='\t', skiprows = skip+i*a, max_rows = a-skip) # 1334
         alldata[i,:] = spectrum[:,1]
         waveleng = spectrum[:,0]
+        plt.figure(file)
         plt.plot(spectrum[:,0], spectrum[:,1]) #, c[i])
         plt.xlim((340,500))
     
@@ -53,5 +54,5 @@ except:
 #plt.plot(waveleng, alldata[10,:],'r')
 #plt.xlim((340,500))
 #for i in range(2):
-#    print(i+16)
+#    print(i+9)
 #    plt.plot(waveleng, alldata[i+16,:])

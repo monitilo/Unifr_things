@@ -5,6 +5,9 @@ Created on Wed Jul  3 13:58:32 2019
 @author: Santiago
 """
 
+#import pyqtgraph.examples
+#pyqtgraph.examples.run()
+
 import numpy as np
 import matplotlib.pyplot as plt
 #%% Otro intente. El maximo lo encuentra de izq a der, y el minimo empezando por la der
@@ -950,21 +953,24 @@ from take_traces import take_traces
 import numpy as np
 import matplotlib.pyplot as plt
 #FILE = 'C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50mW_1/1Atto542_1640um_50mW_1_MMStack_Pos0.ome.tif'
-#
+
 allfiles = ['C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50mW_1/1Atto542_1640um_50mW_1_MMStack_Pos0.ome.tif',
             'C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50mW_2/1Atto542_1640um_50mW_2_MMStack_Pos0.ome.tif',
             'C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50mW_3/1Atto542_1640um_50mW_3_MMStack_Pos0.ome.tif',
             'C:/Origami testing Widefield/2019-10-10/oriGreen_reference_AT542-2fmol-200pM-45min_incubation_finish-50mW_532nm-100ms_1/oriGreen_reference_AT542-2fmol-200pM-45min_incubation_finish-50mW_532nm-100ms_1_MMStack_Pos0.ome.tif']#,
 #            'C:/Analizando Imagenes/Time Trace(s)-50mW_200ms-hand.csv']
 
+#allfiles = ['C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50mW_1/1Atto542_1640um_50mW_1_MMStack_Pos0.ome.tif']
 
 LA_DATA = []
 length = [0]
 for i in range(len(allfiles)):
-    LA_DATA = np.concatenate((LA_DATA, take_traces(allfiles[i], True)))
+    print("reading",allfiles[i])
+    LA_DATA = np.concatenate((LA_DATA, take_traces(allfiles[i], False)))
     length.append(len(LA_DATA)-length[i])
-    print(len(LA_DATA))
+    print("len this set of data:", len(LA_DATA))
 
+print("\n LENGTH:", length)
 plt.figure("LA_DATA")
 for i in [20, 16, 12, 8, 4]:
     print(i)
@@ -1055,4 +1061,9 @@ span = SpanSelector(ax1, onselect, 'horizontal', useblit=True,
 plt.show()
 
 
+# %%
+import numpy as np
+a = [1.3, 1.8, 2.8, 2.4, 2.9, 1.9, 2.5, 3.32, 3.29, 3.16, 2.6]
 
+print("\n", np.mean(a), "±", np.std(a))
+print("para", len(a), "puntos")
