@@ -113,6 +113,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.labelmax = QtGui.QLabel("Left")
         self.labelmin = QtGui.QLabel("Rigth")
         self.labelstep = QtGui.QLabel("substract L-R")
+        self.labelmax.setFixedWidth(200)
+        self.labelmin.setFixedWidth(200)
+        self.labelstep.setFixedWidth(200)
         # Button to print it (and save)
         self.btnmaxmin = QtGui.QPushButton('Calculate RigthMean - LeftMean')
 
@@ -148,9 +151,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         layout.addWidget(self.graph,                       0, 4, 13, 100)
         layout.addWidget(self.BinaryTrace,                 14,0,500, 104)
         
-        layout.addWidget(self.labelmax,                    0, 4, 1, 1)
-        layout.addWidget(self.labelstep,                   0, 55, 1, 1)
-        layout.addWidget(self.labelmin,                    0,102,1, 1)
+        layout.addWidget(self.labelmax,                    0,  6, 1, 3)
+        layout.addWidget(self.labelstep,                   0, 55, 1, 3)
+        layout.addWidget(self.labelmin,                    0, 95, 1, 3)
         layout.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
 
 #        layout.setColumnStretch(0,1)
@@ -223,10 +226,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         starting = int(self.selection[(int(self.traceSlider.value())),3])
         ending = int(self.selection[(int(self.traceSlider.value())),4])
         
-        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g')
+        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g',
+                                          bounds=[0, self.data.shape[0]])
         self.lrmax.setZValue(10)
         self.graph.addItem(self.lrmax)
-        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r')
+        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r',
+                                          bounds=[0, self.data.shape[0]])
         self.lrmin.setZValue(10)
         self.graph.addItem(self.lrmin)
         
@@ -302,10 +307,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         starting = int(self.selection[(int(self.traceSlider.value())),3])
         ending = int(self.selection[(int(self.traceSlider.value())),4])
         
-        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g')
+        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g',
+                                          bounds=[0, self.data.shape[0]])
         self.lrmax.setZValue(10)
         self.graph.addItem(self.lrmax)
-        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r')
+        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r',
+                                          bounds=[0, self.data.shape[0]])
         self.lrmin.setZValue(10)
         self.graph.addItem(self.lrmin)
         
