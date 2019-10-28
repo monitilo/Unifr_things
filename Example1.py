@@ -5,70 +5,106 @@ Created on Wed Oct 23 11:23:45 2019
 @author: chiarelg
 """
 
-import random, sys
-from PyQt4.QtCore import QPoint, QRect, QSize, Qt
-from PyQt4.QtGui import *
 
-class Window(QLabel):
+#import initExample ## Add path to library (just for examples; you do not need this)
+import numpy as np
+import pyqtgraph as pg
+from pyqtgraph.Qt import QtGui, QtCore
+#from pyqtgraph.Point import Point
 
-    def __init__(self, parent = None):
-    
-        QLabel.__init__(self, parent)
-        self.rubberBand = QRubberBand(QRubberBand.Rectangle, self)
-        self.origin = QPoint()
-    
-    def mousePressEvent(self, event):
-    
-        if event.button() == Qt.LeftButton:
-        
-            self.origin = QPoint(event.pos())
-            self.rubberBand.setGeometry(QRect(self.origin, QSize()))
-            self.rubberBand.show()
-    
-    def mouseMoveEvent(self, event):
-    
-        if not self.origin.isNull():
-            self.rubberBand.setGeometry(QRect(self.origin, event.pos()).normalized())
-    
-    def mouseReleaseEvent(self, event):
-    
-        if event.button() == Qt.LeftButton:
-            self.rubberBand.hide()
+#generate layout
+app = QtGui.QApplication([])
+win = pg.GraphicsLayoutWidget(show=True)
+win.setWindowTitle('pyqtgraph example: crosshair')
+label = pg.LabelItem(justify='right')
+win.addItem(label, row=0,col=0)
 
+label2 = pg.LabelItem(justify='right')
+win.addItem(label2, row=0,col=1)
 
-def create_pixmap():
+label3 = pg.LabelItem(justify='right')
+win.addItem(label3, row=0,col=2)
+#p1 = win.addPlot(row=1, col=0)
+p2 = win.addPlot(row=1, col=0, rowspan=1, colspan=3)
 
-    def color():
-        r = random.randrange(0, 255)
-        g = random.randrange(0, 255)
-        b = random.randrange(0, 255)
-        return QColor(r, g, b)
-    
-    def point():
-        return QPoint(random.randrange(0, 400), random.randrange(0, 300))
-    
-    pixmap = QPixmap(400, 300)
-    pixmap.fill(color())
-    painter = QPainter()
-    painter.begin(pixmap)
-    i = 0
-    while i < 1000:
-        painter.setBrush(color())
-        painter.drawPolygon(QPolygon([point(), point(), point()]))
-        i += 1
-    
-    painter.end()
-    return pixmap
+region = pg.LinearRegionItem(pen='g')
+region.setZValue(10)
+# Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this 
+# item when doing auto-range calculations.
+p2.addItem(region, ignoreBounds=True)
+
+region2 = pg.LinearRegionItem(pen='r')
+region2.setZValue(10)
+p2.addItem(region2, ignoreBounds=True)
+
+#pg.dbg()
+#p1.setAutoVisible(y=True)
 
 
-if __name__ == "__main__":
+#create numpy arrays
+#make the numbers large to show that the xrange shows data from 10000 to all the way 0
+data1 = 10000 + 15000 * pg.gaussianFilter(np.random.random(size=10000), 10) + 3000 * np.random.random(size=10000)
+data2 = 15000 + 15000 * pg.gaussianFilter(np.random.random(size=10000), 10) + 3000 * np.random.random(size=10000)
 
-    app = QApplication(sys.argv)
-    random.seed()
-    
-    window = Window()
-    window.setPixmap(create_pixmap())
-    window.resize(400, 300)
-    window.show()
-    
-    sys.exit(app.exec_())
+#p1.plot(data1, pen="r")
+#p1.plot(data2, pen="g")
+
+p2.plot(data1, pen="w")
+
+def update():
+    region.setZValue(10)
+    minX, maxX = region.getRegion()
+    region2.setZValue(10)
+    minX2, maxX2 = region2.getRegion()
+#    p1.setXRange(minX, maxX, padding=0)
+#    print(minX,maxX)
+    medio = np.nanmean(data1[int(minX):int(maxX)])
+    medio2 = np.nanmean(data1[int(minX2):int(maxX2)])
+
+    label2.setText("<span style='font-size: 12pt'> <span style='color: green'>Mean=%0.1f</span>" % (medio))
+    label3.setText("<span style='font-size: 12pt'> <span style='color: red'>Mean=%0.1f</span>" % (medio2))
+
+region.sigRegionChanged.connect(update)
+region2.sigRegionChanged.connect(update)
+
+def updateRegion(window, viewRange):
+    rgn = viewRange[0]
+    region.setRegion(rgn)
+    region2.setRegion(rgn)
+
+#p1.sigRangeChanged.connect(updateRegion)
+
+region.setRegion([1000, 2000])
+region2.setRegion([5000, 6000])
+
+#cross hair
+vLine = pg.InfiniteLine(angle=90, movable=False)
+hLine = pg.InfiniteLine(angle=0, movable=False)
+p2.addItem(vLine, ignoreBounds=True)
+p2.addItem(hLine, ignoreBounds=True)
+
+
+vb = p2.vb
+
+def mouseMoved(evt):
+
+    pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+    if p2.sceneBoundingRect().contains(pos):
+        mousePoint = vb.mapSceneToView(pos)
+        index = int(mousePoint.x())
+        if index > 0 and index < len(data1):
+            label.setText("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (mousePoint.x(), data1[index], data2[index]))
+        vLine.setPos(mousePoint.x())
+        hLine.setPos(mousePoint.y())
+
+
+
+proxy = pg.SignalProxy(p2.scene().sigMouseMoved, rateLimit=60, slot=mouseMoved)
+#p1.scene().sigMouseMoved.connect(mouseMoved)
+
+
+## Start Qt event loop unless running in interactive mode or using pyside.
+if __name__ == '__main__':
+    import sys
+    if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
+        QtGui.QApplication.instance().exec_()

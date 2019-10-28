@@ -108,6 +108,15 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.Amount_goodTraces_text = QtGui.QLabel('Good traces selection:')
         self.Amount_goodTraces = QtGui.QLabel() 
         
+        
+        # Labels to know the means to save
+        self.labelmax = QtGui.QLabel("HOLA")
+        self.labelmin = QtGui.QLabel("CHAU")
+        self.labelstep = QtGui.QLabel("substract")
+        # Button to print it (and save)
+        self.btnmaxmin = QtGui.QPushButton('Calculate RigthMean - LeftMean')
+
+
         # Create a grid layout to manage the widgets size and position
         layout = QtGui.QGridLayout()
         self.w.setLayout(layout)
@@ -134,11 +143,16 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         layout.addWidget(self.thresholdSlider,             9, 0, 1, 3)       
         layout.addWidget(self.btnGoodTrace,                10, 0, 1, 1)
         layout.addWidget(self.btnBadTrace,                 10, 2, 1, 1)
-        layout.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
-        layout.addWidget(self.btnExport,                   12, 0, 1, 3)
+#        layout.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
+#        layout.addWidget(self.btnExport,                   12, 0, 1, 3)
         layout.addWidget(self.graph,                       0, 4, 13, 100)
         layout.addWidget(self.BinaryTrace,                 14,0,500, 104)
         
+        layout.addWidget(self.labelmax,                    0, 4, 1, 1)
+        layout.addWidget(self.labelstep,                   0, 55, 1, 1)
+        layout.addWidget(self.labelmin,                    0,102,1, 1)
+        layout.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
+
 #        layout.setColumnStretch(0,1)
 #        layout.setColumnStretch(1,10)
      
@@ -150,11 +164,39 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.btnTonTimes.clicked.connect(self.Calculate_TON_times)
         self.btnExport.clicked.connect(self.exportTraces)
         
+        self.btnmaxmin.clicked.connect(self.calculate_max_min)
+        
         # Slider Action
         self.traceSlider.valueChanged.connect(self.update_trace)
         self.thresholdSlider.valueChanged.connect(self.update_threshold)
-
         
+        
+    def updatelr(self):
+        self.lrmax.setZValue(10)
+        minX, maxX = self.lrmax.getRegion()
+        self.lrmin.setZValue(10)
+        minX2, maxX2 = self.lrmin.getRegion()
+        self.avgmax = np.nanmean(self.data[int(minX):int(maxX), (int(self.traceSlider.value()))])
+        self.avgmin = np.nanmean(self.data[int(minX2):int(maxX2), (int(self.traceSlider.value()))])
+    
+        self.stepintensity = (self.avgmax-self.avgmin)
+        self.labelmax.setText("<span style='font-size: 12pt'> <span style='color: green'>LeftMean=%0.1f</span>" % (self.avgmax))
+        self.labelmin.setText("<span style='font-size: 12pt'> <span style='color: red'>RigthMean=%0.1f</span>" % (self.avgmin))
+        self.labelstep.setText("<span style='font-size: 12pt'> <span style='color: blue'>Step=%0.1f</span>" % self.stepintensity)
+        
+    def calculate_max_min(self):
+#        self.lrmax.setZValue(10)
+#        minX, maxX = self.lrmax.getRegion()
+#        self.lrmin.setZValue(10)
+#        minX2, maxX2 = self.lrmin.getRegion()
+#        self.avgmax = np.nanmean(self.data[int(minX):int(maxX), (int(self.traceSlider.value()))])
+#        self.avgmin = np.nanmean(self.data[int(minX2):int(maxX2), (int(self.traceSlider.value()))])
+#        
+#        print(self.avgmax - self.avgmin)
+        print(self.stepintensity)
+
+
+
     # Define Actions    
     def importTrace(self):
 
@@ -171,9 +213,22 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.selection[:,0] = np.arange(0,self.data.shape[1])
         self.selection[:,4] = self.data.shape[0]
         self.colorgraph = (100, 150, 255)
-        self.lr = pg.LinearRegionItem([0,int(self.selection[0,4])], brush=None)
-        self.lr.setZValue(10)
-        self.graph.addItem(self.lr)
+# =============================================================================
+#         self.lr = pg.LinearRegionItem([0,int(self.selection[0,4])], brush=None)
+#         self.lr.setZValue(10)
+#         self.graph.addItem(self.lr)
+# =============================================================================
+        
+        starting = int(self.selection[(int(self.traceSlider.value())),3])
+        ending = int(self.selection[(int(self.traceSlider.value())),4])
+        
+        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g')
+        self.lrmax.setZValue(10)
+        self.graph.addItem(self.lrmax)
+        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r')
+        self.lrmin.setZValue(10)
+        self.graph.addItem(self.lrmin)
+        
         self.graph.plot(self.data[:, 0], pen=pg.mkPen(color=self.colorgraph, width=1))
         # Define initial Threshold
         print('[Initial Threshold Calculation]')
@@ -186,6 +241,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         print('[End of Initial Threshold Calculation]')
         print('[File name: ' + self.file_name + ']')
 
+        self.lrmax.sigRegionChanged.connect(self.updatelr)
+        self.lrmin.sigRegionChanged.connect(self.updatelr)
     
     # Select a trace to plot    
     def showTrace(self):
@@ -233,9 +290,24 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.thresholdSlider.setMaximum((np.max(self.data[:, int(self.traceSlider.value())])))
         self.thresholdSlider.setValue(int(self.selection[int(self.traceSlider.value()), 2]))
         self.PlotBinaryTrace()
-        self.lr = pg.LinearRegionItem([int(self.selection[(int(self.traceSlider.value())),3]),int(self.selection[(int(self.traceSlider.value())),4])])
-        self.lr.setZValue(10)
-        self.graph.addItem(self.lr)
+# =============================================================================
+#         self.lr = pg.LinearRegionItem([int(self.selection[(int(self.traceSlider.value())),3]),int(self.selection[(int(self.traceSlider.value())),4])])
+#         self.lr.setZValue(10)
+#         self.graph.addItem(self.lr)
+# =============================================================================
+        
+        starting = int(self.selection[(int(self.traceSlider.value())),3])
+        ending = int(self.selection[(int(self.traceSlider.value())),4])
+        
+        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g')
+        self.lrmax.setZValue(10)
+        self.graph.addItem(self.lrmax)
+        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r')
+        self.lrmin.setZValue(10)
+        self.graph.addItem(self.lrmin)
+        
+        self.lrmax.sigRegionChanged.connect(self.updatelr)
+        self.lrmin.sigRegionChanged.connect(self.updatelr)
         
     # Define update Binary Trace plot with slider    
     def update_threshold(self):
@@ -260,8 +332,10 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
     def save_goodSelection_traces(self):
         self.selection[int(self.traceSlider.value()), 1] = 1
         self.selection[int(self.traceSlider.value()), 2] = int(self.thresholdSlider.value())
-        self.selection[int(self.traceSlider.value()), 3] = int(self.lr.getRegion()[0])
-        self.selection[int(self.traceSlider.value()), 4] = int(self.lr.getRegion()[1])
+# =============================================================================
+#         self.selection[int(self.traceSlider.value()), 3] = int(self.lr.getRegion()[0])
+#         self.selection[int(self.traceSlider.value()), 4] = int(self.lr.getRegion()[1])
+# =============================================================================
         print("GOODselection traces")
 #        print(self.selection)
 #        print("\n")
@@ -366,8 +440,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
         np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
         np.savetxt(folder+'/selection_'+file_traces_name,self.selection)
-        print(self.selection)
-        print('[Ton and Toff saved]')
+#        print(self.selection)
+        print('and, [Ton and Toff saved]')
 
         
 if __name__ == '__main__':

@@ -17,7 +17,6 @@ from skimage import  io #,img_as_float, data
 #    and all the traces in these points"""
 
 
-
 #im = img_as_float(data.coins())
 FILE = 'C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50mW_1/1Atto542_1640um_50mW_1_MMStack_Pos0.ome.tif'
 plot = True
