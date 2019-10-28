@@ -296,6 +296,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             a.append(self.trace[i])
         b = np.array(a).T
         np.savetxt('traces' + str(self.n) + '.txt', b, delimiter="    ", newline='\r\n')
+        print( "Trace exported as", 'traces' + str(self.n) + '.txt')
         self.n += 1
         
 if __name__ == '__main__':
