@@ -231,7 +231,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         starting = int(self.selection[(int(self.traceSlider.value())),3])
         ending = int(self.selection[(int(self.traceSlider.value())),4])
         
-        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g',
+        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//8], pen='g',
                                           bounds=[0, self.data.shape[0]],
                                           brush=(5,200,5,25),
                                           hoverBrush=(50,200,50,50))
@@ -316,7 +316,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         starting = int(self.selection[(int(self.traceSlider.value())),3])
         ending = int(self.selection[(int(self.traceSlider.value())),4])
         
-        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g',
+        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//8], pen='g',
                                           bounds=[0, self.data.shape[0]],
                                           brush=(5,200,5,25),
                                           hoverBrush=(50,200,50,50))
