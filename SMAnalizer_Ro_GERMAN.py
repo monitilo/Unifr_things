@@ -33,6 +33,8 @@ from tkinter import Tk, filedialog
 from skimage.feature import peak_local_max
 import pyqtgraph.exporters
 
+from scipy import ndimage as ndi
+
 class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def __init__(self, *args, **kwargs):
@@ -44,7 +46,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(1300, 800)
+        self.w.resize(1800, 1500)
 
         # Create ImageView
         self.imv = pg.ImageView()
@@ -161,7 +163,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         root.withdraw()
 
         # Select image from file
-        self.f = filedialog.askopenfilename(filetypes=[("Videos", '*.tiff;*tif'),
+        self.f = filedialog.askopenfilename(filetypes=[("Videos", '*.tiff;*.tif;*.jpg'),
                                                        ("Pictures", "*.jpg")])
         if self.f[-4:] == ".jpg":  # in case I want one picture
 
@@ -270,13 +272,29 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
         self.bgroiSize = np.array(self.roiSize) + 2  # one pixel each side
         
-        self.maxima = peak_local_max(self.mean, min_distance=self.dist, threshold_abs=self.threshold)
+        self.maximacoord = peak_local_max(self.mean, min_distance=self.dist, threshold_abs=self.threshold)
 
-        self.maxnumber = np.size(self.maxima, 0)
+        maxvalues = []
+        for i in range(len(self.maximacoord[:,0])):
+            maxvalues.append(self.mean[self.maximacoord[i,0],self.maximacoord[i,1]])
+        
+        nomaxlow = np.where(np.array(maxvalues) < np.mean(maxvalues))[0]
+        
+        aux = np.arange(len(maxvalues))
+        goodmax = np.delete(aux,nomaxlow)
+        
+        nomaxhigh = np.where(np.array(maxvalues) > 1.5*np.mean(np.array(maxvalues)[goodmax]))
+        
+        toerase = np.sort(np.append(nomaxlow, nomaxhigh))
+        maxindex = np.delete(aux,toerase)
+
+        print(len(goodmax), "points findede")
+
+        self.maxnumber = np.size(self.maximacoord[maxindex], 0)
         for i in np.arange(0, self.maxnumber):
             
             # Translates molRoi to particle center
-            corrMaxima = np.flip(self.maxima[i], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
+            corrMaxima = np.flip(self.maximacoord[maxindex[i]], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
             self.molRoi[i,0] = pg.ROI(corrMaxima, self.roiSize, scaleSnap=True, translateSnap=True, movable=False)
             self.bgRoi[i,0] = pg.ROI((corrMaxima - [1, 1]), self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False)
             self.molRoi[i,1] = pg.ROI(corrMaxima - [0, int(self.channelDifferenceEdit.text())], self.roiSize, scaleSnap=True, translateSnap=True, movable=False)
