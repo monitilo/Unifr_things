@@ -58,6 +58,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Create ImagePlot
         self.graph = pg.PlotWidget()
         self.BinaryTrace = pg.PlotWidget()
+        self.histo_window = pg.GraphicsWindow()
 
         # Create buttons
         self.btnLoad = QtGui.QPushButton('Load Traces')
@@ -113,9 +114,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.labelmax = QtGui.QLabel("Left")
         self.labelmin = QtGui.QLabel("Rigth")
         self.labelstep = QtGui.QLabel("substract L-R")
-        self.labelmax.setFixedWidth(200)
-        self.labelmin.setFixedWidth(200)
-        self.labelstep.setFixedWidth(200)
+        self.labelmax.setFixedWidth(300)
+        self.labelmin.setFixedWidth(300)
+        self.labelstep.setFixedWidth(300)
         # Button to print it (and save)
         self.btnmaxmin = QtGui.QPushButton('Calculate RigthMean - LeftMean')
 
@@ -141,19 +142,21 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        layout.addWidget(self.EndFrameEdit,                7, 1, 1, 2)
 
 
-        layout.addWidget(threshold_index_Slider,           8, 0, 1, 3)
-        layout.addWidget(self.threshold_index_Slider_Edit, 8, 1, 1, 3)
-        layout.addWidget(self.thresholdSlider,             9, 0, 1, 3)       
+#        layout.addWidget(threshold_index_Slider,           8, 0, 1, 3)
+#        layout.addWidget(self.threshold_index_Slider_Edit, 8, 1, 1, 3)
+#        layout.addWidget(self.thresholdSlider,             9, 0, 1, 3)       
         layout.addWidget(self.btnGoodTrace,                10, 0, 1, 1)
         layout.addWidget(self.btnBadTrace,                 10, 2, 1, 1)
 #        layout.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
         layout.addWidget(self.btnExport,                   12, 0, 1, 3)
         layout.addWidget(self.graph,                       0, 4, 13, 100)
-        layout.addWidget(self.BinaryTrace,                 14,0,500, 104)
+#        layout.addWidget(self.BinaryTrace,                 14,0,500, 104)
+        layout.addWidget(self.histo_window,                 14,0,100, 100)
+
         
         layout.addWidget(self.labelmax,                    0,  6, 1, 3)
         layout.addWidget(self.labelstep,                   0, 55, 1, 3)
-        layout.addWidget(self.labelmin,                    0, 95, 1, 3)
+        layout.addWidget(self.labelmin,                    0, 90, 1, 3)
         layout.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
 
 #        layout.setColumnStretch(0,1)
@@ -168,11 +171,13 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.btnExport.clicked.connect(self.exportTraces)
         
         self.btnmaxmin.clicked.connect(self.calculate_max_min)
-        
+        self.btnmaxmin.clicked.connect(self.make_histogram)
+
         # Slider Action
         self.traceSlider.valueChanged.connect(self.update_trace)
         self.thresholdSlider.valueChanged.connect(self.update_threshold)
         
+#        self.traceindexEdit.textEdited.connect(self.showTrace)  # I like it more
         
     def updatelr(self):
         self.lrmax.setZValue(10)
@@ -227,11 +232,15 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         ending = int(self.selection[(int(self.traceSlider.value())),4])
         
         self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g',
-                                          bounds=[0, self.data.shape[0]])
+                                          bounds=[0, self.data.shape[0]],
+                                          brush=(5,200,5,25),
+                                          hoverBrush=(50,200,50,50))
         self.lrmax.setZValue(10)
         self.graph.addItem(self.lrmax)
         self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r',
-                                          bounds=[0, self.data.shape[0]])
+                                          bounds=[0, self.data.shape[0]],
+                                          brush=(200,50,50,25),
+                                          hoverBrush=(200,50,50,50))
         self.lrmin.setZValue(10)
         self.graph.addItem(self.lrmin)
         
@@ -308,11 +317,15 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         ending = int(self.selection[(int(self.traceSlider.value())),4])
         
         self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//4], pen='g',
-                                          bounds=[0, self.data.shape[0]])
+                                          bounds=[0, self.data.shape[0]],
+                                          brush=(5,200,5,25),
+                                          hoverBrush=(50,200,50,50))
         self.lrmax.setZValue(10)
         self.graph.addItem(self.lrmax)
         self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r',
-                                          bounds=[0, self.data.shape[0]])
+                                          bounds=[0, self.data.shape[0]],
+                                          brush=(200,5,5,25),
+                                          hoverBrush=(200,50,50,50))
         self.lrmin.setZValue(10)
         self.graph.addItem(self.lrmin)
         
@@ -337,7 +350,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
          
     # Next trace when you touch good or bad trace button    
     def next_trace(self):
-        
+        self.make_histogram()
+
         self.Trace_index_Slider_Edit.setText(format(int(self.traceSlider.value()) + 1))
         self.traceSlider.setValue(int(self.traceSlider.value()) + 1)
         
@@ -357,6 +371,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        print(self.selection)
 #        print("\n")
         print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
+
         self.next_trace()
         self.update_trace()
         self.update_threshold()
@@ -441,7 +456,19 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #         self.times_frames_total_off = self.times_frames_total_off*Exposure_time
 #         print('[Ton and Toff Calculation finished]')
 # =============================================================================
+
+    def make_histogram(self):
+        try:
+            self.histo_window.removeItem(self.plt1)
+        except:
+            print("no no no...")
         
+        vals = self.selection[:,5]
+        self.plt1 = self.histo_window.addPlot()
+        y,x = np.histogram(vals)
+        self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
+      
+
     # Define export selection of traces       
     def exportTraces(self):
         count_good_traces = np.count_nonzero(self.selection[:, 1] == 1)

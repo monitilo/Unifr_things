@@ -357,7 +357,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         
         # Save traces as an array
         a = []        
-        for i in self.trace.keys():
+        for i in self.trace.keys():  # NO TIENE ORDEN!!!! CAMBIAR
             a.append(self.trace[i])
 
         b = np.array(a).T
@@ -370,6 +370,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #        exporter.parameters()['width'] = 100   # (note this also affects height parameter)
         # save to file
         exporter.export('Image' + str(self.n) + '.png')
+        print( "Picture exported as", 'Image' + str(self.n) + '.png')
 
         self.n += 1
 # =============================================================================
