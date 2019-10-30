@@ -173,11 +173,33 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.btnmaxmin.clicked.connect(self.calculate_max_min)
         self.btnmaxmin.clicked.connect(self.make_histogram)
 
+        self.btnmaxmin.clicked.connect(self.Quickanddirtystart)
+
         # Slider Action
         self.traceSlider.valueChanged.connect(self.update_trace)
         self.thresholdSlider.valueChanged.connect(self.update_threshold)
         
 #        self.traceindexEdit.textEdited.connect(self.showTrace)  # I like it more
+
+        self.Quickanddirtytimer = QtCore.QTimer()
+        self.Quickanddirtytimer.timeout.connect(self.Quickanddirty)
+        
+
+    def Quickanddirtystart(self):
+        self.timing = 0
+        self.Quickanddirtytimer.start(10)  # imput in ms
+        print("♫ Fuck it all ♫ ")
+        print(self.data.shape[1])
+
+    def Quickanddirty(self):
+        self.calculate_max_min()
+#            self.make_histogram()
+        self.next_trace()
+        self.update_trace()
+        self.update_threshold()
+        self.timing+=1
+        if self.timing == self.data.shape[1]-1:
+            self.Quickanddirtytimer.stop()
         
     def updatelr(self):
         self.lrmax.setZValue(10)
@@ -201,7 +223,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        self.avgmin = np.nanmean(self.data[int(minX2):int(maxX2), (int(self.traceSlider.value()))])
 #        
 #        print(self.avgmax - self.avgmin)
-        print(self.stepintensity)
+#        print(self.stepintensity)
         self.selection[int(self.traceSlider.value()), 5] = self.stepintensity
 
 
@@ -216,7 +238,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Select image from file
         self.file_name = filedialog.askopenfilename(filetypes=(("", "*.txt"), ("", "*.txt")))
         self.data = np.loadtxt(self.file_name)
-        self.traceSlider.setMaximum(self.data.shape[1])
+        self.traceSlider.setMaximum(self.data.shape[1]-1)
         self.graph.clear()
         self.selection = np.zeros((self.data.shape[1], 6), dtype = int)  # + Step column (5 ==> 6)
         self.selection[:,0] = np.arange(0,self.data.shape[1])
@@ -467,7 +489,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.plt1 = self.histo_window.addPlot()
         y,x = np.histogram(vals)
         self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
-      
+        self.plt1.showGrid(x = True, y = True, alpha = 0.5)    
 
     # Define export selection of traces       
     def exportTraces(self):
