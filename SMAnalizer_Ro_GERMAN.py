@@ -60,6 +60,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn6 = QtGui.QPushButton('Detect Molecules')
         self.btn7 = QtGui.QPushButton('Export Traces')
 
+        self.btn_small_roi = QtGui.QPushButton('New small ROI')
+
         # Create parameter fields with labels
         self.meanStartLabel = QtGui.QLabel('Start frame:')
         self.meanStartEdit = QtGui.QLineEdit('5')
@@ -113,6 +115,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(QtGui.QLabel(" "), 14, 0, 1, 3)
         self.layout.addWidget(self.btn7, 15, 0, 1, 3)
         self.layout.addWidget(self.imv, 0, 4, 16, 16)
+        
+        self.layout.addWidget(self.btn_small_roi, 2, 25, 1, 1)
 
         # button actions
         self.btn1.clicked.connect(self.importImage)
@@ -122,9 +126,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn5.clicked.connect(self.showVideo)
         self.btn6.clicked.connect(self.detectMaxima)
         self.btn7.clicked.connect(self.exportTraces)
+        
+        self.btn_small_roi.clicked.connect(self.create_small_ROI)
 
         # Create empty ROI
         self.roi = None
+        self.smallroi = None
 
         # Molecule ROI dictionary
         self.molRoi = dict()
@@ -141,9 +148,23 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.n = 0
 
         self.JPG = False
+
+    def create_small_ROI(self):
+#        if self.smallroi is None:
+        try:
+            roisize = int(self.moleculeSizeEdit.text())
+            self.smallroi = pg.ROI([0, 0], [roisize, roisize],
+                                   scaleSnap=True, translateSnap=True,
+                                   movable=True, removable=True)
+            self.imv.view.addItem(self.smallroi)
+            self.smallroi.sigRemoveRequested.connect(self.remove_small_ROI)
+            
+        except:
+            pass
+
     def createROI(self):
         if self.roi is None:
-            self.roi = pg.ROI([0, 0], [50, 50], scaleSnap=True, translateSnap=True)
+            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]], scaleSnap=True, translateSnap=True)
             self.roi.addScaleHandle([1, 1], [0, 0])
             self.roi.addScaleHandle([0, 0], [1, 1])
             self.imv.view.addItem(self.roi)
@@ -289,15 +310,23 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         toerase = np.sort(np.append(nomaxlow, nomaxhigh))
         maxindex = np.delete(aux,toerase)
 
-        print(len(goodmax), "points findede")
+        print(len(goodmax), "points finded")
 
         self.maxnumber = np.size(self.maximacoord[maxindex], 0)
         for i in np.arange(0, self.maxnumber):
             
             # Translates molRoi to particle center
             corrMaxima = np.flip(self.maximacoord[maxindex[i]], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
-            self.molRoi[i,0] = pg.ROI(corrMaxima, self.roiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
-            self.bgRoi[i,0] = pg.ROI((corrMaxima - [1, 1]), self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
+            self.molRoi[i,0] = pg.ROI(corrMaxima, self.roiSize,
+                                                           scaleSnap=True,
+                                                           translateSnap=True,
+                                                           movable=False,
+                                                           removable=True)
+            self.bgRoi[i,0] = pg.ROI((corrMaxima - [1, 1]), self.bgroiSize,
+                                                          scaleSnap=True,
+                                                          translateSnap=True,
+                                                          movable=False,
+                                                          removable=True)
             self.molRoi[i,1] = pg.ROI(corrMaxima - [0, int(self.channelDifferenceEdit.text())], self.roiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
             self.bgRoi[i,1] = pg.ROI(corrMaxima - [1, 1] - [0, int(self.channelDifferenceEdit.text())], self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
             self.imv.view.addItem(self.molRoi[i,0])
@@ -317,6 +346,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.label[i,1].setPos(self.molRoi[i,1].pos())
             self.imv.view.addItem(self.label[i,0])
 #            self.imv.view.addItem(self.label[i,1])
+        self.Nparticles = self.maxnumber
 
     def relabel_ROI(self):
         p = 0
@@ -329,9 +359,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 self.label[i,0].setPos(self.molRoi[i,0].pos())
                 self.imv.view.addItem(self.label[i,0])
                 p+=1
+        self.Nparticles = p-1
 
     def remove_ROI(self,evt):
-#        print("REmove_ROI", evt)
+        print("Remove_ROI")
         for i in np.arange(0, self.maxnumber):
             if self.bgRoi[i,0] == evt or self.molRoi[i,0] == evt:
 #                print("Removed Roi",i)
@@ -347,6 +378,9 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #        print(self.bgRoi[0,0],"bgRoi0")
 
         self.relabel_ROI()
+
+    def remove_small_ROI(self, evt):
+        self.imv.view.scene().removeItem(evt)
 
     def deleteMaxima(self):
         for i in np.arange(0, self.maxnumber):
