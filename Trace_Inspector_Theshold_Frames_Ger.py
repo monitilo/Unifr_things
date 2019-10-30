@@ -154,7 +154,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         layout.addWidget(self.histo_window,                 14,0,100, 100)
 
         
-        layout.addWidget(self.labelmax,                    0,  6, 1, 3)
+        layout.addWidget(self.labelmax,                    0,  15, 1, 3)
         layout.addWidget(self.labelstep,                   0, 55, 1, 3)
         layout.addWidget(self.labelmin,                    0, 90, 1, 3)
         layout.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
@@ -383,7 +383,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.selection[int(self.traceSlider.value()), 1] = -1
         self.colorgraph = (250, 150, 50)
 
-        self.selection[int(self.traceSlider.value()), 5] = self.stepintensity
+        self.selection[int(self.traceSlider.value()), 5] = 0
         print("BADselection traces")
         print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
         self.next_trace()
@@ -461,7 +461,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         try:
             self.histo_window.removeItem(self.plt1)
         except:
-            print("no no no...")
+            print("Create the histogram")
         
         vals = self.selection[:,5]
         self.plt1 = self.histo_window.addPlot()
@@ -485,11 +485,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         np.savetxt(folder+'/FILTERED_'+file_traces_name, filtered_traces)
         amount_goodTraces = (np.count_nonzero(self.selection[:, 1] == 1)/int(self.data.shape[1]))*100
         print('[Filtered Traces Saved]: Amount of Good Traces: '+str(amount_goodTraces)[0:3]+'%')
-        np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
-        np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
+#        np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
+#        np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
         np.savetxt(folder+'/selection_'+file_traces_name,self.selection)
+        print("[selection saved]")
 #        print(self.selection)
-        print('and, [Ton and Toff saved]')
+#        print('and, [Ton and Toff saved]')
 
         
 if __name__ == '__main__':

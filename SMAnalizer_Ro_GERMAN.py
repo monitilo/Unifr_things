@@ -46,7 +46,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(1800, 1500)
+        self.w.resize(1300, 800)
 
         # Create ImageView
         self.imv = pg.ImageView()
@@ -62,19 +62,19 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         # Create parameter fields with labels
         self.meanStartLabel = QtGui.QLabel('Start frame:')
-        self.meanStartEdit = QtGui.QLineEdit()
+        self.meanStartEdit = QtGui.QLineEdit('5')
         self.meanEndLabel = QtGui.QLabel('End frame:')
-        self.meanEndEdit = QtGui.QLineEdit()
+        self.meanEndEdit = QtGui.QLineEdit('15')
         self.maxDistLabel = QtGui.QLabel('Minimum distance:')
-        self.maxDistEdit = QtGui.QLineEdit()
+        self.maxDistEdit = QtGui.QLineEdit('3')
         self.maxThreshLabel = QtGui.QLabel('Threshold:')
-        self.maxThreshEdit = QtGui.QLineEdit()
+        self.maxThreshEdit = QtGui.QLineEdit('0')
         self.moleculeSizeLabel = QtGui.QLabel('Size (pix):')
-        self.moleculeSizeEdit = QtGui.QLineEdit()
+        self.moleculeSizeEdit = QtGui.QLineEdit('7')
         self.channelDifferenceLabel = QtGui.QLabel('Channel height difference (pixels):')
-        self.channelDifferenceEdit = QtGui.QLineEdit()
+        self.channelDifferenceEdit = QtGui.QLineEdit('0')
         self.channelCorrectionLabel = QtGui.QLabel('Secondary Channel Correction:')
-        self.channelCorrectionEdit = QtGui.QLineEdit()
+        self.channelCorrectionEdit = QtGui.QLineEdit('0')
 
         # Create a grid layout to manage the widgets size and position
         self.layout = QtGui.QGridLayout()
@@ -130,6 +130,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.molRoi = dict()
         self.bgRoi = dict()
         
+        self.removerois = []
         # ROI label dictionary
         self.label = dict()
 
@@ -142,7 +143,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.JPG = False
     def createROI(self):
         if self.roi is None:
-            self.roi = pg.ROI([0, 0], [10, 10], scaleSnap=True, translateSnap=True)
+            self.roi = pg.ROI([0, 0], [50, 50], scaleSnap=True, translateSnap=True)
             self.roi.addScaleHandle([1, 1], [0, 0])
             self.roi.addScaleHandle([0, 0], [1, 1])
             self.imv.view.addItem(self.roi)
@@ -295,41 +296,81 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             
             # Translates molRoi to particle center
             corrMaxima = np.flip(self.maximacoord[maxindex[i]], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
-            self.molRoi[i,0] = pg.ROI(corrMaxima, self.roiSize, scaleSnap=True, translateSnap=True, movable=False)
-            self.bgRoi[i,0] = pg.ROI((corrMaxima - [1, 1]), self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False)
-            self.molRoi[i,1] = pg.ROI(corrMaxima - [0, int(self.channelDifferenceEdit.text())], self.roiSize, scaleSnap=True, translateSnap=True, movable=False)
-            self.bgRoi[i,1] = pg.ROI(corrMaxima - [1, 1] - [0, int(self.channelDifferenceEdit.text())], self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False)
+            self.molRoi[i,0] = pg.ROI(corrMaxima, self.roiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
+            self.bgRoi[i,0] = pg.ROI((corrMaxima - [1, 1]), self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
+            self.molRoi[i,1] = pg.ROI(corrMaxima - [0, int(self.channelDifferenceEdit.text())], self.roiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
+            self.bgRoi[i,1] = pg.ROI(corrMaxima - [1, 1] - [0, int(self.channelDifferenceEdit.text())], self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
             self.imv.view.addItem(self.molRoi[i,0])
-            self.imv.view.addItem(self.molRoi[i,1])
+#            self.imv.view.addItem(self.molRoi[i,1])
             self.imv.view.addItem(self.bgRoi[i,0])
-            self.imv.view.addItem(self.bgRoi[i,1])
+#            self.imv.view.addItem(self.bgRoi[i,1])
             
+            self.molRoi[i,0].sigRemoveRequested.connect(self.remove_ROI)
+            self.bgRoi[i,0].sigRemoveRequested.connect(self.remove_ROI)
+#            self.molRoi[i,1].sigRemoveRequested.connect(self.remove_ROI)
+#            self.bgRoi[i,1].sigRemoveRequested.connect(self.remove_ROI)
+
             # Create ROI label
             self.label[i,0] = pg.TextItem(text=str(i))
             self.label[i,1] = pg.TextItem(text=str(i))
             self.label[i,0].setPos(self.molRoi[i,0].pos())
             self.label[i,1].setPos(self.molRoi[i,1].pos())
             self.imv.view.addItem(self.label[i,0])
-            self.imv.view.addItem(self.label[i,1])
+#            self.imv.view.addItem(self.label[i,1])
+
+    def relabel_ROI(self):
+        p = 0
+        for i in np.arange(0, self.maxnumber):
+            if i not in self.removerois:
+#                print(i,self.removerois)
+                self.imv.view.removeItem(self.label[i,0])
+                self.imv.view.removeItem(self.label[i,1])
+                self.label[i,0] = pg.TextItem(text=str(p))
+                self.label[i,0].setPos(self.molRoi[i,0].pos())
+                self.imv.view.addItem(self.label[i,0])
+                p+=1
+
+    def remove_ROI(self,evt):
+#        print("REmove_ROI", evt)
+        for i in np.arange(0, self.maxnumber):
+            if self.bgRoi[i,0] == evt or self.molRoi[i,0] == evt:
+#                print("Removed Roi",i)
+                index = i
+                self.removerois.append(index)
+        
+#        self.imv.view.scene().removeItem(evt)
+        self.imv.view.scene().removeItem(self.molRoi[index,0])
+        self.imv.view.scene().removeItem(self.bgRoi[index,0])
+        self.imv.view.scene().removeItem(self.label[index,0])
+#        print("\n")
+#        print(self.molRoi[0,0],"molRoi0")
+#        print(self.bgRoi[0,0],"bgRoi0")
+
+        self.relabel_ROI()
 
     def deleteMaxima(self):
         for i in np.arange(0, self.maxnumber):
-            self.imv.view.removeItem(self.molRoi[i,0])
-            self.imv.view.removeItem(self.molRoi[i,1])
-            self.imv.view.removeItem(self.bgRoi[i,0])
-            self.imv.view.removeItem(self.bgRoi[i,1])
-            self.imv.view.removeItem(self.label[i,0])
-            self.imv.view.removeItem(self.label[i,1])
-            del self.molRoi[i,0]
-            del self.molRoi[i,1]
-            del self.bgRoi[i,0]
-            del self.bgRoi[i,1]
-            del self.label[i,0]
-            del self.label[i,1]
+            try:
+                self.imv.view.removeItem(self.molRoi[i,0])
+                self.imv.view.removeItem(self.molRoi[i,1])
+                self.imv.view.removeItem(self.bgRoi[i,0])
+                self.imv.view.removeItem(self.bgRoi[i,1])
+                self.imv.view.removeItem(self.label[i,0])
+                self.imv.view.removeItem(self.label[i,1])
+                del self.molRoi[i,0]
+                del self.molRoi[i,1]
+                del self.bgRoi[i,0]
+                del self.bgRoi[i,1]
+                del self.label[i,0]
+                del self.label[i,1]
+            except IOError as e:
+                print("I/O error({0}): {1}".format(e.errno, e.strerror))
+                print("ya estaba borrado")
         self.molRoi = dict()
         self.bgRoi = dict()
         self.label = dict()
         self.maxnumber = 0
+        self.removerois = []
 
     def translateMaxima(self):
         for i in np.arange(0, self.maxnumber):
@@ -347,9 +388,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         bg = dict()
         bgNorm = dict()
         
+        j=0  # I justo kill the second trace
         # Create dict with traces
+        p=0
         for i in np.arange(0, self.maxnumber):
-            for j in np.arange(1):  # I justo kill the second trace
+            if i not in self.removerois:
+
                 
                 # get molecule array
                 molArray[i,j] = self.molRoi[i,j].getArrayRegion(self.data, self.imv.imageItem, axes=self.axes, returnMappedCoords=False)
@@ -363,7 +407,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 # get total background to substract from molecule traces
                 bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
 
-                self.trace[i,j] = np.sum(molArray[i,j], axis=self.axes) - bgNorm[i,j]
+                self.trace[p,j] = np.sum(molArray[i,j], axis=self.axes) - bgNorm[i,j]
+                p +=1 # I have to use this to have order because of removerois
 
 # =============================================================================
 #                 # Correct second channel by channel correction input
@@ -374,9 +419,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 # =============================================================================
         
         # Save traces as an array
-        a = []        
-        for i in self.trace.keys():  # NO TIENE ORDEN!!!! CAMBIAR
-            a.append(self.trace[i])
+#        a = []        
+#        for i in self.trace.keys():  # NO TIENE ORDEN!!!! CAMBIAR
+#            a.append(self.trace[i])
+
+        a = []
+        print("len", len(self.trace))
+        for p in range(len(self.trace)):
+            a.append(self.trace[p,j])
 
         b = np.array(a).T
         np.savetxt('traces' + str(self.n) + '.txt', b, delimiter="    ", newline='\r\n')
