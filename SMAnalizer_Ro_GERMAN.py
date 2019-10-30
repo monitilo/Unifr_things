@@ -149,6 +149,9 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.JPG = False
 
+    def algo(self):
+        print("a")
+
     def create_small_ROI(self):
 #        if self.smallroi is None:
         try:
@@ -158,6 +161,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                    movable=True, removable=True)
             self.imv.view.addItem(self.smallroi)
             self.smallroi.sigRemoveRequested.connect(self.remove_small_ROI)
+            self.smallroi.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
+            self.smallroi.sigClicked.connect(self.algo)
             
         except:
             pass
