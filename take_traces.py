@@ -95,7 +95,7 @@ for j in goodmax:
     plt.plot(coordinates[j, 1], coordinates[j, 0], 'b.')
 
 #%%
-roisize = 1
+roisize = 5  # es el doble de esto
 roi = dict()
 roi2 = dict()
 
@@ -114,7 +114,7 @@ for i in finalmax:
         roi[p].append(suming)
     except:
         deletear.append(p)
-        print("i",i,"p", p, "roi[i]", roi[i],deletear)
+        print("i",i,"p", p, "roi[i]", roi[p],deletear)
 #        deletear.append(i)
     p += 1
 
@@ -124,11 +124,234 @@ for d in deletear:
 
 
 for i in range(len(newcoordinateX)):
-    roi2[i] = np.sum(im[newcoordinateX[i]:newcoordinateX[i]+roisize+1, newcoordinateY[i]:newcoordinateY[i]+roisize+1])
-    roi2[i] += np.sum(im[newcoordinateX[i]-roisize:newcoordinateX[i]+1, newcoordinateY[i]-roisize:newcoordinateY[i]+1])
-    roi2[i] -= im[newcoordinateX[i],newcoordinateY[i]]
+#    roi2[i] = np.sum(im[newcoordinateX[i]:newcoordinateX[i]+roisize+1, newcoordinateY[i]:newcoordinateY[i]+roisize+1])
+#    roi2[i] += np.sum(im[newcoordinateX[i]-roisize:newcoordinateX[i], newcoordinateY[i]-roisize:newcoordinateY[i]])
+#    roi2[i] += np.sum(im[newcoordinateX[i]:newcoordinateX[i]+roisize+1, newcoordinateY[i]-roisize:newcoordinateY[i]])
+#    roi2[i] += np.sum(im[newcoordinateX[i]-roisize:newcoordinateX[i], newcoordinateY[i]:newcoordinateY[i]+roisize+1])
+    smallimup = np.concatenate((im[newcoordinateX[i]-roisize:newcoordinateX[i], newcoordinateY[i]-roisize:newcoordinateY[i]],
+                              im[newcoordinateX[i]-roisize:newcoordinateX[i], newcoordinateY[i]:newcoordinateY[i]+roisize]),
+                              axis=1)
+    smallimdown = np.concatenate((im[newcoordinateX[i]:newcoordinateX[i]+roisize, newcoordinateY[i]-roisize:newcoordinateY[i]],
+                                  im[newcoordinateX[i]:newcoordinateX[i]+roisize, newcoordinateY[i]:newcoordinateY[i]+roisize]),
+                                  axis=1)
+    smallim = np.concatenate((smallimup,smallimdown),axis=0)
+    roi2[i] = smallim
 
-print(roi[0],roi2[0])
+#print(roi[0],np.sum(roi2[0]))
+plt.imshow(roi2[2])
+
+# %%
+j=1
+N=10  # len(roi2)  # 132
+all_params = np.zeros((N,5))
+Rsquared = np.zeros((N))
+for j in range(N):
+    data = np.transpose(roi2[j])
+    params = fitgaussian(data)
+    fit = gaussian(*params)
+    new_params = fitgaussian(roi2[j])
+    all_params[j] = new_params
+    (height, x, y, width_x, width_y) = new_params
+    print("j=",j," \n new_params", new_params)
+    
+    xv = np.linspace(0, roisize*2, roisize*2)
+    yv = np.linspace(0, roisize*2, roisize*2)
+    xy_mesh = np.meshgrid(xv, yv)
+    X, Y = np.meshgrid(xv, yv)
+    #fig, ax = plt.subplots()
+    #p = ax.pcolor(X, Y, np.transpose(roi2[j]), cmap=plt.cm.jet)
+    #fig.colorbar(p)
+    #ax.set_xlabel('x [um]')
+    #ax.set_ylabel('y [um]')
+    
+    
+    #xg = int(np.floor(x))
+    #yg = int(np.floor(y))
+    #
+    #resol = 2
+    #xsum, ysum = 0, 0
+    #for i in range(resol):
+    #    for j in range(resol):
+    #        ax.text(X[xg+i, yg+j], Y[xg+i, yg+j], "Ga", color='m')
+    ##                    ax.text(X2[xc+i, yc+j], Y2[xc+i, yc+j], "Ga", color='m')
+    #        xsum = X[xg+i, yg+j] + xsum
+    #        ysum = Y[xg+i, yg+j] + ysum
+    #xmean = xsum / (resol**2)
+    #ymean = ysum / (resol**2)
+    #ax.text(xmean, ymean, "✔", color='r')
+    #ax.set_title("Centro en x={:.3f}, y={:.3f}".format(xmean, ymean))
+    #plt.text(0.95, 0.05, """
+    #        x : %.1f
+    #        y : %.1f """ % (X[xg, yg], Y[xg, yg]),
+    #         fontsize=16, horizontalalignment='right',
+    #         verticalalignment='bottom', transform=ax.transAxes)
+    
+    
+    
+    
+    plt.matshow(data, cmap=plt.cm.gist_earth_r, origin='lower',
+                            interpolation='none',
+                            extent=[xv[0], xv[-1], yv[0], yv[-1]])
+    plt.colorbar()
+    plt.grid(True)
+    plt.contour(fit(*np.indices(data.shape)),
+                cmap=plt.cm.copper, interpolation='none',
+                extent=[xv[0], xv[-1], yv[0], yv[-1]])
+    ax = plt.gca()
+    (height, x, y, width_x, width_y) = params
+    
+    xc = int(np.floor(x))
+    yc = int(np.floor(y))
+    resol = 2
+    xsum, ysum = 0, 0
+    for i in range(resol):
+        for j in range(resol):
+    #        ax.text(X[xc+i, yc+j], Y[xc+i, yc+j], "Ga", color='m')
+            try:
+                xsum = X[xc+i, yc+j] + xsum
+                ysum = Y[xc+i, yc+j] + ysum
+            except:
+                pass
+                
+    xmean = xsum / (resol**2)
+    ymean = ysum / (resol**2)
+    ax.text(xmean, ymean, "✔", color='r')
+    #            Normal = self.scanRange / self.numberofPixels  # Normalizo
+    #            ax.set_title((self.xcm*Normal + float(initPos[0]),
+    #                          self.ycm*Normal + float(initPos[1])))
+    #plt.text(0.95, 0.05, """x : %.2f y : %.2f """
+    #         % (xmean, ymean),  # X[xc, yc], Y[xc, yc]
+    #         fontsize=16, horizontalalignment='right',
+    #         verticalalignment='bottom', transform=ax.transAxes)
+    #print("x", xv[int(x)], X[xc, yc], xmean)
+    #            Normal = self.scanRange / self.numberofPixels  # Normalizo
+    ax.set_title("Centro en x={:.3f}, y={:.3f}".format(xmean, ymean))
+    plt.show()
+
+    # manually calculate R-squared goodness of fit
+#    fit_residual = roi2[j] - gaussian_2d(xy_mesh, *new_params).reshape(np.outer(xv,yv).shape)
+#    print(fit_residual)
+#    Rsquared[j] = 1 - np.var(fit_residual)/np.var(roi2[j])
+
+print(all_params[0,:])  # (height, x, y, width_x, width_y)
+plt.figure("aaaaa")
+c = ['k', 'b', 'r', 'c', 'm']
+labeled = ['height', 'x', 'y', 'width_x', 'width_y']
+for l in range(3,len(all_params[0,:])):
+    plt.plot(all_params[:,l], '*-', color=c[l], label=labeled[l])
+plt.grid()
+plt.legend()
+plt.show()
+
+#plt.figure("R2")
+#plt.plot(Rsquared, '.-r')
+
+#%% Another way to 2d gauss fit. Do not like it
+
+fit_params = np.zeros((N,5))
+fit_Rsquared = np.zeros((N))
+fit_errors = np.zeros((N,5))
+l=2
+for l in range(N):
+    xv = np.linspace(0, roisize*2, roisize*2)
+    yv = np.linspace(0, roisize*2, roisize*2)
+    xy_mesh = np.meshgrid(xv, yv)
+    (X,Y) = np.meshgrid(xv, yv)
+    
+    amp = all_params[l,0]
+    xc, yc = all_params[l,1], all_params[l,2]
+    sigma_x, sigma_y = all_params[l,3], all_params[l,4]
+    
+    # define some initial guess values for the fit routine
+    #guess_vals = [all_params[l,0], all_params[l,1], all_params[l,2], all_params[l,3], all_params[l,4]]
+    guess_vals = [amp, xc, yc, sigma_x, sigma_y]
+     
+    # perform the fit, making sure to flatten the noisy data for the fit routine 
+    fit_params[l], cov_mat = curve_fit(gaussian_2d, xy_mesh, np.ravel(roi2[l]), p0=guess_vals)
+
+    # calculate fit parameter errors from covariance matrix
+    fit_errors = np.sqrt(np.diag(cov_mat)) 
+     
+    # manually calculate R-squared goodness of fit
+    fit_residual = roi2[l] - gaussian_2d(xy_mesh, *fit_params[l]).reshape(np.outer(xv,yv).shape)
+    fit_Rsquared[l] = 1 - np.var(fit_residual)/np.var(roi2[l])
+
+    print('Fit R-squared:', fit_Rsquared[l], '\n')
+    print('Fit Amplitude:', fit_params[l][0], '\u00b1', fit_errors[0])
+    print('Fit X-Center: ', fit_params[l][1], '\u00b1', fit_errors[1])
+    print('Fit Y-Center: ', fit_params[l][2], '\u00b1', fit_errors[2])
+    print('Fit X-Sigma:  ', fit_params[l][3], '\u00b1', fit_errors[3])
+    print('Fit Y-Sigma:  ', fit_params[l][4], '\u00b1', fit_errors[4])
+    
+    
+    # set contour levels out to 3 sigma
+    sigma_x_pts = xc + [sigma_x, 2*sigma_x, 3*sigma_x]
+    sigma_y_pts = yc + [sigma_y, 2*sigma_y, 3*sigma_y]
+    sigma_xy_mesh = np.meshgrid(sigma_x_pts, sigma_y_pts)
+    
+    contour_levels = gaussian_2d(sigma_xy_mesh, amp, xc, yc, 
+                                 sigma_x, sigma_y).reshape(sigma_xy_mesh[0].shape)
+    contour_levels = list(np.diag(contour_levels)[::-1])
+     
+
+    # make labels for each contour
+    labels = {}
+    label_txt = [r'$3\sigma$', r'$2\sigma$', r'$1\sigma$']
+    for level, label in zip(contour_levels, label_txt):
+        labels[level] = label
+     
+    # plot the function with noise added
+    plt.figure(figsize=(6,6))
+    plt.title('probability coverage')
+    plt.imshow(np.transpose(roi2[l]), origin='lower')
+    CS = plt.contour(roi2[l], levels=contour_levels, colors=['red', 'orange', 'white'])
+    plt.clabel(CS, fontsize=16, inline=1, fmt=labels)
+    plt.grid(visible=False)
+
+    ax = plt.gca()
+    xc = int(np.floor(fit_params[l][1]))
+    yc = int(np.floor(fit_params[l][2]))
+    resol = 2
+    xsum, ysum = 0, 0
+    for i in range(resol):
+        for j in range(resol):
+    #        ax.text(X[xc+i, yc+j], Y[xc+i, yc+j], "Ga", color='m')
+            xsum = X[xc+i, yc+j] + xsum
+            ysum = Y[xc+i, yc+j] + ysum
+    xmean = xsum / (resol**2)
+    ymean = ysum / (resol**2)
+    ax.text(xmean, ymean, "✔", color='r')
+    
+    plt.show()
+
+plt.figure("aaaa")
+c = ['k', 'b', 'r', 'c', 'm']
+labeled = ['Amplitude', 'x-center', 'y-center', 'x-Sigma', 'Y-sigma']
+for l in range(1,len(fit_params[0,:])):
+    plt.plot(fit_params[:,l], '*-', color=c[l], label=labeled[l])
+plt.grid()
+plt.legend()
+plt.show()
+
+plt.figure("R2")
+plt.plot(fit_Rsquared, 'o-g',label="R2")
+
+#%%
+import math as mth
+import numpy as np
+from scipy.optimize import curve_fit
+from lmfit import Model
+
+def gaussian_2d(xy_mesh, amp, xc, yc, sigma_x, sigma_y):
+    
+    # unpack 1D list into 2D x and y coords
+    (x, y) = xy_mesh
+    
+    # make the 2D Gaussian matrix
+    gauss = amp*np.exp(-((x-xc)**2/(2*sigma_x**2)+(y-yc)**2/(2*sigma_y**2)))/(2*np.pi*sigma_x*sigma_y)
+    
+    # flatten the 2D Gaussian down to 1D
+    return np.ravel(gauss)
 
 #%%
 from scipy.signal import convolve2d
