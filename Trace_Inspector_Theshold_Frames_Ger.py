@@ -188,8 +188,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
     def Quickanddirtystart(self):
         self.timing = 0
         self.Quickanddirtytimer.start(10)  # imput in ms
-        print("♫ Fuck it all ♫ ")
-        print("cnumber of traces to check", self.data.shape[1])
+        print("number of traces to check :", self.data.shape[1])
 
     def Quickanddirty(self):
         self.calculate_max_min()
@@ -200,7 +199,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.timing+=1
         if self.timing == self.data.shape[1]-1:
             self.Quickanddirtytimer.stop()
-            print("Quick and dirty finished")
+            print(" automatic analysis finished")
         
     def updatelr(self):
         self.lrmax.setZValue(10)
