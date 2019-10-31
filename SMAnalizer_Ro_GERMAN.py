@@ -34,6 +34,10 @@ from skimage.feature import peak_local_max
 import pyqtgraph.exporters
 
 from scipy import ndimage as ndi
+from scipy import optimize
+
+
+import time as time
 
 class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
@@ -72,7 +76,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.maxThreshLabel = QtGui.QLabel('Threshold:')
         self.maxThreshEdit = QtGui.QLineEdit('0')
         self.moleculeSizeLabel = QtGui.QLabel('Size (pix):')
-        self.moleculeSizeEdit = QtGui.QLineEdit('7')
+        self.moleculeSizeEdit = QtGui.QLineEdit('8')
         self.channelDifferenceLabel = QtGui.QLabel('Channel height difference (pixels):')
         self.channelDifferenceEdit = QtGui.QLineEdit('0')
         self.channelCorrectionLabel = QtGui.QLabel('Secondary Channel Correction:')
@@ -127,7 +131,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn6.clicked.connect(self.detectMaxima)
         self.btn7.clicked.connect(self.exportTraces)
         
-        self.btn_small_roi.clicked.connect(self.create_small_ROI)
+#        self.btn_small_roi.clicked.connect(self.create_small_ROI)
+        self.btn_small_roi.clicked.connect(self.gaussian_fit_ROI)
 
         # Create empty ROI
         self.roi = None
@@ -169,7 +174,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def createROI(self):
         if self.roi is None:
-            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]], scaleSnap=True, translateSnap=True)
+            self.roi = pg.ROI([0, 0], [70, 70] , scaleSnap=True, translateSnap=True)  # [self.data.shape[2], self.data.shape[1]]
             self.roi.addScaleHandle([1, 1], [0, 0])
             self.roi.addScaleHandle([0, 0], [1, 1])
             self.imv.view.addItem(self.roi)
@@ -338,7 +343,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #            self.imv.view.addItem(self.molRoi[i,1])
             self.imv.view.addItem(self.bgRoi[i,0])
 #            self.imv.view.addItem(self.bgRoi[i,1])
-            
+
+
             self.molRoi[i,0].sigRemoveRequested.connect(self.remove_ROI)
             self.bgRoi[i,0].sigRemoveRequested.connect(self.remove_ROI)
 #            self.molRoi[i,1].sigRemoveRequested.connect(self.remove_ROI)
@@ -352,6 +358,43 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.imv.view.addItem(self.label[i,0])
 #            self.imv.view.addItem(self.label[i,1])
         self.Nparticles = self.maxnumber
+
+    def gaussian_fit_ROI(self):
+        # get molecule array
+        molArray = dict()
+        self.newRoi = dict()
+        j=0
+        i=1
+        print("start gaussian")
+        print(len(self.molRoi)//2)
+        for i in range(len(self.molRoi)//2):
+            molArray[i,j] = self.molRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
+            print("i= ", i)
+            data = np.transpose(molArray[i,j])
+            params = fitgaussian(data)
+            fit = gaussian(*params)
+            new_params = fitgaussian(molArray[i,j])
+    #        all_params[j] = new_params
+            (height, x, y, width_x, width_y) = new_params
+            print("\n new_params \n",
+                                     "[amplitude, x, y, Sigma_x, sigma_y] \n",
+                                     new_params)
+            print(self.roiSize, np.round(x),np.round(y))
+            newx = np.round(x)-self.roiSize[0]//2
+            newy = np.round(y)-self.roiSize[1]//2
+            print(self.molRoi[i,j].pos())
+            originx =  self.molRoi[i,j].pos()[0]
+            originy =  self.molRoi[i,j].pos()[1]
+#            self.molRoi[i,0].translate([newy, newx])
+            self.newRoi[i] = pg.ROI([originx+newx,originy+newy], self.roiSize, pen='m',
+                                                           scaleSnap=True,
+                                                           translateSnap=True,
+                                                           movable=False,
+                                                           removable=True)
+            self.imv.view.addItem(self.newRoi[i])
+            print("Created new roi",i, "to", [newy, newx],"\n")
+            if width_x > 6 or width_y > 6:
+                self.newRoi[i].setPen('r')
 
     def relabel_ROI(self):
         p = 0
@@ -493,6 +536,43 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #     exporter.export('image_'+str(i)+'.png')
 #         
 # =============================================================================
+
+# %% Functions to make the Gauss fit
+def gaussian(height, center_x, center_y, width_x, width_y):
+    """Returns a gaussian function with the given parameters"""
+    width_x = float(width_x)
+    width_y = float(width_y)
+    return lambda x, y: height*np.exp(
+                -(((center_x-x)/width_x)**2+((center_y-y)/width_y)**2)/2)
+
+
+def moments(data):
+    """Returns (height, x, y, width_x, width_y)
+    the gaussian parameters of a 2D distribution by calculating its
+    moments """
+    total = data.sum()
+    X, Y = np.indices(data.shape)
+    x = (X*data).sum()/total
+    y = (Y*data).sum()/total
+    col = data[:, int(y)]
+    width_x = np.sqrt(np.abs((np.arange(col.size)-y)**2*col).sum()/col.sum())
+    row = data[int(x), :]
+    width_y = np.sqrt(np.abs((np.arange(row.size)-x)**2*row).sum()/row.sum())
+    height = data.max()
+    return height, x, y, width_x, width_y
+
+
+def fitgaussian(data):
+
+    """Returns (height, x, y, width_x, width_y)
+    the gaussian parameters of a 2D distribution found by a fit"""
+    params = moments(data)
+    errorfunction = lambda p: np.ravel(gaussian(*p)(*np.indices(data.shape)) -
+                                       data)
+    p, success = optimize.leastsq(errorfunction, params)
+    return p
+
+# %% END... Its a neverending story ♪♫
 if __name__ == '__main__':
 
     app = pg.Qt.QtGui.QApplication([])
