@@ -156,7 +156,7 @@ for d in deletear:
     print("dddddeletearrrrr", d)
     del roi[d]
 
-nocenterx = 0
+nocenterx = 3
 nocentery = 0
 p=0
 for i in range(len(newcoordinateX)):
@@ -222,7 +222,7 @@ for j in range(N):
     xsum, ysum = 0, 0
     for i in range(resol):
         for j in range(resol):
-    #        ax.text(X[xc+i, yc+j], Y[xc+i, yc+j], "Ga", color='m')
+            ax.text(X[xc+i, yc+j], Y[xc+i, yc+j], "Ga", color='m')
             try:
                 xsum = X[xc+i, yc+j] + xsum
                 ysum = Y[xc+i, yc+j] + ysum
@@ -232,6 +232,7 @@ for j in range(N):
     xmean = xsum / (resol**2)
     ymean = ysum / (resol**2)
     ax.text(xmean, ymean, "✔", color='r')
+#    ax.text(x, y, "◙", color='m')
     #            Normal = self.scanRange / self.numberofPixels  # Normalizo
     #            ax.set_title((self.xcm*Normal + float(initPos[0]),
     #                          self.ycm*Normal + float(initPos[1])))
@@ -241,7 +242,7 @@ for j in range(N):
     #         verticalalignment='bottom', transform=ax.transAxes)
     #print("x", xv[int(x)], X[xc, yc], xmean)
     #            Normal = self.scanRange / self.numberofPixels  # Normalizo
-    ax.set_title("Centro en x={:.3f}, y={:.3f}".format(xmean, ymean))
+    ax.set_title("Centro en x={:.3f}, y={:.3f}".format(x,y))
     plt.show()
 
 print(all_params[0,:])  # (height, x, y, width_x, width_y)

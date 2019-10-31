@@ -65,6 +65,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn7 = QtGui.QPushButton('Export Traces')
 
         self.btn_small_roi = QtGui.QPushButton('New small ROI')
+        self.btn_gauss_fit = QtGui.QPushButton('Gaussian Fit')
+        self.btn_filter_bg = QtGui.QPushButton('Filter bg')
+
+        self.gauss_fit_label = QtGui.QLabel('threshold to sigma:')
+        self.gauss_fit_edit = QtGui.QLineEdit('6')
+        self.gauss_fit_edit.setFixedWidth(30)
 
         # Create parameter fields with labels
         self.meanStartLabel = QtGui.QLabel('Start frame:')
@@ -76,7 +82,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.maxThreshLabel = QtGui.QLabel('Threshold:')
         self.maxThreshEdit = QtGui.QLineEdit('0')
         self.moleculeSizeLabel = QtGui.QLabel('Size (pix):')
-        self.moleculeSizeEdit = QtGui.QLineEdit('8')
+        self.moleculeSizeEdit = QtGui.QLineEdit('9')
         self.channelDifferenceLabel = QtGui.QLabel('Channel height difference (pixels):')
         self.channelDifferenceEdit = QtGui.QLineEdit('0')
         self.channelCorrectionLabel = QtGui.QLabel('Secondary Channel Correction:')
@@ -120,7 +126,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.btn7, 15, 0, 1, 3)
         self.layout.addWidget(self.imv, 0, 4, 16, 16)
         
-        self.layout.addWidget(self.btn_small_roi, 2, 25, 1, 1)
+        self.layout.addWidget(self.btn_small_roi, 3, 25, 1, 1)
+
+        self.layout.addWidget(self.gauss_fit_label, 5, 25, 1, 1)
+        self.layout.addWidget(self.gauss_fit_edit, 6, 25, 1, 1)
+        self.layout.addWidget(self.btn_gauss_fit, 7, 25, 1, 1)
+        self.layout.addWidget(self.btn_filter_bg, 9, 25, 1, 1)
+
+
 
         # button actions
         self.btn1.clicked.connect(self.importImage)
@@ -131,8 +144,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn6.clicked.connect(self.detectMaxima)
         self.btn7.clicked.connect(self.exportTraces)
         
-#        self.btn_small_roi.clicked.connect(self.create_small_ROI)
-        self.btn_small_roi.clicked.connect(self.gaussian_fit_ROI)
+        self.btn_small_roi.clicked.connect(self.create_small_ROI)
+        self.btn_gauss_fit.clicked.connect(self.gaussian_fit_ROI)
+        self.btn_filter_bg.clicked.connect(self.filter_bg)
+
+        
 
         # Create empty ROI
         self.roi = None
@@ -155,7 +171,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.JPG = False
 
     def algo(self):
-        print("a")
+        print("\n YOU POINT MEE", self.smallroi.pos(), "\n")
+
 
     def create_small_ROI(self):
 #        if self.smallroi is None:
@@ -315,10 +332,9 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         aux = np.arange(len(maxvalues))
         goodmax = np.delete(aux,nomaxlow)
         
-        nomaxhigh = np.where(np.array(maxvalues) > 1.5*np.mean(np.array(maxvalues)[goodmax]))
-        
-        toerase = np.sort(np.append(nomaxlow, nomaxhigh))
-        maxindex = np.delete(aux,toerase)
+#        nomaxhigh = np.where(np.array(maxvalues) > 1.5*np.mean(np.array(maxvalues)[goodmax]))
+#        toerase = np.sort(np.append(nomaxlow, nomaxhigh))
+        maxindex = goodmax  # np.delete(aux,toerase)   NOT Nice for now
 
         print(len(goodmax), "points finded")
 
@@ -359,8 +375,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #            self.imv.view.addItem(self.label[i,1])
         self.Nparticles = self.maxnumber
 
+    def filter_bg(self):
+        print("coming soon")
+
     def gaussian_fit_ROI(self):
-        # get molecule array
+        self.remove_gauss_ROI()
+
         molArray = dict()
         self.newRoi = dict()
         j=0
@@ -372,7 +392,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             print("i= ", i)
             data = np.transpose(molArray[i,j])
             params = fitgaussian(data)
-            fit = gaussian(*params)
+#            fit = gaussian(*params)
             new_params = fitgaussian(molArray[i,j])
     #        all_params[j] = new_params
             (height, x, y, width_x, width_y) = new_params
@@ -380,21 +400,30 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                      "[amplitude, x, y, Sigma_x, sigma_y] \n",
                                      new_params)
             print(self.roiSize, np.round(x),np.round(y))
-            newx = np.round(x)-self.roiSize[0]//2
-            newy = np.round(y)-self.roiSize[1]//2
+            newx = x-self.roiSize[0]//2 + 0.5
+            newy = y-self.roiSize[1]//2 + 0.5
             print(self.molRoi[i,j].pos())
             originx =  self.molRoi[i,j].pos()[0]
             originy =  self.molRoi[i,j].pos()[1]
 #            self.molRoi[i,0].translate([newy, newx])
-            self.newRoi[i] = pg.ROI([originx+newx,originy+newy], self.roiSize, pen='m',
+            self.newRoi[i] = pg.ROI([originx+newy,originy+newx], self.roiSize, pen='m',
                                                            scaleSnap=True,
                                                            translateSnap=True,
                                                            movable=False,
                                                            removable=True)
             self.imv.view.addItem(self.newRoi[i])
             print("Created new roi",i, "to", [newy, newx],"\n")
-            if width_x > 6 or width_y > 6:
+            threshold_sigma = float(self.gauss_fit_edit.text())
+            if width_x > threshold_sigma or width_y > threshold_sigma:
                 self.newRoi[i].setPen('r')
+
+    def remove_gauss_ROI(self):
+        try:
+            for i in range(len(self.newRoi)):
+                self.imv.view.removeItem(self.newRoi[i])
+                del self.newRoi[i]
+        except:
+            pass
 
     def relabel_ROI(self):
         p = 0
@@ -431,6 +460,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.imv.view.scene().removeItem(evt)
 
     def deleteMaxima(self):
+        self.remove_gauss_ROI()
         for i in np.arange(0, self.maxnumber):
             try:
                 self.imv.view.removeItem(self.molRoi[i,0])
