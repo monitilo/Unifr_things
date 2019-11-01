@@ -50,7 +50,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(1300, 800)
+        self.w.resize(1800, 1200)
 
         # Create ImageView
         self.imv = pg.ImageView()
@@ -191,7 +191,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def createROI(self):
         if self.roi is None:
-            self.roi = pg.ROI([0, 0], [70, 70] , scaleSnap=True, translateSnap=True)  # [self.data.shape[2], self.data.shape[1]]
+            self.roi = pg.ROI([0, 0], [self.data.shape[2]*0.3, self.data.shape[1]*0.3] , scaleSnap=True, translateSnap=True)  # [70, 70]
             self.roi.addScaleHandle([1, 1], [0, 0])
             self.roi.addScaleHandle([0, 0], [1, 1])
             self.imv.view.addItem(self.roi)
@@ -263,8 +263,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
             self.start = int(self.meanStartEdit.text())
             self.end = int(self.meanEndEdit.text())
+            print("z", z[self.start:self.start+self.end, :, :].shape)
             z = z[self.start:self.start+self.end, :, :]
+            
             self.mean = np.mean(z, axis=0)
+            print("mean",self.mean.shape)
         else:
             self.mean = z 
 
@@ -376,7 +379,44 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.Nparticles = self.maxnumber
 
     def filter_bg(self):
-        print("coming soon")
+        print("working on it")
+
+#        self.suma = dict()
+        molArray = dict()
+        bgArray = dict()
+        bg = dict()
+        bgNorm = dict()
+        bgArray = dict()
+        j=0
+        p=0
+        suma = []
+        for i in np.arange(0, self.maxnumber):
+            if i not in self.removerois:
+
+                
+                # get molecule array
+                molArray[i,j] = self.molRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
+
+                # get background plus molecule array
+                bgArray[i,j] = self.bgRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
+                print("\n i", i, "mrean", np.mean(bgArray[i,j]))
+                print("max",np.max(bgArray[i,j]), "min",np.min(bgArray[i,j]))
+                print("resta", np.max(bgArray[i,j])-np.min(bgArray[i,j]))
+
+                # get background array
+                bg[i,j] = np.sum(bgArray[i,j]) - np.sum(molArray[i,j])
+
+                # get total background to substract from molecule traces
+                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+
+                suma.append(bgNorm[i,j])  # np.sum(molArray[i,j]) - 
+
+                p +=1 # I have to use this to have order because of removerois
+        for i in range(len(suma)):
+#            print("i",i,"\n suma",suma[i])
+#            print("mean", np.mean(suma))
+            if suma[i] > np.mean(suma):
+                self.bgRoi[i,j].setPen('r')
 
     def gaussian_fit_ROI(self):
         self.remove_gauss_ROI()
