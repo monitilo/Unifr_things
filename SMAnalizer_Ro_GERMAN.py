@@ -50,7 +50,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(1800, 1200)
+        self.w.resize(2200, 1200)
 
         # Create ImageView
         self.imv = pg.ImageView()
@@ -157,11 +157,16 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Molecule ROI dictionary
         self.molRoi = dict()
         self.bgRoi = dict()
+        self.new_roi = dict()
+        self.new_roi_bg = dict()
         
         self.removerois = []
+        self.removed_new_rois = []
+
         # ROI label dictionary
         self.label = dict()
-
+        self.new_label = dict()
+        
         # Initial number of maximums detected
         self.maxnumber = 0
         
@@ -170,8 +175,62 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.JPG = False
 
-    def algo(self):
-        print("\n YOU POINT MEE", self.smallroi.pos(), "\n")
+        self.new_i = 0
+
+    def small_ROI_to_new_ROI(self):
+        print("\n YOU POINT MEE \n")
+        self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
+        self.bgroiSize = np.array(self.roiSize) + 2  # one pixel each side
+
+        i = self.new_i
+        self.new_roi[i] = pg.ROI(self.smallroi.pos(), self.roiSize,
+                                                       scaleSnap=True,
+                                                       translateSnap=True,
+                                                       movable=False,
+                                                       removable=True)
+        self.new_roi_bg[i] = pg.ROI((self.smallroi.pos() - [1, 1]), self.bgroiSize,
+                                                          scaleSnap=True,
+                                                          translateSnap=True,
+                                                          movable=False,
+                                                          removable=True) 
+        self.imv.view.addItem(self.new_roi[i])
+        self.imv.view.addItem(self.new_roi_bg[i])
+
+        self.new_roi[i].sigRemoveRequested.connect(self.remove_new_ROI)
+        self.new_roi_bg[i].sigRemoveRequested.connect(self.remove_new_ROI)
+
+        self.new_label[i] = pg.TextItem(text="new_"+str(i))
+        self.new_label[i].setPos(self.new_roi[i].pos())
+        self.imv.view.addItem(self.new_label[i])
+        
+        self.new_i = i + 1
+        self.relabel_new_ROI()
+
+    def remove_new_ROI(self,evt):
+        print("Remove_NEW_roi")
+        for i in range(len(self.new_roi)):
+            if self.new_roi[i] == evt or self.new_roi_bg[i] == evt:
+                index = i
+                self.removed_new_rois.append(index)
+        
+        self.imv.view.scene().removeItem(self.new_roi[index])
+        self.imv.view.scene().removeItem(self.new_roi_bg[index])
+        self.imv.view.scene().removeItem(self.new_label[index])
+
+
+        self.relabel_new_ROI()
+
+    def relabel_new_ROI(self):
+        p = 0
+        for i in range(len(self.new_roi)):
+            if i not in self.removed_new_rois:
+#                print(i,self.removerois)
+                self.imv.view.removeItem(self.new_label[i])
+                self.new_label[i] = pg.TextItem(text="new_"+str(p))
+                self.new_label[i].setPos(self.new_roi[i].pos())
+                self.imv.view.addItem(self.new_label[i])
+                p+=1
+#        self.Nparticles = p-1
 
 
     def create_small_ROI(self):
@@ -180,11 +239,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             roisize = int(self.moleculeSizeEdit.text())
             self.smallroi = pg.ROI([0, 0], [roisize, roisize],
                                    scaleSnap=True, translateSnap=True,
-                                   movable=True, removable=True)
+                                   movable=True, removable=True, pen='g')
             self.imv.view.addItem(self.smallroi)
             self.smallroi.sigRemoveRequested.connect(self.remove_small_ROI)
             self.smallroi.setAcceptedMouseButtons(QtCore.Qt.LeftButton)
-            self.smallroi.sigClicked.connect(self.algo)
+            self.smallroi.sigClicked.connect(self.small_ROI_to_new_ROI)
             
         except:
             pass
@@ -376,7 +435,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.label[i,1].setPos(self.molRoi[i,1].pos())
             self.imv.view.addItem(self.label[i,0])
 #            self.imv.view.addItem(self.label[i,1])
-        self.Nparticles = self.maxnumber
+#        self.Nparticles = self.maxnumber
 
     def filter_bg(self):
         print("working on it")
@@ -393,7 +452,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         for i in np.arange(0, self.maxnumber):
             if i not in self.removerois:
 
-                
                 # get molecule array
                 molArray[i,j] = self.molRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
 
@@ -450,7 +508,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                                            scaleSnap=True,
                                                            translateSnap=True,
                                                            movable=False,
-                                                           removable=True)
+                                                           removable=False)
             self.imv.view.addItem(self.newRoi[i])
             print("Created new roi",i, "to", [newy, newx],"\n")
             threshold_sigma = float(self.gauss_fit_edit.text())
@@ -464,19 +522,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 del self.newRoi[i]
         except:
             pass
-
-    def relabel_ROI(self):
-        p = 0
-        for i in np.arange(0, self.maxnumber):
-            if i not in self.removerois:
-#                print(i,self.removerois)
-                self.imv.view.removeItem(self.label[i,0])
-                self.imv.view.removeItem(self.label[i,1])
-                self.label[i,0] = pg.TextItem(text=str(p))
-                self.label[i,0].setPos(self.molRoi[i,0].pos())
-                self.imv.view.addItem(self.label[i,0])
-                p+=1
-        self.Nparticles = p-1
 
     def remove_ROI(self,evt):
         print("Remove_ROI")
@@ -495,6 +540,19 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #        print(self.bgRoi[0,0],"bgRoi0")
 
         self.relabel_ROI()
+
+    def relabel_ROI(self):
+        p = 0
+        for i in np.arange(0, self.maxnumber):
+            if i not in self.removerois:
+#                print(i,self.removerois)
+                self.imv.view.removeItem(self.label[i,0])
+                self.imv.view.removeItem(self.label[i,1])
+                self.label[i,0] = pg.TextItem(text=str(p))
+                self.label[i,0].setPos(self.molRoi[i,0].pos())
+                self.imv.view.addItem(self.label[i,0])
+                p+=1
+#        self.Nparticles = p-1
 
     def remove_small_ROI(self, evt):
         self.imv.view.scene().removeItem(evt)
