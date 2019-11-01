@@ -221,16 +221,18 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.relabel_new_ROI()
 
     def relabel_new_ROI(self):
-        p = 0
+        self.relabel_ROI()
+
+        p = self.Nparticles + 1
         for i in range(len(self.new_roi)):
             if i not in self.removed_new_rois:
 #                print(i,self.removerois)
                 self.imv.view.removeItem(self.new_label[i])
-                self.new_label[i] = pg.TextItem(text="new_"+str(p))
+                self.new_label[i] = pg.TextItem(text=str(p))
                 self.new_label[i].setPos(self.new_roi[i].pos())
                 self.imv.view.addItem(self.new_label[i])
                 p+=1
-#        self.Nparticles = p-1
+#        self.N_newparticles = p-1
 
 
     def create_small_ROI(self):
@@ -436,6 +438,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.imv.view.addItem(self.label[i,0])
 #            self.imv.view.addItem(self.label[i,1])
 #        self.Nparticles = self.maxnumber
+        self.relabel_new_ROI()
 
     def filter_bg(self):
         print("working on it")
@@ -539,7 +542,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #        print(self.molRoi[0,0],"molRoi0")
 #        print(self.bgRoi[0,0],"bgRoi0")
 
-        self.relabel_ROI()
+        self.relabel_new_ROI()
 
     def relabel_ROI(self):
         p = 0
@@ -552,7 +555,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 self.label[i,0].setPos(self.molRoi[i,0].pos())
                 self.imv.view.addItem(self.label[i,0])
                 p+=1
-#        self.Nparticles = p-1
+        self.Nparticles = p-1
 
     def remove_small_ROI(self, evt):
         self.imv.view.scene().removeItem(evt)
