@@ -4,7 +4,19 @@ Created on Wed Oct 23 11:23:45 2019
 
 @author: chiarelg
 """
+#%% Connecting the z axis of the Imageview item
+import pyqtgraph as pg
+import numpy as np
 
+pg.mkQApp()
+view = pg.ImageView()
+view.setImage(np.random.normal(size=(100,100,100)))
+view.show()
+
+def indexChanged():
+    print (view.currentIndex)
+
+view.sigTimeChanged.connect(indexChanged)
 # %% Ejample for context menus
 """
 Demonstrates adding a custom context menu to a GraphicsItem

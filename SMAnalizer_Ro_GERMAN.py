@@ -1,27 +1,33 @@
 """
-@author: Rodrigo el que no documenta su codigo
-@Enchulado por: German, el que comenta cosas poco serias
+@author: Rodrigo, the one who never doment his code
+@Remastered by: German, the non-serious commenter
 
-Interfaz usuario para detectar las particulas en una pelicula
-y extraer sus trazas en un archivo .txt
-- Se crea un Roi de tamaño a eleccion (muy grande tarda mucho)
-- Se eligen Start frame y End frame para promediar dentro de ese roi
-y tener una imagen mas nitida donde detectar las particulas
-- Get ROI mean devuelve la imagen del ROI promediada, donde 
-luego se van a detectar los maximos.
-- Se elije una Minimun distance entre maximos
-- Threshold de ser necesario. Solo detecta maximos mayores a esto
-- Size: el tamaño de tu PSF
- COSAS PARA FRET QUE VOY A SACAR
-     - Channel Height difference (pixels): 
-     - Secondary Channel Correction:
-- Detect Molecules: busca todos los maximos locales en el ROI
-promediado, a distancias mayores a minimun distance. Dibuja un
-cuadrado tamaño size*size sobre cada punto detectado.
-resta el bakground calculado de un cuadrado 1 pixel mas de la periferia
-(size+1)*(size+1) - size*size.
 
--Export Traces: Guarda el archivo .txt con 1 columna por particula.
+User interface to detect particles in a movie
+and extract its traces in a .txt file
+First, A custom sized Region Of Interest(ROI) of the hole image have to be created.
+-choose a start and end frame to average frames within that ROI 
+and have a sharper image where to detect the particles
+-"get ROI mean" returns the image of the averaged ROI, where
+then the maximums will be detected
+.
+For that you need to put (try by hand for the best ones):
+- minimum distance between the max it will gonna find.
+- threshold if you want. Only detect numbers grater that's this.
+-Size: the estimated size of your psf,
+ Actually you have to put a good size to don't loose any photon.
+- Detect Molecules: search all the local maximums in the ROI
+averaged, at distances greater than minimun distance. Draw a
+square size*size on each point detected.
+subtract the calculated bakground from a square 1 pixel more than the periphery
+(size + 1)*(size + 1) - size*size. Normalized by size
+
+-Export Traces: Save the .txt file with 1 column per particle.
+
+- Choose a Minimun distance between maximum
+- Threshold if necessary. Only detect maximums greater than this
+- Size: the size of your PSF
+
 
 """
 
@@ -35,7 +41,6 @@ import pyqtgraph.exporters
 
 from scipy import ndimage as ndi
 from scipy import optimize
-
 
 import time as time
 
@@ -64,6 +69,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn6 = QtGui.QPushButton('Detect Molecules')
         self.btn7 = QtGui.QPushButton('Export Traces')
 
+        self.btn_images = QtGui.QPushButton('image analisys')
+        self.btn_images.setStyleSheet(
+                "QPushButton { background-color: rgb(200, 200, 10); }"
+                "QPushButton:pressed { background-color: blue; }")
+        
         self.btn_small_roi = QtGui.QPushButton('New small ROI')
         self.btn_gauss_fit = QtGui.QPushButton('Gaussian Fit')
         self.btn_filter_bg = QtGui.QPushButton('Filter bg')
@@ -71,6 +81,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.gauss_fit_label = QtGui.QLabel('threshold to sigma:')
         self.gauss_fit_edit = QtGui.QLineEdit('6')
         self.gauss_fit_edit.setFixedWidth(30)
+        
+        self.btn_histogram = QtGui.QPushButton('Make instogram')
+
+
 
         # Create parameter fields with labels
         self.meanStartLabel = QtGui.QLabel('Start frame:')
@@ -78,7 +92,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.meanEndLabel = QtGui.QLabel('End frame:')
         self.meanEndEdit = QtGui.QLineEdit('15')
         self.maxDistLabel = QtGui.QLabel('Minimum distance:')
-        self.maxDistEdit = QtGui.QLineEdit('3')
+        self.maxDistEdit = QtGui.QLineEdit('6')
         self.maxThreshLabel = QtGui.QLabel('Threshold:')
         self.maxThreshEdit = QtGui.QLineEdit('0')
         self.moleculeSizeLabel = QtGui.QLabel('Size (pix):')
@@ -103,7 +117,9 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.meanEndEdit,    4, 1, 1, 2)
 
 
-        self.layout.addWidget(self.btn4, 5, 0, 1, 3)
+        self.layout.addWidget(self.btn4, 5, 0, 1, 1)
+        self.layout.addWidget(self.btn_images, 5, 2, 1, 1)
+        
 
         self.layout.addWidget(QtGui.QLabel(" "), 6, 0, 1, 3)
         self.layout.addWidget(self.btn5, 7, 0, 1, 3)
@@ -115,10 +131,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.maxThreshEdit, 9, 1, 1, 2)
         self.layout.addWidget(self.moleculeSizeLabel, 10, 0, 1, 1)
         self.layout.addWidget(self.moleculeSizeEdit, 10, 1, 1, 2)
-        self.layout.addWidget(self.channelDifferenceLabel, 11, 0, 1, 1)
-        self.layout.addWidget(self.channelDifferenceEdit, 11, 1, 1, 2)
-        self.layout.addWidget(self.channelCorrectionLabel, 12, 0, 1, 1)
-        self.layout.addWidget(self.channelCorrectionEdit, 12, 1, 1, 2)
+#        self.layout.addWidget(self.channelDifferenceLabel, 11, 0, 1, 1)
+#        self.layout.addWidget(self.channelDifferenceEdit, 11, 1, 1, 2)
+#        self.layout.addWidget(self.channelCorrectionLabel, 12, 0, 1, 1)
+#        self.layout.addWidget(self.channelCorrectionEdit, 12, 1, 1, 2)
 
         self.layout.addWidget(self.btn6, 13, 0, 1, 3)
 
@@ -132,8 +148,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.gauss_fit_edit, 6, 25, 1, 1)
         self.layout.addWidget(self.btn_gauss_fit, 7, 25, 1, 1)
         self.layout.addWidget(self.btn_filter_bg, 9, 25, 1, 1)
-
-
+        self.layout.addWidget(self.btn_histogram, 11, 25, 1, 1)
 
         # button actions
         self.btn1.clicked.connect(self.importImage)
@@ -142,13 +157,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn4.clicked.connect(self.ROImean)
         self.btn5.clicked.connect(self.showVideo)
         self.btn6.clicked.connect(self.detectMaxima)
-        self.btn7.clicked.connect(self.exportTraces)
+        self.btn7.clicked.connect(self.exportTraces_or_images)
         
+        self.btn_images.clicked.connect(self.ROI_mean_images)
         self.btn_small_roi.clicked.connect(self.create_small_ROI)
         self.btn_gauss_fit.clicked.connect(self.gaussian_fit_ROI)
         self.btn_filter_bg.clicked.connect(self.filter_bg)
-
-        
+        self.btn_histogram.clicked.connect(self.make_histogram)        
 
         # Create empty ROI
         self.roi = None
@@ -161,7 +176,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.new_roi_bg = dict()
         
         self.removerois = []
-        self.removed_new_rois = []
+        self.removed_new_rois = []  # OJO CON TODO ESTO QUE NO SE REINICIA
 
         # ROI label dictionary
         self.label = dict()
@@ -174,11 +189,53 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.n = 0
 
         self.JPG = False
+        self.image_analysis = False
 
         self.new_i = 0
 
+
+    def exportTraces_or_images(self):
+        if self.image_analysis:
+            
+            self.calculate_images()
+            self.export("images")
+        else:
+            
+            self.calculate_traces()
+            self.export("trace")
+
+    def ROI_mean_images(self):
+        self.image_analysis = True
+        if self.roi == None:
+            self.start = int(self.meanStartEdit.text())
+            self.mean = self.data[self.start,:,:]
+            self.btn7.setText("Export Intensities from frame={}".format(self.start))
+            self.btn7.setStyleSheet(
+                    "QPushButton { background-color: rgb(200, 200, 10); }")
+            self.meanEndEdit.setStyleSheet(" background-color: red; ")
+            print("change colores")
+            x = np.linspace(1., self.data.shape[0], self.data.shape[0])
+            # Load Mean Image
+            self.imv.setImage(self.mean, xvals=x)
+            print("ploted")
+            colors = [
+                    (0, 0, 0),
+                    (45, 5, 61),
+                    (84, 42, 55),
+                    (150, 87, 60),
+                    (208, 171, 141),
+                    (255, 255, 255)
+                    ]
+            cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
+            self.imv.setColorMap(cmap)
+            self.w.setWindowTitle('SMAnalyzer - frame={} - '.format(self.start) + self.f)
+#            self.imv.view.removeItem(self.roi)
+
+        else:
+            self.ROImean()
+
     def small_ROI_to_new_ROI(self):
-        print("\n YOU POINT MEE \n")
+        print("\n YOU CLICK MEE 0_o \n")
         self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
         self.bgroiSize = np.array(self.roiSize) + 2  # one pixel each side
 
@@ -237,6 +294,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def create_small_ROI(self):
 #        if self.smallroi is None:
+        print("aaa")
         try:
             roisize = int(self.moleculeSizeEdit.text())
             self.smallroi = pg.ROI([0, 0], [roisize, roisize],
@@ -252,7 +310,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def createROI(self):
         if self.roi is None:
-            self.roi = pg.ROI([0, 0], [self.data.shape[2]*0.3, self.data.shape[1]*0.3] , scaleSnap=True, translateSnap=True)  # [70, 70]
+            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]] , scaleSnap=True, translateSnap=True)  # [70, 70]
             self.roi.addScaleHandle([1, 1], [0, 0])
             self.roi.addScaleHandle([0, 0], [1, 1])
             self.imv.view.addItem(self.roi)
@@ -317,20 +375,31 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
         self.imv.setColorMap(cmap)
         self.w.setWindowTitle('SMAnalyzer - Video - ' + self.f)
+        self.imv.sigTimeChanged.connect(self.indexChanged)
+
+    def indexChanged(self):
+        self.meanStartEdit.setText(str((self.imv.currentIndex)))
 
     def ROImean(self):
         z = self.roi.getArrayRegion(self.data, self.imv.imageItem, axes=self.axes)
-        if not self.JPG:
+        if  self.JPG:
+            self.mean = z 
+        elif self.image_analysis:
+            self.start = int(self.meanStartEdit.text())
+            self.mean = z[self.start,:,:]
+            self.btn7.setText("Export Intensities from frame={}".format(self.start))
+            self.btn7.setStyleSheet(
+                    "QPushButton { background-color: rgb(200, 200, 10); }")
+            self.meanEndEdit.setStyleSheet(" background-color: red; ")
 
+        else:
             self.start = int(self.meanStartEdit.text())
             self.end = int(self.meanEndEdit.text())
             print("z", z[self.start:self.start+self.end, :, :].shape)
             z = z[self.start:self.start+self.end, :, :]
             
             self.mean = np.mean(z, axis=0)
-            print("mean",self.mean.shape)
-        else:
-            self.mean = z 
+        print("mean",self.mean.shape)
 
         # Display the data and assign each frame a number
         x = np.linspace(1., self.data.shape[0], self.data.shape[0])
@@ -373,8 +442,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
         self.imv.setColorMap(cmap)
         self.w.setWindowTitle('SMAnalyzer - Video - ' + self.f)
-        self.translateMaxima()
-        self.imv.view.addItem(self.roi)
+        self.meanEndEdit.setStyleSheet(" background-color: ; ")
+
+        try:
+            self.translateMaxima()
+            self.imv.view.addItem(self.roi)
+        except:
+            pass
 
     def detectMaxima(self):
         self.deleteMaxima()
@@ -417,8 +491,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                                           translateSnap=True,
                                                           movable=False,
                                                           removable=True)
-            self.molRoi[i,1] = pg.ROI(corrMaxima - [0, int(self.channelDifferenceEdit.text())], self.roiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
-            self.bgRoi[i,1] = pg.ROI(corrMaxima - [1, 1] - [0, int(self.channelDifferenceEdit.text())], self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
+#            self.molRoi[i,1] = pg.ROI(corrMaxima - [0, int(self.channelDifferenceEdit.text())], self.roiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
+#            self.bgRoi[i,1] = pg.ROI(corrMaxima - [1, 1] - [0, int(self.channelDifferenceEdit.text())], self.bgroiSize, scaleSnap=True, translateSnap=True, movable=False, removable=True)
             self.imv.view.addItem(self.molRoi[i,0])
 #            self.imv.view.addItem(self.molRoi[i,1])
             self.imv.view.addItem(self.bgRoi[i,0])
@@ -492,9 +566,9 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             molArray[i,j] = self.molRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
             print("i= ", i)
             data = np.transpose(molArray[i,j])
-            params = fitgaussian(data)
+#            params = fitgaussian(data)
 #            fit = gaussian(*params)
-            new_params = fitgaussian(molArray[i,j])
+            new_params = fitgaussian(data) #molArray[i,j])
     #        all_params[j] = new_params
             (height, x, y, width_x, width_y) = new_params
             print("\n new_params \n",
@@ -507,7 +581,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             originx =  self.molRoi[i,j].pos()[0]
             originy =  self.molRoi[i,j].pos()[1]
 #            self.molRoi[i,0].translate([newy, newx])
-            self.newRoi[i] = pg.ROI([originx+newy,originy+newx], self.roiSize, pen='m',
+            self.newRoi[i] = pg.ROI([originx+newx,originy+newy], self.roiSize, pen='m',
                                                            scaleSnap=True,
                                                            translateSnap=True,
                                                            movable=False,
@@ -565,20 +639,21 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         for i in np.arange(0, self.maxnumber):
             try:
                 self.imv.view.removeItem(self.molRoi[i,0])
-                self.imv.view.removeItem(self.molRoi[i,1])
+#                self.imv.view.removeItem(self.molRoi[i,1])
                 self.imv.view.removeItem(self.bgRoi[i,0])
-                self.imv.view.removeItem(self.bgRoi[i,1])
+#                self.imv.view.removeItem(self.bgRoi[i,1])
                 self.imv.view.removeItem(self.label[i,0])
                 self.imv.view.removeItem(self.label[i,1])
                 del self.molRoi[i,0]
-                del self.molRoi[i,1]
+#                del self.molRoi[i,1]
                 del self.bgRoi[i,0]
-                del self.bgRoi[i,1]
+#                del self.bgRoi[i,1]
                 del self.label[i,0]
                 del self.label[i,1]
             except IOError as e:
                 print("I/O error({0}): {1}".format(e.errno, e.strerror))
                 print("ya estaba borrado")
+
         self.molRoi = dict()
         self.bgRoi = dict()
         self.label = dict()
@@ -588,13 +663,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
     def translateMaxima(self):
         for i in np.arange(0, self.maxnumber):
             self.molRoi[i,0].translate(self.roi.pos())
-            self.molRoi[i,1].translate(self.roi.pos())
+#            self.molRoi[i,1].translate(self.roi.pos())
             self.bgRoi[i,0].translate(self.roi.pos())
-            self.bgRoi[i,1].translate(self.roi.pos())
+#            self.bgRoi[i,1].translate(self.roi.pos())
             self.label[i,0].setPos(self.molRoi[i,0].pos())
             self.label[i,1].setPos(self.molRoi[i,1].pos())
         
-    def exportTraces(self):
+    def calculate_traces(self):
+        # Create dict with traces
         self.trace = dict()
         molArray = dict()
         bgArray = dict()
@@ -602,7 +678,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         bgNorm = dict()
         
         j=0  # I justo kill the second trace
-        # Create dict with traces
+
         p=0
         for i in np.arange(0, self.maxnumber):
             if i not in self.removerois:
@@ -642,31 +718,101 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             a.append(self.trace[p,j])
 
         b = np.array(a).T
-        np.savetxt('traces' + str(self.n) + '.txt', b, delimiter="    ", newline='\r\n')
-        print( "Trace exported as", 'traces' + str(self.n) + '.txt')
+        self.traces = b
 
+    def calculate_images(self):
+        print(" Export Images!!")
+        # Create dict with traces
+        self.sum_spot = dict()
+        molArray = dict()
+        bgArray = dict()
+        bg = dict()
+        bgNorm = dict()
+        
+        j=0  # I just do not use the second trace
+        p=0
+        for i in np.arange(0, self.maxnumber):
+            if i not in self.removerois:             
+                # get molecule array
+                molArray[i,j] = self.molRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
 
-        exporter = pg.exporters.ImageExporter(self.imv.imageItem)
-#        # set export parameters if needed
-#        exporter.parameters()['width'] = 100   # (note this also affects height parameter)
-        # save to file
-        exporter.export('Image' + str(self.n) + '.png')
-        print( "Picture exported as", 'Image' + str(self.n) + '.png')
+                # get background plus molecule array
+                bgArray[i,j] = self.bgRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
 
-        self.n += 1
+                # get background array
+                bg[i,j] = np.sum(bgArray[i,j]) - np.sum(molArray[i,j])
+
+                # get total background to substract from molecule traces
+                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+
+                self.sum_spot[p,j] = np.sum(molArray[i,j]) - bgNorm[i,j]
+                p +=1 # I have to use this to have order because of removerois
+
 # =============================================================================
-# images = np.random.random((3,128,128))
-# 
-# imagewindow = pg.image()
-# 
-# for i in xrange(images.shape[0]):
-#     img = pg.ImageItem(images[i])
-#     imagewindow.clear()
-#     imagewindow.addItem(img)
-#     exporter = pg.exporters.ImageExporter(imagewindow.view)
-#     exporter.export('image_'+str(i)+'.png')
-#         
+#                 # Correct second channel by channel correction input
+#                 if j == 0:
+#                     self.trace[i,j] = np.sum(molArray[i,j], axis=(1,2)) - bgNorm[i,j]
+#                 else:
+#                     self.trace[i,j] = float(self.channelCorrectionEdit.text())*(np.sum(molArray[i,j], axis=(1,2)) - bgNorm[i,j])
 # =============================================================================
+        
+        # Save traces as an array
+#        a = []        
+#        for i in self.trace.keys():  # NO TIENE ORDEN!!!! CAMBIAR
+#            a.append(self.trace[i])
+
+        a = []
+        print("len cuentas", len(self.sum_spot))
+        for p in range(len(self.sum_spot)):
+            a.append(self.sum_spot[p,j])
+
+        b = np.array(a).T
+        self.intensitys = b
+
+    def export(self, what):
+        if what == "trace":
+            b = self.traces
+            np.savetxt('traces' + str(self.n) + '.txt', b, delimiter="    ", newline='\r\n')
+            print( "Trace exported as", 'traces' + str(self.n) + '.txt')
+    
+    
+            exporter = pg.exporters.ImageExporter(self.imv.imageItem)
+    #        # set export parameters if needed
+    #        exporter.parameters()['width'] = 100   # (note this also affects height parameter)
+            # save to file
+            exporter.export('Image' + str(self.n) + '.png')
+            print( "Picture exported as", 'Image' + str(self.n) + '.png')
+    
+            self.n += 1
+        if what == "images":
+            b = self.intensitys
+            np.savetxt('intensitys' + str(self.n) + '.txt', b, delimiter="    ", newline='\r\n')
+            print( "intensitys exported as", 'intensitys' + str(self.n) + '.txt')
+    
+    
+            exporter = pg.exporters.ImageExporter(self.imv.imageItem)
+    #        # set export parameters if needed
+    #        exporter.parameters()['width'] = 100   # (note this also affects height parameter)
+            # save to file
+            exporter.export('Image' + str(self.n) + '.png')
+            print( "Picture exported as", 'Image' + str(self.n) + '.png')
+            
+            self.n += 1
+
+    def make_histogram(self):
+        self.calculate_images()
+        print("create histogram")
+        import matplotlib.pyplot as plt
+        plt.hist(self.intensitys)
+        plt.grid()
+        plt.show()
+#        vals = self.intensitys
+#        self.plt1 = self.imv.addPlot()
+#        y,x = np.histogram(vals)
+#        self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
+#        self.plt1.showGrid(x = True, y = True, alpha = 0.5)
+        
+
 
 # %% Functions to make the Gauss fit
 def gaussian(height, center_x, center_y, width_x, width_y):
@@ -710,3 +856,14 @@ if __name__ == '__main__':
     exe = smAnalyzer()
     exe.w.show()
     app.exec_()
+
+
+
+"""
+Poner un slider para cambiar de frame al analizar imagenes
+hacer que aprete el boton cuando se mueve
+
+Por ahora conecte el slider que ya esta (pero se va cuando toco el boton, logico)
+"""
+
+
