@@ -205,6 +205,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.JPG = False
         self.image_analysis = False
         self.video_traces = False
+        self.histo_data = False
 
         self.new_i = 0
 
@@ -742,13 +743,44 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #        a = []        
 #        for i in self.trace.keys():  # NO TIENE ORDEN!!!! CAMBIAR
 #            a.append(self.trace[i])
+        self.new_trace = dict()
+        new_molArray = dict()
+        new_bgArray = dict()
+        new_bg = dict()
+        new_bgNorm = dict()
+        p=0
+        for i in range(self.new_i):
+            if i not in self.removed_new_rois:             
+                # get molecule array
+                new_molArray[i,j] = self.new_roi[i,j].getArrayRegion(self.mean, self.imv.imageItem, axis=self.axes, returnMappedCoords=False)
+
+                # get background plus molecule array
+                new_bgArray[i,j] = self.new_roi_bg[i,j].getArrayRegion(self.mean, self.imv.imageItem, axis=self.axes, returnMappedCoords=False)
+
+                # get background array
+                new_bg[i,j] = np.sum(new_bgArray[i,j], axis=self.axes) - np.sum(new_molArray[i,j], axis=self.axes)
+
+                # get total background to substract from molecule traces
+                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i])/(4*(int(self.moleculeSizeEdit.text())+1))
+
+                self.new_trace[p,j] = np.sum(new_molArray[i,j], axis=self.axes) - new_bgNorm[i,j]
+                p +=1 # I have to use this to have order because of removerois
+
+        # Save traces as an array
+#        a = []        
+#        for i in self.trace.keys():  # NO TIENE ORDEN!!!! CAMBIAR
+#            a.append(self.trace[i])
 
         a = []
-        print("len", len(self.trace))
+        
         for p in range(len(self.trace)):
             a.append(self.trace[p,j])
+        
+        for p in range(len(self.new_trace)):
+            a.append(self.new_trace[p,j])
 
-        b = np.array(a).T
+        b = np.array(a).T        
+        print("len traces", len(b))
         self.traces = b
 
     def calculate_images(self):
@@ -786,18 +818,43 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #                 else:
 #                     self.trace[i,j] = float(self.channelCorrectionEdit.text())*(np.sum(molArray[i,j], axis=(1,2)) - bgNorm[i,j])
 # =============================================================================
-        
+        self.new_sum_spot = dict()
+        new_molArray = dict()
+        new_bgArray = dict()
+        new_bg = dict()
+        new_bgNorm = dict()
+        p=0
+        for i in range(self.new_i):
+            if i not in self.removed_new_rois:             
+                # get molecule array
+                new_molArray[i,j] = self.new_roi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
+
+                # get background plus molecule array
+                new_bgArray[i,j] = self.new_roi_bg[i,j].getArrayRegion(self.mean, self.imv.imageItem)
+
+                # get background array
+                new_bg[i,j] = np.sum(new_bgArray[i,j]) - np.sum(new_molArray[i,j])
+
+                # get total background to substract from molecule traces
+                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i])/(4*(int(self.moleculeSizeEdit.text())+1))
+
+                self.new_sum_spot[p,j] = np.sum(new_molArray[i,j]) - new_bgNorm[i,j]
+                p +=1 # I have to use this to have order because of removerois
         # Save traces as an array
 #        a = []        
 #        for i in self.trace.keys():  # NO TIENE ORDEN!!!! CAMBIAR
 #            a.append(self.trace[i])
 
         a = []
-        print("len cuentas", len(self.sum_spot))
+
         for p in range(len(self.sum_spot)):
             a.append(self.sum_spot[p,j])
-
+        
+        for p in range(len(self.new_sum_spot)):
+            a.append(self.new_sum_spot[p,j])
+        
         b = np.array(a).T
+        print("len cuentas", len(b))
         self.intensitys = b
 
     def export(self, what):
@@ -806,7 +863,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             b = self.traces
             trace_name = 'traces' + str(self.n) + '.txt'
             np.savetxt(trace_name, b, delimiter="    ", newline='\r\n')
-            print( "Trace exported as", trace_name)
+            print(len(b),"Traces exported as", trace_name)
     
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
@@ -820,10 +877,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.n += 1
 
         if what == "images":
-            b = self.intensitys
+            if self.histo_data:
+                b = self.intensitys2
+            else:
+                b = self.intensitys
             intensities_name = 'intensities' + str(self.n) + '.txt'
             np.savetxt(intensities_name, b, delimiter="    ", newline='\r\n')
-            print( "intensities exported as", intensities_name)
+            print(len(b), "intensities exported as", intensities_name)
     
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
@@ -871,18 +931,20 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
     def make_histogram(self):
         self.calculate_images()
         try:
-            print("concateno")
+#            print("concateno")
             self.intensitys2 = np.concatenate((self.intensitys,
                                                self.intensitys2))
         except:
-            print("1ra")
+#            print("1ra")
             self.intensitys2 = self.intensitys
         self.doit()
-        print("Histograming...")
+#        print("Histograming...")
+        self.histo_data = True
+        self.btn7.setText("Export all histogram data ({})".format(len(self.intensitys2)))
 
 
     def doit(self):
-        print("Opening a new popup window...")
+#        print("Opening a new popup window...")
         self.w2 = MyPopup_histogram(self)
         self.w2.setGeometry(QtCore.QRect(750, 50, 450, 600))
         self.w2.show()
@@ -893,7 +955,9 @@ class MyPopup_histogram(QtGui.QWidget):
 
     def closeEvent(self, event):
         self.main.intensitys2 = None
-        print("Close and clear the points")
+        self.main.histo_data = False
+        self.main.btn7.setText("Export only last ({}) points".format(len(self.main.intensitys)))
+#        print("Close and clear the points")
         
     def __init__(self, main, *args, **kwargs):
         QtGui.QWidget.__init__(self)
@@ -907,27 +971,15 @@ class MyPopup_histogram(QtGui.QWidget):
 
         self.p6 = self.traza_Widget2.addPlot(row=2, col=1, title="Traza")
         self.p6.showGrid(x=True, y=True)
-#        self.curve = self.p6.plot(open='y')
-#        self.line = self.p6.plot(open='y')
-#        self.line1 = self.p6.plot(open='y')
-#        self.line2 = self.p6.plot(open='y')
-    # umbral
 
         intensitys = self.main.intensitys2
         self.intensitys = intensitys
-#        self.umbralEdit.setFixedWidth(40)
-#        self.umbralEdit.setToolTip('promedios de valores nuevo/anteriores ')
 
-#        self.PointLabel = QtGui.QLabel('<strong>0.00|0.00')
         grid.addWidget(self.traza_Widget2,      0, 0, 1, 7)
 #        grid.addWidget(self.play_pause_Button,  1, 0)
-#        grid.addWidget(self.stop_Button,        1, 1)
-#        grid.addWidget(self.PointLabel,         1, 5)
-#        grid.addWidget(self.save_Button,        1, 6)
-        self.setWindowTitle("Traza. (ESC lo cierra bien)")
-#        self.play_pause_Button.setChecked(True)
-#        self.PointScan()
-        
+
+        self.setWindowTitle("Histogram. (ESC key, close it.)")
+
         vals = self.intensitys
 #        self.plt1 = self.traza_Widget2.addPlot()
         y,x = np.histogram(vals)
@@ -940,6 +992,9 @@ class MyPopup_histogram(QtGui.QWidget):
 
     def close_win(self):
         self.main.intensitys2 = None
+        self.main.histo_data = False
+        self.main.btn7.setText("Export only last ({}) points".format(len(self.main.intensitys)))
+
         self.close()
 
 # %% Functions to make the Gauss fit
