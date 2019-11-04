@@ -70,6 +70,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn6 = QtGui.QPushButton('Detect Molecules')
         self.btn7 = QtGui.QPushButton('Export Traces')
 
+        self.remove_new_Button = QtGui.QPushButton('Remove added new rois')
+
         self.btn_images = QtGui.QPushButton('image analisys')
         self.btn_images.setStyleSheet(
                 "QPushButton { background-color: rgb(200, 200, 10); }"
@@ -146,8 +148,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.btn7, 15, 0, 1, 3)
         self.layout.addWidget(self.imv, 0, 4, 16, 16)
         
-        self.layout.addWidget(self.btn_small_roi, 3, 25, 1, 1)
-
+        self.layout.addWidget(self.btn_small_roi, 2, 25, 1, 1)
+        self.layout.addWidget(self.remove_new_Button, 3, 25, 1, 1)
         self.layout.addWidget(self.gauss_fit_label, 5, 25, 1, 1)
         self.layout.addWidget(self.gauss_fit_edit, 6, 25, 1, 1)
         self.layout.addWidget(self.btn_gauss_fit, 7, 25, 1, 1)
@@ -172,10 +174,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn_histogram.clicked.connect(self.make_histogram)
         self.crazyStepButton.clicked.connect(self.automatic_crazy_start)
         
+        self.remove_new_Button.clicked.connect(self.remove_all_new)
+
+
         self.meanStartEdit.textEdited.connect(self.update_image)
 
         self.automatic_crazytimer = QtCore.QTimer()
         self.automatic_crazytimer.timeout.connect(self.automatic_crazy)
+
 
         # Create empty ROI
         self.roi = None
@@ -248,12 +254,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                                        scaleSnap=True,
                                                        translateSnap=True,
                                                        movable=False,
-                                                       removable=True)
+                                                       removable=True,
+                                                       pen='y') 
         self.new_roi_bg[i] = pg.ROI((self.smallroi.pos() - [1, 1]), self.bgroiSize,
                                                           scaleSnap=True,
                                                           translateSnap=True,
                                                           movable=False,
-                                                          removable=True) 
+                                                          removable=True,
+                                                          pen='y') 
         self.imv.view.addItem(self.new_roi[i])
         self.imv.view.addItem(self.new_roi_bg[i])
 
@@ -266,6 +274,20 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         
         self.new_i = i + 1
         self.relabel_new_ROI()
+
+    def remove_all_new(self):
+        for i in range(self.new_i):
+            self.imv.view.removeItem(self.new_roi[i])
+            self.imv.view.removeItem(self.new_roi_bg[i])
+            self.imv.view.removeItem(self.new_label[i])
+            del self.new_roi[i]
+            del self.new_roi_bg[i]
+            del self.new_label[i]
+    
+        self.new_roi = dict()
+        self.new_roi_bg = dict()
+        self.new_label = dict()
+        self.new_i = 0
 
     def remove_new_ROI(self,evt):
         print("Remove_NEW_roi")
@@ -672,10 +694,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 del self.bgRoi[i,0]
 #                del self.bgRoi[i,1]
                 del self.label[i,0]
-                del self.label[i,1]
+#                del self.label[i,1]
             except IOError as e:
                 print("I/O error({0}): {1}".format(e.errno, e.strerror))
-                print("ya estaba borrado")
+                print("ya estaba borrado")  
 
         self.molRoi = dict()
         self.bgRoi = dict()
@@ -752,16 +774,16 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         for i in range(self.new_i):
             if i not in self.removed_new_rois:             
                 # get molecule array
-                new_molArray[i,j] = self.new_roi[i,j].getArrayRegion(self.mean, self.imv.imageItem, axis=self.axes, returnMappedCoords=False)
+                new_molArray[i,j] = self.new_roi[i].getArrayRegion(self.mean, self.imv.imageItem, axis=self.axes, returnMappedCoords=False)
 
                 # get background plus molecule array
-                new_bgArray[i,j] = self.new_roi_bg[i,j].getArrayRegion(self.mean, self.imv.imageItem, axis=self.axes, returnMappedCoords=False)
+                new_bgArray[i,j] = self.new_roi_bg[i].getArrayRegion(self.mean, self.imv.imageItem, axis=self.axes, returnMappedCoords=False)
 
                 # get background array
                 new_bg[i,j] = np.sum(new_bgArray[i,j], axis=self.axes) - np.sum(new_molArray[i,j], axis=self.axes)
 
                 # get total background to substract from molecule traces
-                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i])/(4*(int(self.moleculeSizeEdit.text())+1))
+                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
 
                 self.new_trace[p,j] = np.sum(new_molArray[i,j], axis=self.axes) - new_bgNorm[i,j]
                 p +=1 # I have to use this to have order because of removerois
@@ -827,16 +849,16 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         for i in range(self.new_i):
             if i not in self.removed_new_rois:             
                 # get molecule array
-                new_molArray[i,j] = self.new_roi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
+                new_molArray[i,j] = self.new_roi[i].getArrayRegion(self.mean, self.imv.imageItem)
 
                 # get background plus molecule array
-                new_bgArray[i,j] = self.new_roi_bg[i,j].getArrayRegion(self.mean, self.imv.imageItem)
+                new_bgArray[i,j] = self.new_roi_bg[i].getArrayRegion(self.mean, self.imv.imageItem)
 
                 # get background array
                 new_bg[i,j] = np.sum(new_bgArray[i,j]) - np.sum(new_molArray[i,j])
 
                 # get total background to substract from molecule traces
-                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i])/(4*(int(self.moleculeSizeEdit.text())+1))
+                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
 
                 self.new_sum_spot[p,j] = np.sum(new_molArray[i,j]) - new_bgNorm[i,j]
                 p +=1 # I have to use this to have order because of removerois
