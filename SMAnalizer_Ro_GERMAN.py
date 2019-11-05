@@ -56,7 +56,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(1800, 1000)
+        self.w.resize(2200, 1500)
 
         # Create ImageView
         self.imv = pg.ImageView()
@@ -82,7 +82,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn_filter_bg = QtGui.QPushButton('Filter bg')
 
         self.gauss_fit_label = QtGui.QLabel('threshold to sigma:')
-        self.gauss_fit_edit = QtGui.QLineEdit('6')
+        self.gauss_fit_edit = QtGui.QLineEdit('1.5')
         self.gauss_fit_edit.setFixedWidth(30)
         
         self.btn_histogram = QtGui.QPushButton('Make instogram')
@@ -107,56 +107,63 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.channelCorrectionLabel = QtGui.QLabel('Secondary Channel Correction:')
         self.channelCorrectionEdit = QtGui.QLineEdit('0')
 
+        self.BgSizeLabel = QtGui.QLabel('BackGround (size + 2N)')
+        self.BgSizeEdit = QtGui.QLineEdit('2')
+        self.BgSizeEdit.setFixedWidth(30)
+
         # Create a grid layout to manage the widgets size and position
         self.layout = QtGui.QGridLayout()
         self.w.setLayout(self.layout)
 
         # Add widgets to the layout in their proper positions
-        self.layout.addWidget(QtGui.QLabel(" "), 0, 0, 1, 3)
-        self.layout.addWidget(self.btn1, 1, 0, 1, 3)
-        self.layout.addWidget(self.btn2, 2, 0, 1, 3)
-        self.layout.addWidget(self.btn3, 3, 0, 1, 3)
+        self.layout.addWidget(QtGui.QLabel(" "),       0, 0, 1, 3)
+        self.layout.addWidget(self.btn1,               1, 0, 1, 3)
+        self.layout.addWidget(self.btn2,               2, 0, 1, 3)
+        self.layout.addWidget(self.btn3,               3, 0, 1, 3)
 
-        self.layout.addWidget(self.meanStartLabel, 4, 0, 1, 1)
-        self.layout.addWidget(self.meanStartEdit,  4, 1, 1, 2)
-        self.layout.addWidget(self.meanEndLabel,   5, 0, 1, 1)
-        self.layout.addWidget(self.meanEndEdit,    5, 1, 1, 2)
+        self.layout.addWidget(self.meanStartLabel,     4, 0, 1, 1)
+        self.layout.addWidget(self.meanStartEdit,      4, 1, 1, 2)
+        self.layout.addWidget(self.meanEndLabel,       5, 0, 1, 1)
+        self.layout.addWidget(self.meanEndEdit,        5, 1, 1, 2)
 
 
-        self.layout.addWidget(self.btn4, 6, 0, 1, 1)
-        self.layout.addWidget(self.btn_images, 6, 2, 1, 1)
+        self.layout.addWidget(self.btn4,               6, 0, 1, 1)
+        self.layout.addWidget(self.btn_images,         6, 2, 1, 1)
         
 
-        self.layout.addWidget(QtGui.QLabel(" "), 7, 0, 1, 3)
-        self.layout.addWidget(self.btn5,         8, 0, 1, 3)
-#        self.layout.addWidget(QtGui.QLabel(" "), 9, 0, 1, 3)
+        self.layout.addWidget(QtGui.QLabel(" "),       7, 0, 1, 3)
+        self.layout.addWidget(self.btn5,               8, 0, 1, 3)
+#        self.layout.addWidget(QtGui.QLabel(" "),       9, 0, 1, 3)
         
-        self.layout.addWidget(self.maxDistLabel,    9, 0, 1, 1)
-        self.layout.addWidget(self.maxDistEdit,     9, 1, 1, 2)
-        self.layout.addWidget(self.maxThreshLabel, 10, 0, 1, 1)
-        self.layout.addWidget(self.maxThreshEdit,  10, 1, 1, 2)
+        self.layout.addWidget(self.maxDistLabel,       9, 0, 1, 1)
+        self.layout.addWidget(self.maxDistEdit,        9, 1, 1, 2)
+        self.layout.addWidget(self.maxThreshLabel,    10, 0, 1, 1)
+        self.layout.addWidget(self.maxThreshEdit,     10, 1, 1, 2)
         self.layout.addWidget(self.moleculeSizeLabel, 11, 0, 1, 1)
         self.layout.addWidget(self.moleculeSizeEdit,  11, 1, 1, 2)
+        self.layout.addWidget(self.BgSizeLabel,       12, 0, 1, 1)
+        self.layout.addWidget(self.BgSizeEdit,        12, 1, 1, 2)
+        
 #        self.layout.addWidget(self.channelDifferenceLabel, 11, 0, 1, 1)
 #        self.layout.addWidget(self.channelDifferenceEdit, 11, 1, 1, 2)
 #        self.layout.addWidget(self.channelCorrectionLabel, 12, 0, 1, 1)
 #        self.layout.addWidget(self.channelCorrectionEdit, 12, 1, 1, 2)
 
-        self.layout.addWidget(self.btn6, 13, 0, 1, 3)
+        self.layout.addWidget(self.btn6,              13, 0, 1, 3)
 
-        self.layout.addWidget(QtGui.QLabel(" "), 14, 0, 1, 3)
-        self.layout.addWidget(self.btn7, 15, 0, 1, 3)
-        self.layout.addWidget(self.imv, 0, 4, 16, 16)
+        self.layout.addWidget(QtGui.QLabel(" "),      14, 0, 1, 3)
+        self.layout.addWidget(self.btn7,              15, 0, 1, 3)
+        self.layout.addWidget(self.imv,              0, 4, 16, 16)
         
-        self.layout.addWidget(self.btn_small_roi, 2, 25, 1, 1)
+        self.layout.addWidget(self.btn_small_roi,     2, 25, 1, 1)
         self.layout.addWidget(self.remove_new_Button, 3, 25, 1, 1)
-        self.layout.addWidget(self.gauss_fit_label, 5, 25, 1, 1)
-        self.layout.addWidget(self.gauss_fit_edit, 6, 25, 1, 1)
-        self.layout.addWidget(self.btn_gauss_fit, 7, 25, 1, 1)
-        self.layout.addWidget(self.btn_filter_bg, 9, 25, 1, 1)
-        self.layout.addWidget(self.btn_histogram, 11, 25, 1, 1)
-        self.layout.addWidget(self.crazyStepEdit, 13, 25, 1, 1)
-        self.layout.addWidget(self.crazyStepButton, 14, 25, 1, 1)
+        self.layout.addWidget(self.gauss_fit_label,   5, 25, 1, 1)
+        self.layout.addWidget(self.gauss_fit_edit,    6, 25, 1, 1)
+        self.layout.addWidget(self.btn_gauss_fit,     7, 25, 1, 1)
+        self.layout.addWidget(self.btn_filter_bg,     9, 25, 1, 1)
+        self.layout.addWidget(self.btn_histogram,    11, 25, 1, 1)
+        self.layout.addWidget(self.crazyStepEdit,    13, 25, 1, 1)
+        self.layout.addWidget(self.crazyStepButton,  14, 25, 1, 1)
 
         # button actions
         self.btn1.clicked.connect(self.importImage)
@@ -247,7 +254,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
     def small_ROI_to_new_ROI(self):
         print("\n YOU CLICK MEE 0_o \n")
         self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
-        self.bgroiSize = np.array(self.roiSize) + 2  # one pixel each side
+        self.bgroiSize = np.array(self.roiSize) + 2* int(self.BgSizeEdit.text())
+        center = int(self.BgSizeEdit.text()) * np.array([1, 1])
 
         i = self.new_i
         self.new_roi[i] = pg.ROI(self.smallroi.pos(), self.roiSize,
@@ -256,7 +264,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                                        movable=False,
                                                        removable=True,
                                                        pen='y') 
-        self.new_roi_bg[i] = pg.ROI((self.smallroi.pos() - [1, 1]), self.bgroiSize,
+        self.new_roi_bg[i] = pg.ROI((self.smallroi.pos() - center), self.bgroiSize,
                                                           scaleSnap=True,
                                                           translateSnap=True,
                                                           movable=False,
@@ -493,7 +501,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         
         # set roi Dimension array
         self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
-        self.bgroiSize = np.array(self.roiSize) + 2  # one pixel each side
+        self.bgroiSize = np.array(self.roiSize) + 2* int(self.BgSizeEdit.text())  # one pixel each side
+        center = int(self.BgSizeEdit.text()) * np.array([1, 1])
         if self.roi == None:
             if not self.image_analysis or not self.video_traces:
                 self.mean = self.data[self.imv.currentIndex,:,:]
@@ -524,7 +533,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                                            translateSnap=True,
                                                            movable=False,
                                                            removable=True)
-            self.bgRoi[i,0] = pg.ROI((corrMaxima - [1, 1]), self.bgroiSize,
+            self.bgRoi[i,0] = pg.ROI((corrMaxima - center), self.bgroiSize,
                                                           scaleSnap=True,
                                                           translateSnap=True,
                                                           movable=False,
@@ -580,7 +589,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 bg[i,j] = np.sum(bgArray[i,j]) - np.sum(molArray[i,j])
 
                 # get total background to substract from molecule traces
-                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
 
                 suma.append(bgNorm[i,j])  # np.sum(molArray[i,j]) - 
 
@@ -632,7 +641,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 self.imv.view.addItem(self.gauss_roi[i])
                 print("Created new roi",i, "to", [newy, newx],"\n")
                 threshold_sigma = float(self.gauss_fit_edit.text())
-                if width_x > threshold_sigma or width_y > threshold_sigma:
+                if width_x > threshold_sigma*width_y or width_y > threshold_sigma*width_x:
                     self.gauss_roi[i].setPen('r')
 
         self.maxnumber_new = len(self.molRoi)
@@ -748,7 +757,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 bg[i,j] = np.sum(bgArray[i,j], axis=self.axes) - np.sum(molArray[i,j], axis=self.axes)
 
                 # get total background to substract from molecule traces
-                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+#                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
+
+#bgNorm = [ Bg / ( m*m - n*n ) ] * n*n ==> m = n + s ==> [bg / s*s(n+1) ] n*n
 
                 self.trace[p,j] = np.sum(molArray[i,j], axis=self.axes) - bgNorm[i,j]
                 p +=1 # I have to use this to have order because of removerois
@@ -783,7 +795,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 new_bg[i,j] = np.sum(new_bgArray[i,j], axis=self.axes) - np.sum(new_molArray[i,j], axis=self.axes)
 
                 # get total background to substract from molecule traces
-                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i,j])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
 
                 self.new_trace[p,j] = np.sum(new_molArray[i,j], axis=self.axes) - new_bgNorm[i,j]
                 p +=1 # I have to use this to have order because of removerois
@@ -828,7 +840,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 bg[i,j] = np.sum(bgArray[i,j]) - np.sum(molArray[i,j])
 
                 # get total background to substract from molecule traces
-                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
 
                 self.sum_spot[p,j] = np.sum(molArray[i,j]) - bgNorm[i,j]
                 p +=1 # I have to use this to have order because of removerois
@@ -858,7 +870,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 new_bg[i,j] = np.sum(new_bgArray[i,j]) - np.sum(new_molArray[i,j])
 
                 # get total background to substract from molecule traces
-                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
+                new_bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(new_bg[i,j])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
 
                 self.new_sum_spot[p,j] = np.sum(new_molArray[i,j]) - new_bgNorm[i,j]
                 p +=1 # I have to use this to have order because of removerois
@@ -1070,6 +1082,8 @@ hacer que aprete el boton cuando se mueve
 
 Por ahora conecte el slider que ya esta (pero se va cuando toco el boton, logico)
 No necesito tocar el boton para hacer todo el analisis!
+
+circularity
 """
 
 
