@@ -56,7 +56,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(2200, 1500)
+        self.w.resize(1500, 800)
 
         # Create ImageView
         self.imv = pg.ImageView()
@@ -573,6 +573,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         j=0
         p=0
         suma = []
+        bgsize = int(self.BgSizeEdit.text())
         for i in np.arange(0, self.maxnumber):
             if i not in self.removerois:
 
@@ -581,9 +582,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
                 # get background plus molecule array
                 bgArray[i,j] = self.bgRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
-                print("\n i", i, "mrean", np.mean(bgArray[i,j]))
-                print("max",np.max(bgArray[i,j]), "min",np.min(bgArray[i,j]))
-                print("resta", np.max(bgArray[i,j])-np.min(bgArray[i,j]))
+                print("bgArray", bgArray[i,j][:,-2])
+                print("bgArray2222", bgArray[i,j][-2,:])
 
                 # get background array
                 bg[i,j] = np.sum(bgArray[i,j]) - np.sum(molArray[i,j])
@@ -596,12 +596,27 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 p +=1 # I have to use this to have order because of removerois
 
         for i in range(len(suma)):
-#            print("i",i,"\n suma",suma[i])
-#            print("mean", np.mean(suma))
             a = 0
-            if suma[i] > np.mean(suma):
-                self.bgRoi[i,j].setPen('r')
-                a+=1
+#            if suma[i] > np.mean(suma):
+#                self.bgRoi[i,j].setPen('r')
+#                a+=1
+            b = True
+            for l in np.arange(-bgsize,bgsize):
+                if b:
+                    print("l", l)
+                    print("mean", np.mean(bgArray[i,j][:,l]))
+                    print("threshold", float(self.maxThreshEdit.text()))
+                    if np.mean(bgArray[i,j][:,l]) > float(self.maxThreshEdit.text()):
+                        print("casi 1")
+                        b = False
+                        self.bgRoi[i,j].setPen('r')
+                        a+=1
+                    if np.mean(bgArray[i,j][l,:]) > float(self.maxThreshEdit.text()):
+                        print("casi 2")
+                        b = False
+                        self.bgRoi[i,j].setPen('r')
+                        a+=1
+
         print("badParticles/total=", a,"/",len(suma))
 
     def gaussian_fit_ROI(self):
@@ -620,7 +635,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 data = np.transpose(molArray[i,j])
     #            params = fitgaussian(data)
     #            fit = gaussian(*params)
-                new_params = fitgaussian(data) #molArray[i,j])
+                try:
+                    new_params = fitgaussian(data) #molArray[i,j])
+                except IOError as e:
+                    print("I/O error({0}): {1}".format(e.errno, e.strerror))
+                    print("who knows \o/")  
         #        all_params[j] = new_params
                 (height, x, y, width_x, width_y) = new_params
                 print("\n new_params \n",
@@ -632,17 +651,23 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 print(self.molRoi[i,j].pos())
                 originx =  self.molRoi[i,j].pos()[0]
                 originy =  self.molRoi[i,j].pos()[1]
-    #            self.molRoi[i,0].translate([newy, newx])
-                self.gauss_roi[i] = pg.ROI([originx+newx,originy+newy], self.roiSize, pen='m',
+
+                self.gauss_roi[i] = pg.ROI([originx,originy], self.roiSize, pen=(5,100,5,200),
                                                                scaleSnap=True,
                                                                translateSnap=True,
                                                                movable=False,
                                                                removable=False)
+
+                self.molRoi[i,j].setPos((originx+newx, originy+newy))
+                self.molRoi[i,j].setPen('m')
+#                self.molRoi[i,j].translate([newy, newx])
+
                 self.imv.view.addItem(self.gauss_roi[i])
                 print("Created new roi",i, "to", [newy, newx],"\n")
                 threshold_sigma = float(self.gauss_fit_edit.text())
                 if width_x > threshold_sigma*width_y or width_y > threshold_sigma*width_x:
-                    self.gauss_roi[i].setPen('r')
+#                    self.gauss_roi[i].setPen('r')
+                    self.molRoi[i,j].setPen('r')
 
         self.maxnumber_new = len(self.molRoi)
 

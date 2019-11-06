@@ -129,7 +129,7 @@ for j in goodmax:
     plt.plot(coordinates[j, 1], coordinates[j, 0], 'b.')
 
 #%%  takin the spots
-roisize = 5  # es el doble de esto
+roisize = 6  # es el doble de esto
 roi = dict()
 roi2 = dict()
 
@@ -184,21 +184,59 @@ for i in range(len(newcoordinateX)):
         print("noup")
 
 #print(roi[0],np.sum(roi2[0]))
-plt.imshow(roi2[2])
-
-roinew = roi2[2]
-for i in range(len(roi2[2][:,0])):
-    for j in range(len(roi2[2][0,:])):
-        if roi2[2][i,j] < 5000:
+plt.imshow(roi2[0])
+n=2
+roinew = roi2[n]
+for i in range(len(roi2[n][:,0])):
+    for j in range(len(roi2[n][0,:])):
+        if roi2[n][i,j] < 4000:
             roinew[i,j] = 0
 
 
 plt.imshow(roinew)
 
-[circ(region) for region in regionprops(roinew)]
-print(regionprops(roinew)[0].perimeter)
 
-[circ(region) for region in regionprops(ex3)]
+
+# %% I give up.....
+from Example2_Hoshen_Kopelman import percolation
+m=9
+
+plt.imshow(roi2[m])
+
+plt.figure()
+threshold = np.mean(roi2[m])
+L = percolation(roi2[m], threshold);
+print(L)
+plt.imshow(L)
+plt.colorbar()
+plt.show()
+
+# %% circularity last atempt
+
+from skimage import data
+from skimage import measure
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Construct some test data
+x, y = np.ogrid[-np.pi:np.pi:100j, -np.pi:np.pi:100j]
+#r = np.sin(np.exp((np.sin(x)**3 + np.cos(y)**2)))
+r2 = roi2[n]
+
+# Find contours at a constant value of 0.8
+contours = measure.find_contours(r2, 0.8)
+
+# Display the image and plot all contours found
+plt.imshow(r2, interpolation='nearest')
+
+for n, contour in enumerate(contours):
+    plt.plot(contour[:, 1], contour[:, 0], linewidth=2)
+
+plt.axis('image')
+plt.xticks([])
+plt.yticks([])
+plt.show()
 
 # %% Circularity Part 3    ..... noup
 
@@ -265,8 +303,8 @@ from skimage.draw import ellipse
 from skimage.measure import find_contours, approximate_polygon, \
     subdivide_polygon
 
-#hand = roinew
-hand = np.array([[1.64516129, 1.16145833],  
+hand = contours[0]
+hand2 = np.array([[1.64516129, 1.16145833],  
                  [1.64516129, 1.59375],
                  [1.35080645, 1.921875],
                  [1.375, 2.18229167],
@@ -342,6 +380,7 @@ for i in range(100):
 for i in range(100):
         ex1[-i, i] = 1
 [circ(region) for region in regionprops(ex1)]
+
 
 
 
