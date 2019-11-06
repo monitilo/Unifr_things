@@ -72,6 +72,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.remove_new_Button = QtGui.QPushButton('Remove added new rois')
 
+        self.btn99_clearall = QtGui.QPushButton('Clear all')
+        self.btn99_clearall.setStyleSheet(
+                "QPushButton { background-color: rgb(210, 30, 100); }"
+                "QPushButton:pressed { background-color: red; }")
+
         self.btn_images = QtGui.QPushButton('image analisys')
         self.btn_images.setStyleSheet(
                 "QPushButton { background-color: rgb(200, 200, 10); }"
@@ -151,7 +156,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.layout.addWidget(self.btn6,              13, 0, 1, 3)
 
-        self.layout.addWidget(QtGui.QLabel(" "),      14, 0, 1, 3)
+        self.layout.addWidget(self.btn99_clearall,    14, 2, 1, 1)
+
         self.layout.addWidget(self.btn7,              15, 0, 1, 3)
         self.layout.addWidget(self.imv,              0, 4, 16, 16)
         
@@ -182,12 +188,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.crazyStepButton.clicked.connect(self.automatic_crazy_start)
         
         self.remove_new_Button.clicked.connect(self.remove_all_new)
-
+        self.btn99_clearall.clicked.connect(self.deleteMaxima)
 
         self.meanStartEdit.textEdited.connect(self.update_image)
 
         self.automatic_crazytimer = QtCore.QTimer()
         self.automatic_crazytimer.timeout.connect(self.automatic_crazy)
+        
+        
 
 
         # Create empty ROI
@@ -211,6 +219,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Initial number of maximums detected
         self.maxnumber = 0
         self.maxnumber_new = 0
+        self.fixing_number = 0
 
         # Save file number
         self.n = 0
@@ -257,30 +266,58 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.bgroiSize = np.array(self.roiSize) + 2* int(self.BgSizeEdit.text())
         center = int(self.BgSizeEdit.text()) * np.array([1, 1])
 
-        i = self.new_i
-        self.new_roi[i] = pg.ROI(self.smallroi.pos(), self.roiSize,
+#        i = self.new_i
+#        self.new_roi[i] = pg.ROI(self.smallroi.pos(), self.roiSize,
+#                                                       scaleSnap=True,
+#                                                       translateSnap=True,
+#                                                       movable=False,
+#                                                       removable=True,
+#                                                       pen='y') 
+#        self.new_roi_bg[i] = pg.ROI((self.smallroi.pos() - center), self.bgroiSize,
+#                                                          scaleSnap=True,
+#                                                          translateSnap=True,
+#                                                          movable=False,
+#                                                          removable=True,
+#                                                          pen='y') 
+#        self.imv.view.addItem(self.new_roi[i])
+#        self.imv.view.addItem(self.new_roi_bg[i])
+#
+#        self.new_roi[i].sigRemoveRequested.connect(self.remove_new_ROI)
+#        self.new_roi_bg[i].sigRemoveRequested.connect(self.remove_new_ROI)
+#
+#        self.new_label[i] = pg.TextItem(text="new_"+str(i))
+#        self.new_label[i].setPos(self.new_roi[i].pos())
+#        self.imv.view.addItem(self.new_label[i])
+#        
+#        self.new_i = i + 1
+#        self.relabel_new_ROI()
+        continue_number = self.fixing_number
+        i = continue_number
+        self.molRoi[i,0] = pg.ROI(self.smallroi.pos(), self.roiSize,
                                                        scaleSnap=True,
                                                        translateSnap=True,
                                                        movable=False,
                                                        removable=True,
                                                        pen='y') 
-        self.new_roi_bg[i] = pg.ROI((self.smallroi.pos() - center), self.bgroiSize,
-                                                          scaleSnap=True,
-                                                          translateSnap=True,
-                                                          movable=False,
-                                                          removable=True,
-                                                          pen='y') 
-        self.imv.view.addItem(self.new_roi[i])
-        self.imv.view.addItem(self.new_roi_bg[i])
+        self.bgRoi[i,0] = pg.ROI((self.smallroi.pos() - center), self.bgroiSize,
+                                                      scaleSnap=True,
+                                                      translateSnap=True,
+                                                      movable=False,
+                                                      removable=True,
+                                                      pen='y') 
+        self.imv.view.addItem(self.molRoi[i,0])
+        self.imv.view.addItem(self.bgRoi[i,0])
 
-        self.new_roi[i].sigRemoveRequested.connect(self.remove_new_ROI)
-        self.new_roi_bg[i].sigRemoveRequested.connect(self.remove_new_ROI)
+        self.molRoi[i,0].sigRemoveRequested.connect(self.remove_ROI)
+        self.bgRoi[i,0].sigRemoveRequested.connect(self.remove_ROI)
 
-        self.new_label[i] = pg.TextItem(text="new_"+str(i))
-        self.new_label[i].setPos(self.new_roi[i].pos())
-        self.imv.view.addItem(self.new_label[i])
-        
-        self.new_i = i + 1
+        self.label[i,0] = pg.TextItem(text=str(i))
+        self.label[i,1] = pg.TextItem(text=str(i))
+        self.label[i,0].setPos(self.molRoi[i,0].pos())
+        self.imv.view.addItem(self.label[i,0])
+
+        self.fixing_number = i + 1
+        print("finxing", self.fixing_number)
         self.relabel_new_ROI()
 
     def remove_all_new(self):
@@ -311,21 +348,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.relabel_new_ROI()
 
-    def relabel_new_ROI(self):
-        self.relabel_ROI()
-
-        p = self.Nparticles + 1
-        for i in range(len(self.new_roi)):
-            if i not in self.removed_new_rois:
-#                print(i,self.removerois)
-                self.imv.view.removeItem(self.new_label[i])
-                self.new_label[i] = pg.TextItem(text=str(p))
-                self.new_label[i].setPos(self.new_roi[i].pos())
-                self.imv.view.addItem(self.new_label[i])
-                p+=1
-#        self.N_newparticles = p-1
-
-
     def create_small_ROI(self):
 
         if self.smallroi is not None:
@@ -348,7 +370,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def createROI(self):
         if self.roi is None:
-            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]] , scaleSnap=True, translateSnap=True)  # [70, 70]
+            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]],
+                              scaleSnap=True, translateSnap=True)  # [70, 70]
             self.roi.addScaleHandle([1, 1], [0, 0])
             self.roi.addScaleHandle([0, 0], [1, 1])
             self.imv.view.addItem(self.roi)
@@ -495,7 +518,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             pass
 
     def detectMaxima(self):
-        self.deleteMaxima()
+#        self.deleteMaxima()
         self.dist = int(self.maxDistEdit.text())
         self.threshold = float(self.maxThreshEdit.text())
         
@@ -524,10 +547,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         print(len(goodmax), "points finded")
 
         self.maxnumber = np.size(self.maximacoord[maxindex], 0)
-        for i in np.arange(0, self.maxnumber):
-            
+        print("finxing", self.fixing_number)
+        print("arange + fixing", np.arange(0,self.maxnumber)+self.fixing_number)
+        p = 0
+        for i in np.arange(0, self.maxnumber)+self.fixing_number:
+    
             # Translates molRoi to particle center
-            corrMaxima = np.flip(self.maximacoord[maxindex[i]], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
+            corrMaxima = np.flip(self.maximacoord[maxindex[p]], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
             self.molRoi[i,0] = pg.ROI(corrMaxima, self.roiSize,
                                                            scaleSnap=True,
                                                            translateSnap=True,
@@ -558,7 +584,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #            self.label[i,1].setPos(self.molRoi[i,1].pos())
             self.imv.view.addItem(self.label[i,0])
 #            self.imv.view.addItem(self.label[i,1])
+            p+=1
 #        self.Nparticles = self.maxnumber
+        self.fixing_number = i + 1
+        print("finxing", self.fixing_number)
         self.relabel_new_ROI()
 
     def filter_bg(self):
@@ -652,7 +681,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 originx =  self.molRoi[i,j].pos()[0]
                 originy =  self.molRoi[i,j].pos()[1]
 
-                self.gauss_roi[i] = pg.ROI([originx,originy], self.roiSize, pen=(5,100,5,200),
+                self.gauss_roi[i] = pg.ROI([originx,originy], self.roiSize, pen=(100,50,200,200),
                                                                scaleSnap=True,
                                                                translateSnap=True,
                                                                movable=False,
@@ -681,7 +710,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def remove_ROI(self,evt):
         print("Remove_ROI")
-        for i in np.arange(0, self.maxnumber):
+        for i in np.arange(0, self.fixing_number):
             if self.bgRoi[i,0] == evt or self.molRoi[i,0] == evt:
 #                print("Removed Roi",i)
                 index = i
@@ -699,23 +728,38 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def relabel_ROI(self):
         p = 0
-        for i in np.arange(0, self.maxnumber):
+        for i in np.arange(0, self.fixing_number):
             if i not in self.removerois:
-#                print(i,self.removerois)
-                self.imv.view.removeItem(self.label[i,0])
-                self.imv.view.removeItem(self.label[i,1])
-                self.label[i,0] = pg.TextItem(text=str(p))
-                self.label[i,0].setPos(self.molRoi[i,0].pos())
-                self.imv.view.addItem(self.label[i,0])
+                print("i",i)
+#                self.imv.view.removeItem(self.label[i,0])
+#                self.imv.view.removeItem(self.label[i,1])
+#                self.label[i,0] = pg.TextItem(text=str(p))
+#                self.label[i,0].setPos(self.molRoi[i,0].pos())
+#                self.imv.view.addItem(self.label[i,0])
+                self.label[i,0].setText(text=str(p))
                 p+=1
         self.Nparticles = p-1
+
+    def relabel_new_ROI(self):
+        self.relabel_ROI()
+
+#        p = self.Nparticles + 1
+#        for i in range(len(self.new_roi)):
+#            if i not in self.removed_new_rois:
+##                print(i,self.removerois)
+#                self.imv.view.removeItem(self.new_label[i])
+#                self.new_label[i] = pg.TextItem(text=str(p))
+#                self.new_label[i].setPos(self.new_roi[i].pos())
+#                self.imv.view.addItem(self.new_label[i])
+#                p+=1
+#        self.N_newparticles = p-1
 
     def remove_small_ROI(self, evt):
         self.imv.view.scene().removeItem(evt)
 
     def deleteMaxima(self):
         self.remove_gauss_ROI()
-        for i in np.arange(0, self.maxnumber):
+        for i in np.arange(0, self.fixing_number):
             try:
                 self.imv.view.removeItem(self.molRoi[i,0])
 #                self.imv.view.removeItem(self.molRoi[i,1])
@@ -738,6 +782,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.label = dict()
         self.maxnumber = 0
         self.removerois = []
+        self.fixing_number = 0
 
     def translateMaxima(self):
         for i in np.arange(0, self.maxnumber):
