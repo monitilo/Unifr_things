@@ -1048,6 +1048,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.image_analysis = True
         self.detectMaxima()
         self.imv.setCurrentIndex(int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
+
+        self.gaussian_fit_ROI()
+        self.filter_bg()
+
         self.make_histogram()
         print("step #", self.timing,"frame :", int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
         self.timing +=1
