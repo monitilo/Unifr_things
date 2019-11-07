@@ -77,7 +77,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 "QPushButton { background-color: rgb(210, 30, 100); }"
                 "QPushButton:pressed { background-color: red; }")
 
-        self.btn_images = QtGui.QPushButton('image analisys')
+        self.btn_images = QtGui.QPushButton('image analysis')
         self.btn_images.setStyleSheet(
                 "QPushButton { background-color: rgb(200, 200, 10); }"
                 "QPushButton:pressed { background-color: blue; }")
@@ -180,7 +180,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn6.clicked.connect(self.detectMaxima)
         self.btn7.clicked.connect(self.exportTraces_or_images)
         
-        self.btn_images.clicked.connect(self.ROI_mean_images)
+        self.btn_images.clicked.connect(self.image_analysis)
         self.btn_small_roi.clicked.connect(self.create_small_ROI)
         self.btn_gauss_fit.clicked.connect(self.gaussian_fit_ROI)
         self.btn_filter_bg.clicked.connect(self.filter_bg)
@@ -226,7 +226,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.JPG = False
         self.image_analysis = False
-        self.video_traces = False
         self.histo_data = False
 
         self.new_i = 0
@@ -244,21 +243,19 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.calculate_traces()
             self.export("trace")
 
-    def ROI_mean_images(self):
+    def image_analysis(self):
         self.image_analysis = True
-        self.video_traces = False
         if self.roi == None:
             self.start = int(self.meanStartEdit.text())
-#            self.mean = self.data[self.start,:,:]
             self.mean = self.data[self.imv.currentIndex,:,:]
-            self.btn7.setText("Export Intensities from frame={}".format(self.start))
-            self.btn7.setStyleSheet(
-                    "QPushButton { background-color: rgb(200, 200, 10); }")
-            self.meanEndEdit.setStyleSheet(" background-color: red; ")
-            print("change colores")
-
         else:
-            self.ROImean()
+            self.ROI_no_mean_images()
+
+        self.btn7.setText("Export Intensities from frame={}".format(self.start))
+        self.btn7.setStyleSheet(
+                "QPushButton { background-color: rgb(200, 200, 10); }")
+        self.meanEndEdit.setStyleSheet(" background-color: red; ")
+        print("change colores")
 
     def small_ROI_to_new_ROI(self):
         print("\n YOU CLICK MEE 0_o \n")
@@ -321,6 +318,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.relabel_new_ROI()
 
     def remove_all_new(self):
+        print("new_i",self.new_i)
         for i in range(self.new_i):
             self.imv.view.removeItem(self.new_roi[i])
             self.imv.view.removeItem(self.new_roi_bg[i])
@@ -349,11 +347,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.relabel_new_ROI()
 
     def create_small_ROI(self):
-
+        
         if self.smallroi is not None:
+            self.meanEndEdit.setStyleSheet(" background-color: ; ")
             self.imv.view.scene().removeItem(self.smallroi)
             self.smallroi = None
-            print("goodby old roi, Hello new Roi")
+            print("good bye old roi, Hello new Roi")
 
         try:
             roisize = int(self.moleculeSizeEdit.text())
@@ -445,27 +444,34 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def indexChanged(self):
         self.meanStartEdit.setText(str((self.imv.currentIndex)))
+        self.meanEndEdit.setText(str(int(self.imv.currentIndex)+15))
 
-    def ROImean(self):
+
+    def ROI_no_mean_images(self):
         z = self.roi.getArrayRegion(self.data, self.imv.imageItem, axes=self.axes)
         if  self.JPG:
             self.mean = z 
-        elif self.image_analysis == True or self.video_traces == False:
-            self.start = int(self.meanStartEdit.text())
-            self.mean = z[self.start,:,:]
-            self.btn7.setText("Export Intensities from frame={}".format(self.start))
-            self.btn7.setStyleSheet(
-                    "QPushButton { background-color: rgb(200, 200, 10); }")
-            self.meanEndEdit.setStyleSheet(" background-color: red; ")
-
         else:
             self.start = int(self.meanStartEdit.text())
-            self.end = int(self.meanEndEdit.text())
-            print("z", z[self.start:self.start+self.end, :, :].shape)
-            z = z[self.start:self.start+self.end, :, :]
-            self.video_traces = True
+            self.mean = z[self.start,:,:]
+
+    def ROImean(self):
+        self.image_analysis = False
+
+        self.btn7.setText("Export Traces")
+        self.btn7.setStyleSheet(
+                "QPushButton { background-color: ; }")
+        self.meanEndEdit.setStyleSheet(" background-color: ; ")
+        print("change colors back to normal")
+
+        z = self.roi.getArrayRegion(self.data, self.imv.imageItem, axes=self.axes)
+
+        self.start = int(self.meanStartEdit.text())
+        self.end = int(self.meanEndEdit.text())
+        print("z", z[self.start:self.start+self.end, :, :].shape)
+        z = z[self.start:self.start+self.end, :, :]
             
-            self.mean = np.mean(z, axis=0)
+        self.mean = np.mean(z, axis=0)
         print("mean",self.mean.shape)
 
         # Display the data and assign each frame a number
@@ -527,9 +533,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.bgroiSize = np.array(self.roiSize) + 2* int(self.BgSizeEdit.text())  # one pixel each side
         center = int(self.BgSizeEdit.text()) * np.array([1, 1])
         if self.roi == None:
-            if not self.image_analysis or not self.video_traces:
+            if not self.image_analysis:
                 self.mean = self.data[self.imv.currentIndex,:,:]
+
         self.maximacoord = peak_local_max(self.mean, min_distance=self.dist, threshold_abs=self.threshold)
+
 
         maxvalues = []
         for i in range(len(self.maximacoord[:,0])):
@@ -547,8 +555,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         print(len(goodmax), "points finded")
 
         self.maxnumber = np.size(self.maximacoord[maxindex], 0)
-        print("finxing", self.fixing_number)
-        print("arange + fixing", np.arange(0,self.maxnumber)+self.fixing_number)
+#        print("finxing", self.fixing_number)
+#        print("arange + fixing", np.arange(0,self.maxnumber)+self.fixing_number)
         p = 0
         for i in np.arange(0, self.maxnumber)+self.fixing_number:
     
@@ -587,23 +595,25 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             p+=1
 #        self.Nparticles = self.maxnumber
         self.fixing_number = i + 1
-        print("finxing", self.fixing_number)
+#        print("finxing", self.fixing_number)
         self.relabel_new_ROI()
+        if not self.image_analysis:
+            self.btn7.setText("Intensities from frame={}".format(int(self.meanStartEdit.text())))
+
 
     def filter_bg(self):
-        print("working on it")
-
 #        self.suma = dict()
         molArray = dict()
         bgArray = dict()
         bg = dict()
         bgNorm = dict()
         bgArray = dict()
-        j=0
-        p=0
-        suma = []
+        j = 0
+        p = 0
+#        suma = []
+        a = 0
         bgsize = int(self.BgSizeEdit.text())
-        for i in np.arange(0, self.maxnumber):
+        for i in range(len(self.molRoi)): #np.arange(0, self.maxnumber):
             if i not in self.removerois:
 
                 # get molecule array
@@ -611,8 +621,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
                 # get background plus molecule array
                 bgArray[i,j] = self.bgRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
-                print("bgArray", bgArray[i,j][:,-2])
-                print("bgArray2222", bgArray[i,j][-2,:])
 
                 # get background array
                 bg[i,j] = np.sum(bgArray[i,j]) - np.sum(molArray[i,j])
@@ -620,33 +628,36 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 # get total background to substract from molecule traces
                 bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
 
-                suma.append(bgNorm[i,j])  # np.sum(molArray[i,j]) - 
+#                suma.append(bgNorm[i,j])  # np.sum(molArray[i,j]) - 
 
                 p +=1 # I have to use this to have order because of removerois
 
-        for i in range(len(suma)):
-            a = 0
+#        a = 0
+#        for i in range(len(suma)):
 #            if suma[i] > np.mean(suma):
 #                self.bgRoi[i,j].setPen('r')
 #                a+=1
-            b = True
-            for l in np.arange(-bgsize,bgsize):
-                if b:
-                    print("l", l)
-                    print("mean", np.mean(bgArray[i,j][:,l]))
-                    print("threshold", float(self.maxThreshEdit.text()))
-                    if np.mean(bgArray[i,j][:,l]) > float(self.maxThreshEdit.text()):
-                        print("casi 1")
-                        b = False
-                        self.bgRoi[i,j].setPen('r')
-                        a+=1
-                    if np.mean(bgArray[i,j][l,:]) > float(self.maxThreshEdit.text()):
-                        print("casi 2")
-                        b = False
-                        self.bgRoi[i,j].setPen('r')
-                        a+=1
-
-        print("badParticles/total=", a,"/",len(suma))
+                b = True
+#                print("removerois",self.removerois)
+                for l in np.arange(-bgsize,bgsize):
+                    if b:
+    #                    print("l", l)
+    #                    print("mean", np.mean(bgArray[i,j][:,l]))
+    #                    print("threshold", float(self.maxThreshEdit.text()))
+                        if np.mean(bgArray[i,j][:,l]) > float(self.maxThreshEdit.text()) or np.mean(bgArray[i,j][l,:]) > float(self.maxThreshEdit.text()):
+                            print("bad #", a)
+                            b = False
+                            self.bgRoi[i,j].setPen('r')
+                            self.removerois.append(i)
+                            a+=1
+#                        if np.mean(bgArray[i,j][l,:]) > float(self.maxThreshEdit.text()):
+#                            print("casi 2")
+#                            b = False
+#                            self.bgRoi[i,j].setPen('r')
+#                            a+=1
+#    #                        self.removerois.append(i)
+    
+        print("badParticles/total=", a,"/", self.maxnumber-len(self.removerois))
 
     def gaussian_fit_ROI(self):
         self.remove_gauss_ROI()
@@ -687,9 +698,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                                                                movable=False,
                                                                removable=False)
 
-                self.molRoi[i,j].setPos((originx+newx, originy+newy))
+#                self.molRoi[i,j].setPos((originx+newx, originy+newy))
                 self.molRoi[i,j].setPen('m')
-#                self.molRoi[i,j].translate([newy, newx])
+                self.molRoi[i,j].translate([newx, newy])
+                self.bgRoi[i,j].translate([newx, newy])
 
                 self.imv.view.addItem(self.gauss_roi[i])
                 print("Created new roi",i, "to", [newy, newx],"\n")
@@ -697,6 +709,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 if width_x > threshold_sigma*width_y or width_y > threshold_sigma*width_x:
 #                    self.gauss_roi[i].setPen('r')
                     self.molRoi[i,j].setPen('r')
+                    self.removerois.append(i)
 
         self.maxnumber_new = len(self.molRoi)
 
@@ -730,7 +743,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         p = 0
         for i in np.arange(0, self.fixing_number):
             if i not in self.removerois:
-                print("i",i)
+#                print("i",i)
 #                self.imv.view.removeItem(self.label[i,0])
 #                self.imv.view.removeItem(self.label[i,1])
 #                self.label[i,0] = pg.TextItem(text=str(p))
@@ -742,6 +755,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def relabel_new_ROI(self):
         self.relabel_ROI()
+
+        for i in self.removerois:
+            self.imv.view.removeItem(self.molRoi[i,0])
+            self.imv.view.removeItem(self.bgRoi[i,0])
+            self.imv.view.removeItem(self.label[i,0])
+            self.imv.view.removeItem(self.label[i,1])
 
 #        p = self.Nparticles + 1
 #        for i in range(len(self.new_roi)):
@@ -783,6 +802,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.maxnumber = 0
         self.removerois = []
         self.fixing_number = 0
+        self.image_analysis = False
 
     def translateMaxima(self):
         for i in np.arange(0, self.maxnumber):
@@ -853,6 +873,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         new_bg = dict()
         new_bgNorm = dict()
         p=0
+        print("new_i",self.new_i)
         for i in range(self.new_i):
             if i not in self.removed_new_rois:             
                 # get molecule array
@@ -928,6 +949,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         new_bg = dict()
         new_bgNorm = dict()
         p=0
+        print("new_i",self.new_i)
         for i in range(self.new_i):
             if i not in self.removed_new_rois:             
                 # get molecule array
@@ -965,16 +987,16 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         print(" Export ", what)
         if what == "trace":
             b = self.traces
-            trace_name = 'traces' + str(self.n) + '.txt'
+            trace_name = 'traces-'+ str(b.shape[1])+"("+ str(self.n)+")" + '.txt'
             np.savetxt(trace_name, b, delimiter="    ", newline='\r\n')
-            print(len(b),"Traces exported as", trace_name)
+            print(b.shape[1],"Traces exported as", trace_name)
     
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
     #        # set export parameters if needed
     #        exporter.parameters()['width'] = 100   # (note this also affects height parameter)
             # save to file
-            png_name = 'Image_traces' + str(self.n) + '.png'
+            png_name = 'Image_traces-'+ str(b.shape[1]) +"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
             print( "Picture exported as", png_name)
     
@@ -985,7 +1007,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 b = self.intensitys2
             else:
                 b = self.intensitys
-            intensities_name = 'intensities' + str(self.n) + '.txt'
+            intensities_name = 'intensities' + str(len(b))+"(" + str(self.n)+")"+ '.txt'
             np.savetxt(intensities_name, b, delimiter="    ", newline='\r\n')
             print(len(b), "intensities exported as", intensities_name)
     
@@ -994,7 +1016,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
     #        # set export parameters if needed
     #        exporter.parameters()['width'] = 100   # (note this also affects height parameter)
             # save to file
-            png_name = 'Image_intensities' + str(self.n) + '.png'
+            png_name = 'Image_intensities'+ str(len(b))+"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
             print( "Picture exported as", png_name)
             
