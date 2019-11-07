@@ -222,7 +222,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.n = 0
 
         self.JPG = False
-        self.image_analysis = False
+        self.is_image = False
         self.histo_data = False
 
 
@@ -285,8 +285,189 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
     def update_image(self):  # Put the start frame in the image when change the number
         self.imv.setCurrentIndex(int(self.meanStartEdit.text()))
 
+    def indexChanged(self):  #connected to the slide in the img
+        """ change the numbers of start and endig frame  when move the slide"""
+        self.meanStartEdit.setText(str((self.imv.currentIndex)))
+        self.meanEndEdit.setText(str(int(self.imv.currentIndex)+15))
+
+    def createROI(self):  # connected to Create ROI (btn2)
+        """ create a big ROI to select the area to make the analysis
+        default is the size of the picture"""
+        if self.roi is None:
+            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]],
+                              scaleSnap=True, translateSnap=True)  # [70, 70]
+            self.roi.addScaleHandle([1, 1], [0, 0])
+            self.roi.addScaleHandle([0, 0], [1, 1])
+            self.imv.view.addItem(self.roi)
+        else:
+            pass
+
+    def deleteROI(self):  # connected to Delete ROI (btn3)
+        """ delete the big ROI"""
+        if self.roi is None:
+            pass
+        else:
+            self.imv.view.removeItem(self.roi)
+            self.roi = None
+
+    def ROImean(self):  # connected to Get ROI mean (traces) (btn4)
+        """ get the mean in the big ROI area, between the start and ending
+        selected frames. Here self.mean is really a mean"""
+        
+        self.is_image = False
+
+        # if you comes from images, it get the colors back to normal
+        self.btn7.setText("Export Traces")
+        self.btn7.setStyleSheet(
+                "QPushButton { background-color: ; }")
+        self.meanEndEdit.setStyleSheet(" background-color: ; ")
+
+        z = self.roi.getArrayRegion(self.data, self.imv.imageItem, axes=self.axes)
+
+        self.start = int(self.meanStartEdit.text())
+        self.end = int(self.meanEndEdit.text())
+        z = z[self.start:self.start+self.end, :, :]
+            
+        self.mean = np.mean(z, axis=0)  # axis=0 is the frames axis
+
+        # Display the data and assign each frame a number
+        x = np.linspace(1., self.data.shape[0], self.data.shape[0])
+
+        # Load Mean Image
+        self.imv.setImage(self.mean, xvals=x)
+
+        # Set a custom color map
+        colors = [
+                (0, 0, 0),
+                (45, 5, 61),
+                (84, 42, 55),
+                (150, 87, 60),
+                (208, 171, 141),
+                (255, 255, 255)
+                ]
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
+        self.imv.setColorMap(cmap)
+        self.w.setWindowTitle('SMAnalyzer - ROI Mean - ' + self.f)
+        self.imv.view.removeItem(self.roi)
+
+    def showVideo(self):  # connected to Go to vide (btn5)
+        """Get the original image back. Use this to came back from the 
+        ROImean image.
+        If you have rois in the mean image, they are moved with translatemaxima
+        to the good positions in the origianl image. So you can follow them"""
+
+        # Display the data and assign each frame a number
+        x = np.linspace(1., self.data.shape[0], self.data.shape[0])
+
+        # Load array as an image
+        self.imv.setImage(self.data, xvals=x)
+
+        # Set a custom color map
+        colors = [
+                (0, 0, 0),
+                (45, 5, 61),
+                (84, 42, 55),
+                (150, 87, 60),
+                (208, 171, 141),
+                (255, 255, 255)
+                ]
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
+        self.imv.setColorMap(cmap)
+        self.w.setWindowTitle('SMAnalyzer - Video - ' + self.f)
+        self.meanEndEdit.setStyleSheet(" background-color: ; ")
+
+        try:
+            self.translateMaxima()
+            self.imv.view.addItem(self.roi)
+        except:
+            pass
+
+    def translateMaxima(self):  # go to video call this function
+        """ translate the position from the big ROI in to the video again"""
+        for i in range(len(self.molRoi)):  # np.arange(0, self.maxnumber):
+            self.molRoi[i].translate(self.roi.pos())
+            self.bgRoi[i].translate(self.roi.pos())
+            self.label[i].setPos(self.molRoi[i].pos())
+            try:
+                self.gauss_roi[i].translate(self.roi.pos())
+            except:
+                pass
+        self.relabel_new_ROI()
+
+    def detectMaxima(self):  # connected to Detect Molecules (btn6)
+        """here is where the magic begins...
+        if you did not had already created self.mean (that's not a mean for images) 
+        it use the actual frame to see spots (Standar = image mode).
+        Then, for each spot, creates a square roi of side size(=imput)
+        and another roi bigger (also imput) to the background """
+
+#        self.deleteMaxima()
+        self.dist = int(self.maxDistEdit.text())
+        self.threshold = float(self.maxThreshEdit.text())
+        
+        # set roi Dimension array
+        self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
+        self.bgroiSize = np.array(self.roiSize) + 2* int(self.BgSizeEdit.text())  # one pixel each side
+        center = int(self.BgSizeEdit.text()) * np.array([1, 1])
+        if self.roi == None:
+            if not self.is_image:
+                self.mean = self.data[self.imv.currentIndex,:,:]
+
+        # find the local peaks
+        self.maximacoord = peak_local_max(self.mean, min_distance=self.dist, threshold_abs=self.threshold)
+
+
+        maxvalues = []
+        for i in range(len(self.maximacoord[:,0])):
+            maxvalues.append(self.mean[self.maximacoord[i,0],self.maximacoord[i,1]])
+
+        # filter spurious peaks taking only the brighters ones
+        nomaxlow = np.where(np.array(maxvalues) < np.mean(maxvalues))[0]
+        
+        aux = np.arange(len(maxvalues))
+        goodmax = np.delete(aux,nomaxlow)
+
+        # Can do the same for the very brighter spots, but don't wanna
+#        nomaxhigh = np.where(np.array(maxvalues) > 1.5*np.mean(np.array(maxvalues)[goodmax]))
+#        toerase = np.sort(np.append(nomaxlow, nomaxhigh))
+
+        maxindex = goodmax  # np.delete(aux,toerase)   NOT Nice for now
+
+        print(len(goodmax), "good points finded")
+
+        self.maxnumber = np.size(self.maximacoord[maxindex], 0)
+
+        p = 0  
+        
+        # I move my start because of the fixing number, so need to use p=0
+        for i in np.arange(0, self.maxnumber)+self.fixing_number:
+
+            # Translates molRoi to particle center
+            corrMaxima = np.flip(self.maximacoord[maxindex[p]], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
+            self.molRoi[i] = pg.ROI(corrMaxima, self.roiSize,scaleSnap=True,
+                           translateSnap=True, movable=False, removable=True)
+            self.bgRoi[i] = pg.ROI((corrMaxima - center), self.bgroiSize,
+                                          scaleSnap=True, translateSnap=True,
+                                          movable=False, removable=True)
+            self.imv.view.addItem(self.molRoi[i])
+            self.imv.view.addItem(self.bgRoi[i])
+
+            self.molRoi[i].sigRemoveRequested.connect(self.remove_ROI)
+            self.bgRoi[i].sigRemoveRequested.connect(self.remove_ROI)
+
+            # Create ROI label
+            self.label[i] = pg.TextItem(text=str(i))
+            self.label[i].setPos(self.molRoi[i].pos())
+            self.imv.view.addItem(self.label[i])
+            p+=1
+        self.fixing_number = i + 1
+        self.relabel_new_ROI()
+
+        if not self.is_image:
+            self.btn7.setText("Intensities from frame={}".format(int(self.meanStartEdit.text())))
+
     def exportTraces_or_images(self):  # connected to export traces button (btn7)
-        if self.image_analysis:
+        if self.is_image:
             
             self.calculate_images()
             self.export("images")
@@ -301,7 +482,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         The name "mean" is historical (and useful to no change code later),
         there is no mean in the images"""
 
-        self.image_analysis = True
+        self.is_image = True
         self.start = int(self.meanStartEdit.text())
 
         if self.roi == None:
@@ -390,7 +571,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.relabel_new_ROI()
 
-    def relabel_new_ROI(self):
+    def relabel_new_ROI(self):  # everiwhere you create or delete a roi
         """ fix the numeration and showing rois when you add or remove them
         in this case, call the normal one, and remove the manually yellow"""
         self.relabel_ROI()
@@ -401,186 +582,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.imv.view.removeItem(self.label[i])
             self.imv.view.removeItem(self.label[i])
 
-    def relabel_ROI(self):
+    def relabel_ROI(self):  # from the new version (relabel_new_ROI)
         """ fix the numeration and showing rois when you add or remove them"""
         p = 0
         for i in np.arange(0, self.fixing_number):
             if i not in self.removerois:
                 self.label[i].setText(text=str(p))
                 p+=1
-
-    def createROI(self):  # connected to Create ROI (btn2)
-        """ create a big ROI to select the area to make the analysis
-        default is the size of the picture"""
-        if self.roi is None:
-            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]],
-                              scaleSnap=True, translateSnap=True)  # [70, 70]
-            self.roi.addScaleHandle([1, 1], [0, 0])
-            self.roi.addScaleHandle([0, 0], [1, 1])
-            self.imv.view.addItem(self.roi)
-        else:
-            pass
-
-    def deleteROI(self):  # connected to Delete ROI (btn3)
-        """ delete the big ROI"""
-        if self.roi is None:
-            pass
-        else:
-            self.imv.view.removeItem(self.roi)
-            self.roi = None
-
-
-
-    def indexChanged(self):  #connected to the slide in the img
-        """ change the numbers of start and endig frame  when move the slide"""
-        self.meanStartEdit.setText(str((self.imv.currentIndex)))
-        self.meanEndEdit.setText(str(int(self.imv.currentIndex)+15))
-
-
-
-    def ROImean(self):  # connected to Get ROI mean (traces)
-        """ get the mean in the big ROI area, between the start and ending
-        selected frames. Here self.mean is really a mean"""
-        
-        self.image_analysis = False
-
-        # if you comes from images, it get the colors back to normal
-        self.btn7.setText("Export Traces")
-        self.btn7.setStyleSheet(
-                "QPushButton { background-color: ; }")
-        self.meanEndEdit.setStyleSheet(" background-color: ; ")
-
-        z = self.roi.getArrayRegion(self.data, self.imv.imageItem, axes=self.axes)
-
-        self.start = int(self.meanStartEdit.text())
-        self.end = int(self.meanEndEdit.text())
-        z = z[self.start:self.start+self.end, :, :]
-            
-        self.mean = np.mean(z, axis=0)  # axis=0 is the frames axis
-
-        # Display the data and assign each frame a number
-        x = np.linspace(1., self.data.shape[0], self.data.shape[0])
-
-        # Load Mean Image
-        self.imv.setImage(self.mean, xvals=x)
-
-        # Set a custom color map
-        colors = [
-                (0, 0, 0),
-                (45, 5, 61),
-                (84, 42, 55),
-                (150, 87, 60),
-                (208, 171, 141),
-                (255, 255, 255)
-                ]
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
-        self.imv.setColorMap(cmap)
-        self.w.setWindowTitle('SMAnalyzer - ROI Mean - ' + self.f)
-        self.imv.view.removeItem(self.roi)
-
-    def showVideo(self):  # connected to Go to vide (btn5)
-        """Get the original image back. Use this to came back from the 
-        ROImean image.
-        If you have rois in the mean image, they are moved with translatemaxima
-        to the good positions in the origianl image. So you can follow them"""
-
-        # Display the data and assign each frame a number
-        x = np.linspace(1., self.data.shape[0], self.data.shape[0])
-
-        # Load array as an image
-        self.imv.setImage(self.data, xvals=x)
-
-        # Set a custom color map
-        colors = [
-                (0, 0, 0),
-                (45, 5, 61),
-                (84, 42, 55),
-                (150, 87, 60),
-                (208, 171, 141),
-                (255, 255, 255)
-                ]
-        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
-        self.imv.setColorMap(cmap)
-        self.w.setWindowTitle('SMAnalyzer - Video - ' + self.f)
-        self.meanEndEdit.setStyleSheet(" background-color: ; ")
-
-        try:
-            self.translateMaxima()
-            self.imv.view.addItem(self.roi)
-        except:
-            pass
-
-    def detectMaxima(self):  # connected to Detect Molecules (btn6)
-        """here is where the magic begins...
-        if you did not had already created self.mean (that's not a mean for images) 
-        it use the actual frame to see spots (Standar = image mode).
-        Then, for each spot, creates a square roi of side size(=imput)
-        and another roi bigger (also imput) to the background """
-
-#        self.deleteMaxima()
-        self.dist = int(self.maxDistEdit.text())
-        self.threshold = float(self.maxThreshEdit.text())
-        
-        # set roi Dimension array
-        self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
-        self.bgroiSize = np.array(self.roiSize) + 2* int(self.BgSizeEdit.text())  # one pixel each side
-        center = int(self.BgSizeEdit.text()) * np.array([1, 1])
-        if self.roi == None:
-            if not self.image_analysis:
-                self.mean = self.data[self.imv.currentIndex,:,:]
-
-        # find the local peaks
-        self.maximacoord = peak_local_max(self.mean, min_distance=self.dist, threshold_abs=self.threshold)
-
-
-        maxvalues = []
-        for i in range(len(self.maximacoord[:,0])):
-            maxvalues.append(self.mean[self.maximacoord[i,0],self.maximacoord[i,1]])
-
-        # filter spurious peaks taking only the brighters ones
-        nomaxlow = np.where(np.array(maxvalues) < np.mean(maxvalues))[0]
-        
-        aux = np.arange(len(maxvalues))
-        goodmax = np.delete(aux,nomaxlow)
-
-        # Can do the same for the very brighter spots, but don't wanna
-#        nomaxhigh = np.where(np.array(maxvalues) > 1.5*np.mean(np.array(maxvalues)[goodmax]))
-#        toerase = np.sort(np.append(nomaxlow, nomaxhigh))
-
-        maxindex = goodmax  # np.delete(aux,toerase)   NOT Nice for now
-
-        print(len(goodmax), "good points finded")
-
-        self.maxnumber = np.size(self.maximacoord[maxindex], 0)
-
-        p = 0  
-        
-        # I move my start because of the fixing number, so need to use p=0
-        for i in np.arange(0, self.maxnumber)+self.fixing_number:
-
-            # Translates molRoi to particle center
-            corrMaxima = np.flip(self.maximacoord[maxindex[p]], 0) - 0.5*np.array(self.roiSize) + [0.5, 0.5]
-            self.molRoi[i] = pg.ROI(corrMaxima, self.roiSize,scaleSnap=True,
-                           translateSnap=True, movable=False, removable=True)
-            self.bgRoi[i] = pg.ROI((corrMaxima - center), self.bgroiSize,
-                                          scaleSnap=True, translateSnap=True,
-                                          movable=False, removable=True)
-            self.imv.view.addItem(self.molRoi[i])
-            self.imv.view.addItem(self.bgRoi[i])
-
-            self.molRoi[i].sigRemoveRequested.connect(self.remove_ROI)
-            self.bgRoi[i].sigRemoveRequested.connect(self.remove_ROI)
-
-            # Create ROI label
-            self.label[i] = pg.TextItem(text=str(i))
-            self.label[i].setPos(self.molRoi[i].pos())
-            self.imv.view.addItem(self.label[i])
-            p+=1
-        self.fixing_number = i + 1
-        self.relabel_new_ROI()
-
-        if not self.image_analysis:
-            self.btn7.setText("Intensities from frame={}".format(int(self.meanStartEdit.text())))
 
     def filter_bg(self):  # connected to filter bg (btn_filter_bg)
         """ Check at the counts in the background zone, if they are above
@@ -712,7 +720,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.relabel_new_ROI()
 
-    def deleteMaxima(self):
+    def deleteMaxima(self):  # connected to button Clear all
         """ clear all the thing in the view, and initialize the variables"""
 
         self.remove_gauss_ROI()
@@ -735,22 +743,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.maxnumber = 0
         self.removerois = []
         self.fixing_number = 0
-        self.image_analysis = False
+        self.is_image = False
 
-    def translateMaxima(self):  # go to video call this function
-        """ translate the position from the big ROI in to the video again"""
-        for i in range(len(self.molRoi)):  # np.arange(0, self.maxnumber):
-            self.molRoi[i].translate(self.roi.pos())
-            self.bgRoi[i].translate(self.roi.pos())
-            self.label[i].setPos(self.molRoi[i].pos())
-            try:
-                self.gauss_roi[i].translate(self.roi.pos())
-            except:
-                pass
-        self.relabel_new_ROI()
-
-                
-        
     def calculate_traces(self): # from exportTraces_or_images (<- btn7 call it)
         """ calculate the traces to save.
         For each spot take the counts of the molecular roi, and 
@@ -878,6 +872,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             
             self.n += 1
 
+# %% out of program
     def automatic_crazy_start(self): # connected to crazy go (crazyStepButton)
         """it start the timer with a specific time in ms to call again
         the function connected (automatic_crazy). 
@@ -894,7 +889,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.mean = self.data[int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())),:,:]
         self.deleteMaxima()
-        self.image_analysis = True
+        self.is_image = True
         self.detectMaxima()
         self.imv.setCurrentIndex(int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
         self.filter_bg()
@@ -906,6 +901,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.automatic_crazytimer.stop()
             print(" automatic analysis finished")
 
+# %% for the new windows.
     def make_histogram(self):  # connected to make histogram (btn_histogram)
         """Prepare to make the histogram with all the spots detected.
         It opens a new window to run in another thread and  make it easy.
