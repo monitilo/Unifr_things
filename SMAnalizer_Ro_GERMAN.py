@@ -65,7 +65,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn1 = QtGui.QPushButton('Load Image')
         self.btn2 = QtGui.QPushButton('Create ROI')
         self.btn3 = QtGui.QPushButton('Delete ROI')
-        self.btn4 = QtGui.QPushButton('Get ROI mean')
+        self.btn4 = QtGui.QPushButton('Get ROI mean (Traces)')
         self.btn5 = QtGui.QPushButton('Go to Video')
         self.btn6 = QtGui.QPushButton('Detect Molecules')
         self.btn7 = QtGui.QPushButton('Export Traces')
@@ -805,7 +805,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.image_analysis = False
 
     def translateMaxima(self):
-        for i in np.arange(0, self.maxnumber):
+        for i in range(len(self.molRoi)):  # np.arange(0, self.maxnumber):
             self.molRoi[i,0].translate(self.roi.pos())
 #            self.molRoi[i,1].translate(self.roi.pos())
             self.bgRoi[i,0].translate(self.roi.pos())
@@ -833,7 +833,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         j=0  # I justo kill the second trace
 
         p=0
-        for i in np.arange(0, self.maxnumber):
+        for i in range(len(self.molRoi)):  #2 np.arange(0, self.maxnumber):
             if i not in self.removerois:
 
                 
@@ -919,7 +919,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         
         j=0  # I just do not use the second trace
         p=0
-        for i in np.arange(0, self.maxnumber):
+        for i in range(len(self.molRoi)):  # np.arange(0, self.maxnumber):
             if i not in self.removerois:             
                 # get molecule array
                 molArray[i,j] = self.molRoi[i,j].getArrayRegion(self.mean, self.imv.imageItem)
@@ -1044,11 +1044,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 #        N = int(self.crazyStepEdit.text())
 #        for i in range(N):
         self.mean = self.data[int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())),:,:]
+        self.deleteMaxima()
         self.image_analysis = True
-        self.video_traces = True
         self.detectMaxima()
+        self.imv.setCurrentIndex(int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
         self.make_histogram()
-        print(self.timing, int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
+        print("step #", self.timing,"frame :", int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
         self.timing +=1
         if self.timing == int(self.crazyStepEdit.text()):
             self.automatic_crazytimer.stop()
