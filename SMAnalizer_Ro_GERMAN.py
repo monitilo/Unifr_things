@@ -116,13 +116,19 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.BgSizeEdit = QtGui.QLineEdit('2')
         self.BgSizeEdit.setFixedWidth(30)
 
+        self.time_adquisitionLabel = QtGui.QLabel('Adquisition time (ms)')
+        self.time_adquisitionEdit = QtGui.QLineEdit('100')
+
         # Create a grid layout to manage the widgets size and position
         self.layout = QtGui.QGridLayout()
         self.w.setLayout(self.layout)
 
         # Add widgets to the layout in their proper positions 
         #                                       (-Y, X, Y_width ,X_width)
-        self.layout.addWidget(QtGui.QLabel(" "),       0, 0, 1, 3)
+#        self.layout.addWidget(QtGui.QLabel(" "),       0, 0, 1, 3)
+        self.layout.addWidget(self.time_adquisitionLabel,     0, 0, 1, 1)
+        self.layout.addWidget(self.time_adquisitionEdit,      0, 1, 1, 2)
+
         self.layout.addWidget(self.btn1,               1, 0, 1, 3)
         self.layout.addWidget(self.btn2,               2, 0, 1, 3)
         self.layout.addWidget(self.btn3,               3, 0, 1, 3)
@@ -162,14 +168,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.btn7,              15, 0, 1, 3)
         self.layout.addWidget(self.imv,              0, 4, 16, 16)
         
-        self.layout.addWidget(self.btn_small_roi,     2, 25, 1, 1)
+        self.layout.addWidget(self.btn_small_roi,     2, 25, 1, 2)
         self.layout.addWidget(self.gauss_fit_label,   5, 25, 1, 1)
-        self.layout.addWidget(self.gauss_fit_edit,    6, 25, 1, 1)
-        self.layout.addWidget(self.btn_gauss_fit,     7, 25, 1, 1)
-        self.layout.addWidget(self.btn_filter_bg,     9, 25, 1, 1)
-        self.layout.addWidget(self.btn_histogram,    11, 25, 1, 1)
-        self.layout.addWidget(self.crazyStepEdit,    13, 25, 1, 1)
-        self.layout.addWidget(self.crazyStepButton,  14, 25, 1, 1)
+        self.layout.addWidget(self.gauss_fit_edit,    5, 26, 1, 1)
+        self.layout.addWidget(self.btn_gauss_fit,     6, 25, 1, 2)
+        self.layout.addWidget(self.btn_filter_bg,     9, 25, 1, 2)
+        self.layout.addWidget(self.btn_histogram,    11, 25, 1, 2)
+        self.layout.addWidget(self.crazyStepEdit,    15, 26, 1, 1)
+        self.layout.addWidget(self.crazyStepButton,  15, 25, 1, 1)
 
         # button actions
         self.btn1.clicked.connect(self.importImage)
@@ -632,7 +638,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                             self.removerois.append(i)
                             a+=1
 
-        print("badParticles/total=", a,"/", self.maxnumber-len(self.removerois))
+        print("badBg/total=", a,"/", len(self.molRoi)-len(self.removerois))
 
     def gaussian_fit_ROI(self):  # connect to gaussian fit (btn_gauss_fit)
         """For each not discarted roi in molRoi, make a 2D gaussian fit
@@ -646,10 +652,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         molArray = dict()
         self.gauss_roi = dict()
-        i=1
-        print("start gaussian to the ",len(self.molRoi)-len(self.removerois),
-                                                                      "spots")
-
+        print("Gauss fit for",len(self.molRoi)-len(self.removerois), "spots")
+        a = 0
         for i in range(len(self.molRoi)):
             if i not in self.removerois:
                 molArray[i] = self.molRoi[i].getArrayRegion(self.mean, self.imv.imageItem)
@@ -689,7 +693,9 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 if sigma_ratio > threshold_sigma or sigma_ratio < (1/threshold_sigma):
                     self.molRoi[i].setPen('r')
                     self.removerois.append(i)
+                    a += 1
 
+        print("badGauss/total=", a,"/", len(self.molRoi)-len(self.removerois))
         self.maxnumber_new_gauss = len(self.molRoi)
 
     def remove_gauss_ROI(self):
@@ -841,17 +847,16 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         Also a .png with the image with the rois as you see in the UI
         Save name+#ofdetecctions+self.n; this las self.n change every click"""
 
-        print(" Export ", what)
         if what == "trace":
             b = self.traces
             trace_name = 'traces-'+ str(b.shape[1])+"("+ str(self.n)+")" + '.txt'
             np.savetxt(trace_name, b, delimiter="    ", newline='\r\n')
-            print(b.shape[1],"Traces exported as", trace_name)
+            print("\n", b.shape[1],"Traces exported as", trace_name)
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
             png_name = 'Image_traces-'+ str(b.shape[1]) +"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
-            print( "Picture exported as", png_name)
+            print( "\n Picture exported as", png_name)
     
             self.n += 1
 
@@ -862,13 +867,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 b = self.intensitys
             intensities_name = 'intensities' + str(len(b))+"(" + str(self.n)+")"+ '.txt'
             np.savetxt(intensities_name, b, delimiter="    ", newline='\r\n')
-            print(len(b), "intensities exported as", intensities_name)
+            print("\n", len(b), "Intensities exported as", intensities_name)
     
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
             png_name = 'Image_intensities'+ str(len(b))+"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
-            print( "Picture exported as", png_name)
+            print( "\n Picture exported as", png_name)
             
             self.n += 1
 
@@ -950,7 +955,7 @@ class MyPopup_histogram(QtGui.QWidget):
         grid = QtGui.QGridLayout()  # overkill for one item...
         self.setLayout(grid)
 
-        self.p1 = self.Histo_widget.addPlot(row=2, col=1, title="Histogram")
+        self.p1 = self.Histo_widget.addPlot(row=2, col=1, title="Histogram (kHz)")
         self.p1.showGrid(x=True, y=True)
 
         intensitys = self.main.intensitys2
@@ -961,7 +966,7 @@ class MyPopup_histogram(QtGui.QWidget):
 
         self.setWindowTitle("Histogram. (ESC key, close it.)")
 
-        vals = self.intensitys
+        vals = self.intensitys / float(self.main.time_adquisitionEdit.text())
         y,x = np.histogram(vals)
         self.p1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
         self.p1.showGrid(x = True, y = True, alpha = 0.5)
