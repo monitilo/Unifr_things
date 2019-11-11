@@ -225,17 +225,94 @@ class Frontend(QtGui.QFrame):
     def import_image_button(self):
         self.import_image_signal.emit(True)
 
+    def plot_image_imported(self, image):
+        self.data = image
+        # Display the data and assign each frame a number
+        x = np.linspace(1., self.data.shape[0], self.data.shape[0])
+
+        # Load array as an image
+        self.imv.setImage(self.data, xvals=x)
+
+        # Set a custom color map
+        colors = [
+                (0, 0, 0),
+                (45, 5, 61),
+                (84, 42, 55),
+                (150, 87, 60),
+                (208, 171, 141),
+                (255, 255, 255)
+                ]
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
+        self.imv.setColorMap(cmap)
+        self.w.setWindowTitle('SMAnalyzer - Video - ' + self.f)
+        self.imv.sigTimeChanged.connect(self.indexChanged)
+
+        self.validator = QtGui.QIntValidator(0, self.data.shape[0])
+        self.meanStartEdit.setValidator(self.validator)
+        self.meanEndEdit.setValidator(self.validator)
+        try:
+            self.maxThreshEdit.setText(str(np.mean(self.data[1,:,:])))
+        except:
+            pass
+
+    def make_connection(self, backend):
+        backend.read_pos_signal.connect(self.read_pos_list)
+
 class Backend(QtCore.QObject):
 
+    image_to_plot_signal = pyqtSignal(list)
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
     @pyqtSlot(bool)
-    def shutter0(self, shutterbool):  # 532
-        if shutterbool:
-            openShutter(shutters[0])
+    def import_image(self):  # connected to Load Image (btn1)
+        """Select a file to analyse, can be a tif or jpg(on progres)
+        the tiff data comes in a shape=(Frames, x, y) """
+
+        self.JPG = False
+        # Remove annoying empty window
+        root = Tk()
+        root.withdraw()
+
+        # Select image from file
+        self.f = filedialog.askopenfilename(filetypes=[("Videos", '*.tiff;*.tif;*.jpg'),
+                                                       ("Pictures", "*.jpg")])
+        if self.f[-4:] == ".jpg":  # in case I want one picture
+
+            self.JPG = True
+            self.axes = (0,1)  # axe 2 are the 3 coloms of RGB
+            print("WORKING ON THIS \n","JPG =", self.JPG,)
+            self.data = np.mean(io.imread(self.f), axis=2)
+            print(self.data.shape)
+#            self.meanStartLabel.setStyleSheet(" color: red; ")
+#            self.meanEndLabel.setStyleSheet(" color: red; ")
+#            self.meanStartEdit.setStyleSheet(" background-color: red; ")
+#            self.meanEndEdit.setStyleSheet(" background-color: red; ")
+#            self.btn7.setText("Export Intensities")
+#            self.btn4.setStyleSheet(
+#                "QPushButton { background-color: rgb(10, 30, 10); }")
+#            self.total_size = [self.data.shape[1], self.data.shape[0]]
+
+#            self.maxDistEdit.setText("60")
+#            self.moleculeSizeEdit.setText("90")
+            
         else:
-            closeShutter(shutters[0])
+            # Import selected image
+            self.data = io.imread(self.f)
+            self.axes = (1,2)  # axe 0 are the frames
+            self.total_size = [self.data.shape[2], self.data.shape[1]]
+
+#            self.maxDistEdit.setText("6")
+#            self.moleculeSizeEdit.setText("9")
+
+#        # Delete existing ROIs
+#        self.deleteROI()
+#        self.clear_all()
+        self.image_to_plot_signal.emit(self.data)
+
+
+
             
     @pyqtSlot(bool)
     def shutter1(self, shutterbool):  # 642
@@ -273,7 +350,7 @@ class Backend(QtCore.QObject):
            Flipper_notch532('up') 
 
     def make_connection(self, frontend):
-        frontend.import_image_signal.connect(self.shutter0)
+        frontend.import_image_signal.connect(self.import_image)
         frontend.shutter1_signal.connect(self.shutter1)
         frontend.shutter2_signal.connect(self.shutter2)
         frontend.shutter3_signal.connect(self.shutter3)
