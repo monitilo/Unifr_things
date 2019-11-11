@@ -86,11 +86,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn_filter_bg = QtGui.QPushButton('Filter bg')
         
         # labels with a fixed width
-        self.gauss_fit_label = QtGui.QLabel('threshold to sigma:')
-        self.gauss_fit_edit = QtGui.QLineEdit('1.5')
+        self.gauss_fit_label = QtGui.QLabel('sigma_X / sigma_Y ><')
+        self.gauss_fit_edit = QtGui.QLineEdit('1.2')
         self.gauss_fit_edit.setFixedWidth(30)
         
-        self.btn_histogram = QtGui.QPushButton('Make hinstogram')
+        self.btn_histogram = QtGui.QPushButton('Make Histogram')
 
         self.crazyStepButton = QtGui.QPushButton('Crazy go')
         self.crazyStepEdit = QtGui.QLineEdit('10')
@@ -142,10 +142,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.btn4,               6, 0, 1, 1)
         self.layout.addWidget(self.btn_images,         6, 2, 1, 1)
         
-
-        self.layout.addWidget(QtGui.QLabel(" "),       7, 0, 1, 3)
-        self.layout.addWidget(self.btn5,               8, 0, 1, 3)
-#        self.layout.addWidget(QtGui.QLabel(" "),       9, 0, 1, 3)
+        self.layout.addWidget(self.btn5,               7, 0, 1, 3)
+        self.layout.addWidget(QtGui.QLabel(" "),       8, 0, 1, 3)
         
         self.layout.addWidget(self.maxDistLabel,       9, 0, 1, 1)
         self.layout.addWidget(self.maxDistEdit,        9, 1, 1, 2)
@@ -193,7 +191,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.btn_histogram.clicked.connect(self.make_histogram)
         self.crazyStepButton.clicked.connect(self.automatic_crazy_start)
         
-        self.btn99_clearall.clicked.connect(self.deleteMaxima)
+        self.btn99_clearall.clicked.connect(self.clear_all)
 
         # automatic action when you edit the number 
         self.meanStartEdit.textEdited.connect(self.update_image)
@@ -227,7 +225,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Save file number
         self.n = 0
 
-        self.JPG = False
         self.is_image = False
         self.histo_data = False
 
@@ -235,6 +232,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
     def importImage(self):  # connected to Load Image (btn1)
         """Select a file to analyse, can be a tif or jpg(on progres)
         the tiff data comes in a shape=(Frames, x, y) """
+
+        self.JPG = False
         # Remove annoying empty window
         root = Tk()
         root.withdraw()
@@ -247,21 +246,32 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.JPG = True
             self.axes = (0,1)  # axe 2 are the 3 coloms of RGB
             print("WORKING ON THIS \n","JPG =", self.JPG,)
-            self.data = np.mean(io.imread(self.f),axis=2)
+            self.data = np.mean(io.imread(self.f), axis=2)
+            print(self.data.shape)
             self.meanStartLabel.setStyleSheet(" color: red; ")
             self.meanEndLabel.setStyleSheet(" color: red; ")
             self.meanStartEdit.setStyleSheet(" background-color: red; ")
             self.meanEndEdit.setStyleSheet(" background-color: red; ")
             self.btn7.setText("Export Intensities")
+            self.btn4.setStyleSheet(
+                "QPushButton { background-color: rgb(10, 30, 10); }")
+            self.total_size = [self.data.shape[1], self.data.shape[0]]
+
+            self.maxDistEdit.setText("60")
+            self.moleculeSizeEdit.setText("90")
             
         else:
             # Import selected image
             self.data = io.imread(self.f)
             self.axes = (1,2)  # axe 0 are the frames
-        
+            self.total_size = [self.data.shape[2], self.data.shape[1]]
+
+            self.maxDistEdit.setText("6")
+            self.moleculeSizeEdit.setText("9")
+
         # Delete existing ROIs
         self.deleteROI()
-        self.deleteMaxima()
+        self.clear_all()
 
         # Display the data and assign each frame a number
         x = np.linspace(1., self.data.shape[0], self.data.shape[0])
@@ -286,7 +296,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.validator = QtGui.QIntValidator(0, self.data.shape[0])
         self.meanStartEdit.setValidator(self.validator)
         self.meanEndEdit.setValidator(self.validator)
-        self.maxThreshEdit.setText(str(np.mean(self.data[0,:,:])))
+        try:
+            self.maxThreshEdit.setText(str(np.mean(self.data[1,:,:])))
+        except:
+            pass
 
     def update_image(self):  # Put the start frame in the image when change the number
         self.imv.setCurrentIndex(int(self.meanStartEdit.text()))
@@ -300,11 +313,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         """ create a big ROI to select the area to make the analysis
         default is the size of the picture"""
         if self.roi is None:
-            self.roi = pg.ROI([0, 0], [self.data.shape[2], self.data.shape[1]],
-                              scaleSnap=True, translateSnap=True)  # [70, 70]
+            self.roi = pg.ROI([0, 0], self.total_size,
+                              scaleSnap=True, translateSnap=True,
+                              removable=True)  # [70, 70]
             self.roi.addScaleHandle([1, 1], [0, 0])
             self.roi.addScaleHandle([0, 0], [1, 1])
             self.imv.view.addItem(self.roi)
+            self.roi.sigRemoveRequested.connect(self.deleteROI)
         else:
             pass
 
@@ -356,6 +371,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.w.setWindowTitle('SMAnalyzer - ROI Mean - ' + self.f)
         self.imv.view.removeItem(self.roi)
 
+
     def showVideo(self):  # connected to Go to vide (btn5)
         """Get the original image back. Use this to came back from the 
         ROImean image.
@@ -388,6 +404,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         except:
             pass
 
+        try:
+            del self.mean2
+        except:
+            pass
+
     def translateMaxima(self):  # go to video call this function
         """ translate the position from the big ROI in to the video again"""
         for i in range(len(self.molRoi)):  # np.arange(0, self.maxnumber):
@@ -407,7 +428,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         Then, for each spot, creates a square roi of side size(=imput)
         and another roi bigger (also imput) to the background """
 
-#        self.deleteMaxima()
+#        self.clear_all()
         self.dist = int(self.maxDistEdit.text())
         self.threshold = float(self.maxThreshEdit.text())
         
@@ -415,13 +436,23 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.roiSize = [int(self.moleculeSizeEdit.text())] * 2
         self.bgroiSize = np.array(self.roiSize) + 2* int(self.BgSizeEdit.text())  # one pixel each side
         center = int(self.BgSizeEdit.text()) * np.array([1, 1])
-        if self.roi == None:
+
+        self.start = int(self.meanStartEdit.text())
+
+        if self.JPG:
+            if self.roi == None:
+                self.mean = self.data
+            else:
+                self.mean = self.mean2
+        else:
             if not self.is_image:
-                self.mean = self.data[self.imv.currentIndex,:,:]
+                try: 
+                    self.mean = self.mean2[self.imv.currentIndex,:,:]
+                except:
+                    self.mean = self.data[self.imv.currentIndex,:,:]
 
         # find the local peaks
         self.maximacoord = peak_local_max(self.mean, min_distance=self.dist, threshold_abs=self.threshold)
-
 
         maxvalues = []
         for i in range(len(self.maximacoord[:,0])):
@@ -444,7 +475,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.maxnumber = np.size(self.maximacoord[maxindex], 0)
 
         p = 0  
-        
+        print(self.fixing_number, "old points added")
         # I move my start because of the fixing number, so need to use p=0
         for i in np.arange(0, self.maxnumber)+self.fixing_number:
 
@@ -466,7 +497,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             self.label[i].setPos(self.molRoi[i].pos())
             self.imv.view.addItem(self.label[i])
             p+=1
-        self.fixing_number = i + 1
+        try:
+            self.fixing_number = i + 1
+        except:
+            print("ZERO points finded. ZERO")
         self.relabel_new_ROI()
 
         if not self.is_image:
@@ -488,11 +522,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         The name "mean" is historical (and useful to no change code later),
         there is no mean in the images"""
 
-        self.is_image = True
         self.start = int(self.meanStartEdit.text())
 
-        if self.roi == None:
+        if self.roi == None and self.JPG == False :
             self.mean = self.data[self.start,:,:]
+            self.is_image = True
         else:
             self.ROI_no_mean_images()
 
@@ -503,14 +537,25 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.meanEndEdit.setStyleSheet(" background-color: red; ")
 
     def ROI_no_mean_images(self):  # Commes from image_analysis 
-        """ if not a video, only choos the frame to do the analysis
+        """Choose the place to do the analysis, and "zoom in".
         if its a JPG only have one option"""
 
         z = self.roi.getArrayRegion(self.data, self.imv.imageItem, axes=self.axes)
-        if  self.JPG:
-            self.mean = z
-        else:
-            self.mean = z[self.start,:,:]
+        self.mean2 = z
+        
+        # Display the data and assign each frame a number
+        x = np.linspace(1., self.data.shape[0], self.data.shape[0])
+
+        # Load Mean Image
+        self.imv.setImage(self.mean2, xvals=x)
+
+        # Set a custom color map
+        colors = [(0, 0, 0), (45, 5, 61), (84, 42, 55), (150, 87, 60),
+                (208, 171, 141), (255, 255, 255)]
+        cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
+        self.imv.setColorMap(cmap)
+        self.w.setWindowTitle('SMAnalyzer - ROI Mean - ' + self.f)
+        self.imv.view.removeItem(self.roi)
 
 
     def create_small_ROI(self):  # connected to New small Roi (btn_small_roi)
@@ -549,8 +594,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         center = int(self.BgSizeEdit.text()) * np.array([1, 1])
 
         # fixing_number exist because you can put new rois before OR after the normal ones.
-        continue_number = self.fixing_number
-        i = continue_number
+        i = self.fixing_number
+
         self.molRoi[i] = pg.ROI(self.smallroi.pos(), self.roiSize,
                                                        scaleSnap=True,
                                                        translateSnap=True,
@@ -638,7 +683,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                             self.removerois.append(i)
                             a+=1
 
-        print("badBg/total=", a,"/", len(self.molRoi)-len(self.removerois))
+        print("badBg/total=", a,"/", len(self.molRoi))
 
     def gaussian_fit_ROI(self):  # connect to gaussian fit (btn_gauss_fit)
         """For each not discarted roi in molRoi, make a 2D gaussian fit
@@ -695,14 +740,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                     self.removerois.append(i)
                     a += 1
 
-        print("badGauss/total=", a,"/", len(self.molRoi)-len(self.removerois))
-        self.maxnumber_new_gauss = len(self.molRoi)
+        print("badGauss/total=", a,"/", len(self.molRoi))
+#        self.maxnumber_new_gauss = len(self.molRoi)
 
     def remove_gauss_ROI(self):
         """removes the gauss rois. They are not useful for anything,
         only to mark the spot"""
 
-        for i in range(self.maxnumber_new_gauss):
+        for i in range(len(self.molRoi)):
             try:
                 self.imv.view.removeItem(self.gauss_roi[i])
                 del self.gauss_roi[i]
@@ -726,7 +771,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.relabel_new_ROI()
 
-    def deleteMaxima(self):  # connected to button Clear all
+    def clear_all(self):  # connected to button Clear all
         """ clear all the thing in the view, and initialize the variables"""
 
         self.remove_gauss_ROI()
@@ -764,6 +809,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         bg = dict()
         bgNorm = dict()
 
+#        s = (2*int(self.BgSizeEdit.text()))  # bgsize = molsize + s
         p=0
         for i in range(len(self.molRoi)):  #2 np.arange(0, self.maxnumber):
             if i not in self.removerois:
@@ -780,9 +826,11 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
                 # get total background to substract from molecule traces
 #                bgNorm[i,j] = (int(self.moleculeSizeEdit.text())**2)*(bg[i,j])/(4*(int(self.moleculeSizeEdit.text())+1))
-                bgNorm[i] = (int(self.moleculeSizeEdit.text())**2)*(bg[i])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
-
-#bgNorm = [ Bg / ( m*m - n*n ) ] * n*n ==> m = n + s ==> [bg / s*s(n+1) ] n*n
+#                bgNorm[i] = (int(self.moleculeSizeEdit.text())**2)*(bg[i])/((s)*(2*int(self.moleculeSizeEdit.text())+s))
+                n = int(self.moleculeSizeEdit.text())
+                m = (2*int(self.BgSizeEdit.text()))+int(self.moleculeSizeEdit.text())
+                bgNorm[i] = (n*n)*(bg[i]) / (m*m - n*n)
+#bgNorm = [ Bg / ( m*m - n*n ) ] * n*n ==> m = n + s ==> [bg / s(2n+s) ] n*n
 
                 self.trace[p] = np.sum(molArray[i], axis=self.axes) - bgNorm[i]
                 p +=1 # I have to use this to have order because of removerois
@@ -811,6 +859,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         bg = dict()
         bgNorm = dict()
         
+#        s = (2*int(self.BgSizeEdit.text()))  # bgsize = molsize + s
         p=0
         for i in range(len(self.molRoi)):  # np.arange(0, self.maxnumber):
             if i not in self.removerois:             
@@ -824,8 +873,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 bg[i] = np.sum(bgArray[i]) - np.sum(molArray[i])
 
                 # get total background to substract from molecule traces
-                bgNorm[i] = (int(self.moleculeSizeEdit.text())**2)*(bg[i])/(((2* int(self.BgSizeEdit.text()))**2)*(int(self.moleculeSizeEdit.text())+1))
-
+#                bgNorm[i] = (int(self.moleculeSizeEdit.text())**2)*(bg[i])/((s)*(2*int(self.moleculeSizeEdit.text())+s))
+# Bg / ( m*m - n*n )
+                n = int(self.moleculeSizeEdit.text())
+                m = (2*int(self.BgSizeEdit.text()))+int(self.moleculeSizeEdit.text())
+                bgNorm[i] = (n*n)*(bg[i]) / (m*m - n*n)
+#                print("n", n, "m",m, "\n bgNorm", bgNorm[i])
                 self.sum_spot[p] = np.sum(molArray[i]) - bgNorm[i]
                 p +=1 # I have to use this to have order because of removerois
 
@@ -893,12 +946,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         Makes (imput) steps"""
 
         self.mean = self.data[int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())),:,:]
-        self.deleteMaxima()
+        self.clear_all()
         self.is_image = True
         self.detectMaxima()
         self.imv.setCurrentIndex(int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
         self.filter_bg()
         self.gaussian_fit_ROI()
+        self.filter_bg()
         self.make_histogram()
         print("step #", self.timing,"frame :", int(self.timing*self.data.shape[0]//int(self.crazyStepEdit.text())))
         self.timing +=1
