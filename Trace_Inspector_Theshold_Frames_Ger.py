@@ -53,7 +53,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('Trace Inspector')
-        self.w.resize(1000, 800)
+#        self.w.resize(1000, 800)
+        self.setGeometry(10, 40, 800, 300)  # (PosX, PosY, SizeX, SizeY)
 
         # Create ImagePlot
         self.graph = pg.PlotWidget()
@@ -149,9 +150,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         layout.addWidget(self.btnBadTrace,                 10, 2, 1, 1)
 #        layout.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
         layout.addWidget(self.btnExport,                   12, 0, 1, 3)
-        layout.addWidget(self.graph,                       0, 4, 13, 100)
-#        layout.addWidget(self.BinaryTrace,                 14,0,500, 104)
-        layout.addWidget(self.histo_window,                 14,0,100, 100)
+        layout.addWidget(self.graph,                     0, 4, 13, 100)
+#        layout.addWidget(self.BinaryTrace,               14,0,500, 104)
+        layout.addWidget(self.histo_window,             0, 104,13, 100)
 
         
         layout.addWidget(self.labelmax,                    0,  15, 1, 3)
@@ -258,13 +259,13 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
                                           brush=(5,200,5,25),
                                           hoverBrush=(50,200,50,50))
         self.lrmax.setZValue(10)
-        self.graph.addItem(self.lrmax)
+        self.graph.addItem(self.lrmax, ignoreBounds=True)
         self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r',
                                           bounds=[0, self.data.shape[0]],
                                           brush=(200,50,50,25),
                                           hoverBrush=(200,50,50,50))
         self.lrmin.setZValue(10)
-        self.graph.addItem(self.lrmin)
+        self.graph.addItem(self.lrmin, ignoreBounds=True)
         
         self.graph.plot(self.data[:, 0], pen=pg.mkPen(color=self.colorgraph, width=1))
         # Define initial Threshold

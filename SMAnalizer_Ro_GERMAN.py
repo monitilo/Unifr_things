@@ -303,6 +303,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
             self.maxDistEdit.setText("60")
             self.moleculeSizeEdit.setText("90")
+            self.maxThreshEdit.setText(str(np.mean(self.data[:,:])))
+
             
         else:
             # Import selected image
@@ -312,6 +314,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
             self.maxDistEdit.setText("6")
             self.moleculeSizeEdit.setText("9")
+            self.maxThreshEdit.setText(str(np.mean(self.data[1,:,:])))
+
 
         # Delete existing ROIs
         self.deleteROI()
@@ -325,10 +329,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.validator = QtGui.QIntValidator(0, self.data.shape[0])
         self.meanStartEdit.setValidator(self.validator)
         self.meanEndEdit.setValidator(self.validator)
-        try:
-            self.maxThreshEdit.setText(str(np.mean(self.data[1,:,:])))
-        except:
-            pass
+#        try:
+#            self.maxThreshEdit.setText(str(np.mean(self.data[1,:,:])))
+#        except:
+#            pass
 
     def update_image(self):  # Put the start frame in the image when change the number
         self.imv.setCurrentIndex(int(self.meanStartEdit.text()))

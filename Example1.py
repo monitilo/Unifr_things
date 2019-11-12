@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
 
 # %% Example to Linear Region an Crosshair
-        
+
 #import initExample ## Add path to library (just for examples; you do not need this)
 import numpy as np
 import pyqtgraph as pg
@@ -184,15 +184,14 @@ win.addItem(label3, row=0,col=2)
 #p1 = win.addPlot(row=1, col=0)
 p2 = win.addPlot(row=1, col=0, rowspan=1, colspan=3)
 
-region = pg.LinearRegionItem(pen='g')
-region.setZValue(10)
-# Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this 
-# item when doing auto-range calculations.
-p2.addItem(region, ignoreBounds=True)
-
-region2 = pg.LinearRegionItem(pen='r')
-region2.setZValue(10)
-p2.addItem(region2, ignoreBounds=True)
+#region = pg.LinearRegionItem(pen='g')
+#region.setZValue(10)
+## Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this 
+## item when doing auto-range calculations.
+#
+#region2 = pg.LinearRegionItem(pen='r')
+#region2.setZValue(10)
+#p2.addItem(region2, ignoreBounds=True)
 
 #pg.dbg()
 #p1.setAutoVisible(y=True)
@@ -201,7 +200,17 @@ p2.addItem(region2, ignoreBounds=True)
 #create numpy arrays
 #make the numbers large to show that the xrange shows data from 10000 to all the way 0
 data1 = 10000 + 15000 * pg.gaussianFilter(np.random.random(size=10000), 10) + 3000 * np.random.random(size=10000)
-data2 = 15000 + 15000 * pg.gaussianFilter(np.random.random(size=10000), 10) + 3000 * np.random.random(size=10000)
+#data2 = 15000 + 15000 * pg.gaussianFilter(np.random.random(size=10000), 10) + 3000 * np.random.random(size=10000)
+
+region = pg.LinearRegionItem(pen='g')
+region.setZValue(10)
+# Add the LinearRegionItem to the ViewBox, but tell the ViewBox to exclude this 
+# item when doing auto-range calculations.
+p2.addItem(region, ignoreBounds=True)
+
+region2 = pg.LinearRegionItem(pen='r',bounds=[0, data1.shape[0]])
+region2.setZValue(10)
+p2.addItem(region2, ignoreBounds=True)
 
 #p1.plot(data1, pen="r")
 #p1.plot(data2, pen="g")
@@ -235,28 +244,28 @@ region.setRegion([1000, 2000])
 region2.setRegion([5000, 6000])
 
 #cross hair
-vLine = pg.InfiniteLine(angle=90, movable=False)
-hLine = pg.InfiniteLine(angle=0, movable=False)
-p2.addItem(vLine, ignoreBounds=True)
-p2.addItem(hLine, ignoreBounds=True)
+#vLine = pg.InfiniteLine(angle=90, movable=False)
+#hLine = pg.InfiniteLine(angle=0, movable=False)
+#p2.addItem(vLine, ignoreBounds=True)
+#p2.addItem(hLine, ignoreBounds=True)
 
 
-vb = p2.vb
+#vb = p2.vb
+#
+#def mouseMoved(evt):
+#
+#    pos = evt[0]  ## using signal proxy turns original arguments into a tuple
+#    if p2.sceneBoundingRect().contains(pos):
+#        mousePoint = vb.mapSceneToView(pos)
+#        index = int(mousePoint.x())
+#        if index > 0 and index < len(data1):
+#            label.setText("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (mousePoint.x(), data1[index], data2[index]))
+#        vLine.setPos(mousePoint.x())
+#        hLine.setPos(mousePoint.y())
 
-def mouseMoved(evt):
-
-    pos = evt[0]  ## using signal proxy turns original arguments into a tuple
-    if p2.sceneBoundingRect().contains(pos):
-        mousePoint = vb.mapSceneToView(pos)
-        index = int(mousePoint.x())
-        if index > 0 and index < len(data1):
-            label.setText("<span style='font-size: 12pt'>x=%0.1f,   <span style='color: red'>y1=%0.1f</span>,   <span style='color: green'>y2=%0.1f</span>" % (mousePoint.x(), data1[index], data2[index]))
-        vLine.setPos(mousePoint.x())
-        hLine.setPos(mousePoint.y())
 
 
-
-proxy = pg.SignalProxy(p2.scene().sigMouseMoved, rateLimit=60, slot=mouseMoved)
+#proxy = pg.SignalProxy(p2.scene().sigMouseMoved, rateLimit=60, slot=mouseMoved)
 #p1.scene().sigMouseMoved.connect(mouseMoved)
 
 
