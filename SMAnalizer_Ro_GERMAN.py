@@ -59,7 +59,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.w = QtGui.QWidget()
 #        self.setCentralWidget(self.w)
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(20000, 1000)
+        self.w.resize(20, 100)
 
         # Create ImageView
         self.imv = pg.ImageView()
@@ -122,10 +122,18 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.time_adquisitionLabel = QtGui.QLabel('Adquisition time (ms)')
         self.time_adquisitionEdit = QtGui.QLineEdit('100')
 
+        self.see_labels_button = QtGui.QCheckBox('Labels?')
+        self.see_labels_button.setChecked(True)
+
+
         # Create a grid layout to manage the widgets size and position
-        self.layout = QtGui.QGridLayout()
-        self.w.setLayout(self.layout)
-        
+#        self.layout = QtGui.QGridLayout()
+#        self.w.setLayout(self.layout)
+
+        self.viewer_grid = QtGui.QGridLayout()
+        self.viewer_wid = QtGui.QWidget()
+        self.viewer_wid.setLayout(self.viewer_grid)
+
         self.options_grid = QtGui.QGridLayout()
         self.optios_wid = QtGui.QWidget()
         self.optios_wid.setLayout(self.options_grid)
@@ -154,7 +162,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.options_grid.addWidget(self.btn_images,         6, 2, 1, 1)
         
         self.options_grid.addWidget(self.btn5,               7, 0, 1, 3)
-        self.options_grid.addWidget(QtGui.QLabel(" "),       8, 0, 1, 3)
+#        self.options_grid.addWidget(QtGui.QLabel(" "),       8, 0, 1, 3)
         
         self.options_grid.addWidget(self.maxDistLabel,       9, 0, 1, 1)
         self.options_grid.addWidget(self.maxDistEdit,        9, 1, 1, 2)
@@ -165,26 +173,22 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.options_grid.addWidget(self.BgSizeLabel,       12, 0, 1, 1)
         self.options_grid.addWidget(self.BgSizeEdit,        12, 1, 1, 2)
         
-#        self.layout.addWidget(self.channelDifferenceLabel, 11, 0, 1, 1)
-#        self.layout.addWidget(self.channelDifferenceEdit, 11, 1, 1, 2)
-#        self.layout.addWidget(self.channelCorrectionLabel, 12, 0, 1, 1)
-#        self.layout.addWidget(self.channelCorrectionEdit, 12, 1, 1, 2)
-
         self.options_grid.addWidget(self.btn6,              13, 0, 1, 3)
-
         self.options_grid.addWidget(self.btn99_clearall,    14, 2, 1, 1)
-
         self.options_grid.addWidget(self.btn7,              15, 0, 1, 3)
-        self.layout.addWidget(self.imv,              0, 4, 16, 16)
+
+        self.viewer_grid.addWidget(self.imv,              0, 4, 16, 16)
         
-        self.post_grid.addWidget(self.btn_small_roi,     2, 25, 1, 2)
+
+        self.post_grid.addWidget(self.see_labels_button, 3, 25, 1, 2)
+        self.post_grid.addWidget(self.btn_small_roi,     4, 25, 1, 2)
         self.post_grid.addWidget(self.gauss_fit_label,   5, 25, 1, 1)
         self.post_grid.addWidget(self.gauss_fit_edit,    5, 26, 1, 1)
         self.post_grid.addWidget(self.btn_gauss_fit,     6, 25, 1, 2)
-        self.post_grid.addWidget(self.btn_filter_bg,     9, 25, 1, 2)
-        self.post_grid.addWidget(self.btn_histogram,    11, 25, 1, 2)
-        self.post_grid.addWidget(self.crazyStepEdit,    15, 26, 1, 1)
-        self.post_grid.addWidget(self.crazyStepButton,  15, 25, 1, 1)
+        self.post_grid.addWidget(self.btn_filter_bg,     8, 25, 1, 2)
+        self.post_grid.addWidget(self.btn_histogram,    10, 25, 1, 2)
+        self.post_grid.addWidget(self.crazyStepEdit,    12, 26, 1, 1)
+        self.post_grid.addWidget(self.crazyStepButton,  12, 25, 1, 1)
 
         # button actions
         self.btn1.clicked.connect(self.importImage)
@@ -211,10 +215,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.automatic_crazytimer = QtCore.QTimer()
         self.automatic_crazytimer.timeout.connect(self.automatic_crazy)
 
+        self.see_labels_button.clicked.connect(self.see_labels)
+
 #        # DOCK cosas, mas comodo!
         self.state = None  # defines the docks state (personalize your oun UI!)
-#        hbox = QtGui.QHBoxLayout(self)
-#        dockArea = DockArea()
 
         self.cwidget = QtGui.QWidget()
         self.setCentralWidget(self.cwidget)
@@ -226,21 +230,21 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.dockArea = dockArea
         grid.addWidget(self.dockArea)
 
-        viewDock = Dock('viewbox', size=(1500, 800))
-        viewDock.addWidget(self.w)
-        viewDock.hideTitleBar()
+        viewDock = Dock('viewbox', size=(300, 50))
+        viewDock.addWidget(self.viewer_wid)
+#        viewDock.hideTitleBar()
         self.dockArea.addDock(viewDock)
 
-        optionsDock = Dock('Load options', size=(10, 80))
-        optionsDock.addWidget(self.optios_wid)
-        self.dockArea.addDock(optionsDock, "left", viewDock)
-
-        postDock = Dock('posDetection', size=(10, 80))
+        postDock = Dock('posDetection', size=(1, 1))
         postDock.addWidget(self.post_wid)
         self.dockArea.addDock(postDock, "right", viewDock)
 
-#        hbox.addWidget(dockArea)
-#        self.setLayout(hbox)
+        optionsDock = Dock('Load options', size=(1, 1))
+        optionsDock.addWidget(self.optios_wid)
+        self.dockArea.addDock(optionsDock, "left", viewDock)
+
+        self.setWindowTitle("Single Molecule Analizer")  # Nombre de la ventana
+        self.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
 
     # initialize  parameters. Remember, this is Just at start, never come here again.
         # Create empty ROI
@@ -500,6 +504,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         if not self.is_image:
             self.btn7.setText("Intensities from frame={}".format(int(self.meanStartEdit.text())))
+        
+        self.see_labels_button.setChecked(True)
 
     def exportTraces_or_images(self):  # connected to export traces button (btn7)
         if self.is_image:
@@ -627,6 +633,21 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 self.label[i].setText(text=str(p))
                 p+=1
 
+    def see_labels(self):
+        if self.see_labels_button.isChecked():
+            for i in range(len(self.molRoi)):
+                if i not in self.removerois:
+                    try:
+                        self.imv.view.addItem(self.label[i])
+                    except:
+                        pass
+        else:
+            for i in range(len(self.molRoi)):
+                try:
+                    self.imv.view.removeItem(self.label[i])
+                except:
+                    pass
+
     def filter_bg(self):  # connected to filter bg (btn_filter_bg)
         """ Check at the counts in the background zone, if they are above
         the threshold level (user imput), discards the spot.
@@ -675,9 +696,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
                 try:  # if the fit fails, print error and continue with the next
                     new_params = fitgaussian(data)
-                except IOError as e:
-                    print("I/O error({0}): {1}".format(e.errno, e.strerror))
-                    print("who knows \o/")
+                except:
                     continue
 
                 (height, x, y, width_x, width_y) = new_params

@@ -56,8 +56,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(1500, 800)
-
+#        self.w.resize(1500, 800)
+        self.w.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
         # Create ImageView
         self.imv = pg.ImageView()
 
@@ -119,6 +119,9 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.time_adquisitionLabel = QtGui.QLabel('Adquisition time (ms)')
         self.time_adquisitionEdit = QtGui.QLineEdit('100')
 
+        self.see_labels_button = QtGui.QCheckBox('Labels?')
+        self.see_labels_button.setChecked(True)
+
         # Create a grid layout to manage the widgets size and position
         self.layout = QtGui.QGridLayout()
         self.w.setLayout(self.layout)
@@ -153,11 +156,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.moleculeSizeEdit,  11, 1, 1, 2)
         self.layout.addWidget(self.BgSizeLabel,       12, 0, 1, 1)
         self.layout.addWidget(self.BgSizeEdit,        12, 1, 1, 2)
-        
-#        self.layout.addWidget(self.channelDifferenceLabel, 11, 0, 1, 1)
-#        self.layout.addWidget(self.channelDifferenceEdit, 11, 1, 1, 2)
-#        self.layout.addWidget(self.channelCorrectionLabel, 12, 0, 1, 1)
-#        self.layout.addWidget(self.channelCorrectionEdit, 12, 1, 1, 2)
 
         self.layout.addWidget(self.btn6,              13, 0, 1, 3)
 
@@ -165,7 +163,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.layout.addWidget(self.btn7,              15, 0, 1, 3)
         self.layout.addWidget(self.imv,              0, 4, 16, 16)
-        
+
+        self.layout.addWidget(self.see_labels_button, 1, 25, 1, 2)        
         self.layout.addWidget(self.btn_small_roi,     2, 25, 1, 2)
         self.layout.addWidget(self.gauss_fit_label,   5, 25, 1, 1)
         self.layout.addWidget(self.gauss_fit_edit,    5, 26, 1, 1)
@@ -200,6 +199,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.automatic_crazytimer = QtCore.QTimer()
         self.automatic_crazytimer.timeout.connect(self.automatic_crazy)
 
+        self.see_labels_button.clicked.connect(self.see_labels)
 
     # initialize  parameters. Remember, this is Just at start, never come here again.
         # Create empty ROI
@@ -506,6 +506,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         if not self.is_image:
             self.btn7.setText("Intensities from frame={}".format(int(self.meanStartEdit.text())))
 
+        self.see_labels_button.setChecked(True)
+
     def exportTraces_or_images(self):  # connected to export traces button (btn7)
         if self.is_image:
             
@@ -627,6 +629,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         in this case, call the normal one, and remove the manually yellow"""
         self.relabel_ROI()
 
+        self.remove_gauss_ROI()
+
         for i in self.removerois:
             self.imv.view.removeItem(self.molRoi[i])
             self.imv.view.removeItem(self.bgRoi[i])
@@ -640,6 +644,21 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             if i not in self.removerois:
                 self.label[i].setText(text=str(p))
                 p+=1
+
+    def see_labels(self):
+        if self.see_labels_button.isChecked():
+            for i in range(len(self.molRoi)):
+                if i not in self.removerois:
+                    try:
+                        self.imv.view.addItem(self.label[i])
+                    except:
+                        pass
+        else:
+            for i in range(len(self.molRoi)):
+                try:
+                    self.imv.view.removeItem(self.label[i])
+                except:
+                    pass
 
     def filter_bg(self):  # connected to filter bg (btn_filter_bg)
         """ Check at the counts in the background zone, if they are above
@@ -706,9 +725,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
                 try:  # if the fit fails, print error and continue with the next
                     new_params = fitgaussian(data)
-                except IOError as e:
-                    print("I/O error({0}): {1}".format(e.errno, e.strerror))
-                    print("who knows \o/")
+                except:
                     continue
 
                 (height, x, y, width_x, width_y) = new_params
