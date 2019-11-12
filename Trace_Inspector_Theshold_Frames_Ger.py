@@ -53,8 +53,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('Trace Inspector')
-#        self.w.resize(1000, 800)
-        self.setGeometry(10, 40, 800, 300)  # (PosX, PosY, SizeX, SizeY)
+#        self.w.resize(500, 800)
+        self.w.setGeometry(10, 40, 300, 300)  # (PosX, PosY, SizeX, SizeY)
 
         # Create ImagePlot
         self.graph = pg.PlotWidget()
@@ -101,16 +101,16 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.thresholdSlider.setValue(0)
         self.thresholdSlider.setTickPosition(QtGui.QSlider.TicksBelow)
         self.thresholdSlider.setTickInterval(1)
-       
+
         threshold_index_Slider = QtGui.QLabel('Threshold Slider:')
         self.threshold_index_Slider_Edit = QtGui.QLabel('0')
         self.threshold_index_Slider_Edit.setText(format(int(self.thresholdSlider.value())))
-        
+
         # Final message after saving data
         self.Amount_goodTraces_text = QtGui.QLabel('Good traces selection:')
         self.Amount_goodTraces = QtGui.QLabel() 
-        
-        
+
+
         # Labels to know the means to save
         self.labelmax = QtGui.QLabel("Left")
         self.labelmin = QtGui.QLabel("Rigth")
@@ -150,14 +150,14 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         layout.addWidget(self.btnBadTrace,                 10, 2, 1, 1)
 #        layout.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
         layout.addWidget(self.btnExport,                   12, 0, 1, 3)
-        layout.addWidget(self.graph,                     0, 4, 13, 100)
+        layout.addWidget(self.graph,                     0, 4, 13, 50)
 #        layout.addWidget(self.BinaryTrace,               14,0,500, 104)
-        layout.addWidget(self.histo_window,             0, 104,13, 100)
+        layout.addWidget(self.histo_window,             14,0,40, 50)
 
         
-        layout.addWidget(self.labelmax,                    0,  15, 1, 3)
-        layout.addWidget(self.labelstep,                   0, 55, 1, 3)
-        layout.addWidget(self.labelmin,                    0, 90, 1, 3)
+        layout.addWidget(self.labelmax,                   0,  15, 1, 3)
+        layout.addWidget(self.labelstep,                   0, 30, 1, 3)
+        layout.addWidget(self.labelmin,                    0, 45, 1, 3)
         layout.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
 
 #        layout.setColumnStretch(0,1)
@@ -486,11 +486,11 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         except:
             print("Create the histogram")
         
-        vals = self.selection[:,5]
-        self.plt1 = self.histo_window.addPlot()
+        vals = self.selection[:,5] / float(self.ExposureTimeEdit.text())
+        self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
         y,x = np.histogram(vals)
         self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
-        self.plt1.showGrid(x = True, y = True, alpha = 0.5)    
+        self.plt1.showGrid(x = True, y = True, alpha = 0.5)
 
     # Define export selection of traces       
     def exportTraces(self):
