@@ -921,7 +921,14 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             intensities_morgane_name = another_name + 'intensities_morgane' + str(len(c))+"(" + str(self.n)+")"+ '.txt'
             np.savetxt(intensities_morgane_name, c, delimiter="    ", newline='\r\n')
             print("\n", len(c), "Intensities exported as", intensities_morgane_name)
-    
+
+            ratio = self.mean.shape[1]/self.mean.shape[0]
+            height = int(1920)
+            width = int(1920*ratio)
+            exporter = pg.exporters.ImageExporter(self.imv.imageItem)
+            exporter.params.param('width').setValue(width, blockSignal=exporter.widthChanged)
+            exporter.params.param('height').setValue(height, blockSignal=exporter.heightChanged)
+
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
             png_name = another_name + 'Image_intensities'+ str(len(b))+"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
