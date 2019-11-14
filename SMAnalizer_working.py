@@ -122,6 +122,13 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.see_labels_button = QtGui.QCheckBox('Labels?')
         self.see_labels_button.setChecked(True)
 
+        self.label_save = QtGui.QLabel('File Name')
+        self.label_save.resize(self.label_save.sizeHint())
+        self.edit_save = QtGui.QLineEdit('Test')
+        self.edit_save.resize(self.edit_save.sizeHint())
+        self.edit_save.setToolTip('Selec a name to save the data.\
+              The name automatically changes to not replace the previous one')
+
         # Create a grid layout to manage the widgets size and position
         self.layout = QtGui.QGridLayout()
         self.w.setLayout(self.layout)
@@ -162,7 +169,10 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.layout.addWidget(self.btn99_clearall,    14, 2, 1, 1)
 
         self.layout.addWidget(self.btn7,              15, 0, 1, 3)
-        self.layout.addWidget(self.imv,              0, 4, 16, 16)
+        self.layout.addWidget(self.imv,              1, 4, 16, 16)
+
+        self.layout.addWidget(self.label_save,         0, 4, 1, 5)
+        self.layout.addWidget(self.edit_save,         0, 9, 1, 10)
 
         self.layout.addWidget(self.see_labels_button, 1, 25, 1, 2)        
         self.layout.addWidget(self.btn_small_roi,     2, 25, 1, 2)
@@ -227,6 +237,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
         self.is_image = False
         self.histo_data = False
+        self.is_trace = False
 
 
     def importImage(self):  # connected to Load Image (btn1)
@@ -241,6 +252,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Select image from file
         self.f = filedialog.askopenfilename(filetypes=[("Videos", '*.tiff;*.tif;*.jpg'),
                                                        ("Pictures", "*.jpg")])
+        if not self.f:
+            print("No elegiste nada")
+        else:
+            self.file_path = self.f
+            print("direccion elegida: \n", self.file_path, "\n")
+
         if self.f[-4:] == ".jpg":  # in case I want one picture
 
             self.JPG = True
@@ -334,6 +351,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         selected frames. Here self.mean is really a mean"""
         
         self.is_image = False
+        self.is_trace = True
 
         # if you comes from images, it get the colors back to normal
         self.btn7.setText("Export Traces")
@@ -498,7 +516,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         try:
             self.fixing_number = i + 1
         except:
-            print("ZERO points finded. ZERO")
+            print("ZERO points finded. ZERO!!")
         self.relabel_new_ROI()
 
         if not self.is_image:
@@ -507,14 +525,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.see_labels_button.setChecked(True)
 
     def exportTraces_or_images(self):  # connected to export traces button (btn7)
-        if self.is_image:
-            
-            self.calculate_images()
-            self.export("images")
-        else:
-            
+        if self.is_trace:
             self.calculate_traces()
-            self.export("trace")
+            self.export("trace")            
+        else:
+            self.calculate_images()
+            self.export("images")  
 
     def image_analysis(self):  # connected to image analysis button (btn_images)
         """Choose the image analysis mode, if there is a big ROI use this 
@@ -873,6 +889,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         bgArray = dict()
         bg = dict()
         bgNorm = dict()
+        morgane = []
         
 #        s = (2*int(self.BgSizeEdit.text()))  # bgsize = molsize + s
         p=0
@@ -895,6 +912,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 bgNorm[i] = (n*n)*(bg[i]) / (m*m - n*n)
 #                print("n", n, "m",m, "\n bgNorm", bgNorm[i])
                 self.sum_spot[p] = np.sum(molArray[i]) - bgNorm[i]
+                morgane.append((np.mean(molArray[i]), np.mean(bgArray[i])))
                 p +=1 # I have to use this to have order because of removerois
 
         # Save sums as an array
@@ -905,6 +923,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         b = np.array(a).T
         print("len spots", len(b))
         self.intensitys = b
+        
+        self.morgane = np.array(morgane)
 
     def export(self, what):  # after analysis, you want to save the data
         """ to save the data.
@@ -915,14 +935,15 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         Also a .png with the image with the rois as you see in the UI
         Save name+#ofdetecctions+self.n; this las self.n change every click"""
 
+        another_name = str(self.edit_save.text()) + "_"
         if what == "trace":
             b = self.traces
-            trace_name = 'traces-'+ str(b.shape[1])+"("+ str(self.n)+")" + '.txt'
+            trace_name = another_name + 'traces-'+ str(b.shape[1])+"("+ str(self.n)+")" + '.txt'
             np.savetxt(trace_name, b, delimiter="    ", newline='\r\n')
             print("\n", b.shape[1],"Traces exported as", trace_name)
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
-            png_name = 'Image_traces-'+ str(b.shape[1]) +"(" + str(self.n)+")" + '.png'
+            png_name = another_name + 'Image_traces-'+ str(b.shape[1]) +"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
             print( "\n Picture exported as", png_name)
     
@@ -933,13 +954,17 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 b = self.intensitys2
             else:
                 b = self.intensitys
-            intensities_name = 'intensities' + str(len(b))+"(" + str(self.n)+")"+ '.txt'
+            intensities_name = another_name + 'intensities' + str(len(b))+"(" + str(self.n)+")"+ '.txt'
             np.savetxt(intensities_name, b, delimiter="    ", newline='\r\n')
             print("\n", len(b), "Intensities exported as", intensities_name)
-    
+
+            c = self.morgane
+            intensities_morgane_name = another_name + 'intensities_morgane' + str(len(c))+"(" + str(self.n)+")"+ '.txt'
+            np.savetxt(intensities_morgane_name, c, delimiter="    ", newline='\r\n')
+            print("\n", len(c), "Intensities exported as", intensities_morgane_name)
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
-            png_name = 'Image_intensities'+ str(len(b))+"(" + str(self.n)+")" + '.png'
+            png_name = another_name + 'Image_intensities'+ str(len(b))+"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
             print( "\n Picture exported as", png_name)
             
