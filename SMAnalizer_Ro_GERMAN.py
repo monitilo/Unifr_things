@@ -892,17 +892,21 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         Gives you back a .txt with 1 trace per column
         or only 1 column with all the intensities.
         Also a .png with the image with the rois as you see in the UI
-        Save name+#ofdetecctions+self.n; this las self.n change every click"""
+        Save Customname+"trace/image"+#ofdetecctions+self.n;
+        this las self.n change every click to avoid lost data.
+        Now, alse sabes another file with the molArray and background
+        without substracting anything, as morgane aks for.
+        """
 
-        another_name = str(self.edit_save.text()) + "_"
+        Custom_name  = str(self.edit_save.text()) + "_"
         if what == "trace":
             b = self.traces
-            trace_name = another_name + 'traces-'+ str(b.shape[1])+"("+ str(self.n)+")" + '.txt'
+            trace_name = Custom_name  + 'traces-'+ str(b.shape[1])+"("+ str(self.n)+")" + '.txt'
             np.savetxt(trace_name, b, delimiter="    ", newline='\r\n')
             print("\n", b.shape[1],"Traces exported as", trace_name)
     
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
-            png_name = another_name + 'Image_traces-'+ str(b.shape[1]) +"(" + str(self.n)+")" + '.png'
+            png_name = Custom_name  + 'Image_traces-'+ str(b.shape[1]) +"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
             print( "\n Picture exported as", png_name)
     
@@ -913,12 +917,12 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
                 b = self.intensitys2
             else:
                 b = self.intensitys
-            intensities_name = another_name + 'intensities' + str(len(b))+"(" + str(self.n)+")"+ '.txt'
+            intensities_name = Custom_name  + 'intensities' + str(len(b))+"(" + str(self.n)+")"+ '.txt'
             np.savetxt(intensities_name, b, delimiter="    ", newline='\r\n')
             print("\n", len(b), "Intensities exported as", intensities_name)
 
             c = self.morgane
-            intensities_morgane_name = another_name + 'intensities_morgane' + str(len(c))+"(" + str(self.n)+")"+ '.txt'
+            intensities_morgane_name = Custom_name  + 'intensities_morgane' + str(len(c))+"(" + str(self.n)+")"+ '.txt'
             np.savetxt(intensities_morgane_name, c, delimiter="    ", newline='\r\n')
             print("\n", len(c), "Intensities exported as", intensities_morgane_name)
 
@@ -930,7 +934,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             exporter.params.param('height').setValue(height, blockSignal=exporter.heightChanged)
 
             exporter = pg.exporters.ImageExporter(self.imv.imageItem)
-            png_name = another_name + 'Image_intensities'+ str(len(b))+"(" + str(self.n)+")" + '.png'
+            png_name = Custom_name  + 'Image_intensities'+ str(len(b))+"(" + str(self.n)+")" + '.png'
             exporter.export(png_name)
             print( "\n Picture exported as", png_name)
             

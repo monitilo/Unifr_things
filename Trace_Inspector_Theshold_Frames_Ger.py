@@ -171,8 +171,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        self.btnTonTimes.clicked.connect(self.Calculate_TON_times)
         self.btnExport.clicked.connect(self.exportTraces)
         
-        self.btnmaxmin.clicked.connect(self.calculate_max_min)
-        self.btnmaxmin.clicked.connect(self.make_histogram)
+#        self.btnmaxmin.clicked.connect(self.calculate_max_min)
+#        self.btnmaxmin.clicked.connect(self.make_histogram)
 
         self.btnmaxmin.clicked.connect(self.Quickanddirtystart)
 
@@ -227,8 +227,6 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        print(self.stepintensity)
         self.selection[int(self.traceSlider.value()), 5] = self.stepintensity
 
-
-
     # Define Actions    
     def importTrace(self):
 
@@ -241,7 +239,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.data = np.loadtxt(self.file_name)
         self.traceSlider.setMaximum(self.data.shape[1]-1)
         self.graph.clear()
-        self.selection = np.zeros((self.data.shape[1], 6), dtype = int)  # + Step column (5 ==> 6)
+        self.selection = np.zeros((self.data.shape[1], 6))  # + Step column (5 ==> 6)
         self.selection[:,0] = np.arange(0,self.data.shape[1])
         self.selection[:,4] = self.data.shape[0]
         self.colorgraph = (100, 150, 255)
@@ -406,7 +404,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.selection[int(self.traceSlider.value()), 1] = -1
         self.colorgraph = (250, 150, 50)
 
-        self.selection[int(self.traceSlider.value()), 5] = 0
+#        self.selection[int(self.traceSlider.value()), 5] = 0
         print("BADselection traces")
         print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
         self.next_trace()
@@ -488,7 +486,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         
         vals = self.selection[:,5] / float(self.ExposureTimeEdit.text())
         self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
-        y,x = np.histogram(vals)
+        y,x = np.histogram(vals[np.nonzero(vals)])
         self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
         self.plt1.showGrid(x = True, y = True, alpha = 0.5)
 
@@ -510,7 +508,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         print('[Filtered Traces Saved]: Amount of Good Traces: '+str(amount_goodTraces)[0:3]+'%')
 #        np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
 #        np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
-        np.savetxt(folder+'/selection_'+file_traces_name,self.selection)
+        np.savetxt(folder+'/selection_'+file_traces_name, self.selection)
         print("[selection saved]")
 #        print(self.selection)
 #        print('and, [Ton and Toff saved]')
