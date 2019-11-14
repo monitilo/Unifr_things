@@ -894,7 +894,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         Also a .png with the image with the rois as you see in the UI
         Save name+#ofdetecctions+self.n; this las self.n change every click"""
 
-        another_name = str(self.edit_save.text())
+        another_name = str(self.edit_save.text()) + "_"
         if what == "trace":
             b = self.traces
             trace_name = another_name + 'traces-'+ str(b.shape[1])+"("+ str(self.n)+")" + '.txt'
