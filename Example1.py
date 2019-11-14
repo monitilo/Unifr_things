@@ -4,6 +4,24 @@ Created on Wed Oct 23 11:23:45 2019
 
 @author: chiarelg
 """
+# %% save txt
+import numpy as np
+morgane = []
+a = []
+n = 999
+for i in range(10):
+    morgane.append((i,-i))
+    a.append(np.linspace(0,i,5))
+
+b = np.array(a).T
+c = np.array(morgane)
+#
+intensities_morgane_name = 'intensities_morgane' + str(len(c))+"(" + str(n)+")"+ '.txt'
+np.savetxt(intensities_morgane_name, c, delimiter="    ", newline='\r\n')
+print("\n", len(c), "Intensities exported as", intensities_morgane_name)
+
+
+
 #%% Connecting the z axis of the Imageview item
 import pyqtgraph as pg
 import numpy as np
