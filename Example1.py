@@ -4,6 +4,18 @@ Created on Wed Oct 23 11:23:45 2019
 
 @author: chiarelg
 """
+
+# %%
+import numpy as np
+
+a = np.random.random((10,6,6))*100
+a.shape
+start = 2
+end = 3
+z = a[start:end,:,:]
+z.shape
+
+
 # %% save txt
 import numpy as np
 morgane = []
