@@ -1004,7 +1004,7 @@ class MyPopup_histogram(QtGui.QWidget):
         data; change the text on the butto to make clear what you have"""
         self.main.intensitys2 = None
         self.main.histo_data = False
-        self.main.btn7.setText("Export only last ({}) points".format(len(self.main.intensitys)))
+#        self.main.btn7.setText("Export only last ({}) points".format(len(self.main.intensitys)))
         
     def __init__(self, main, *args, **kwargs):  # when doit do w2.show()
         """this is the initialize of this new windows. Make the new
@@ -1046,7 +1046,7 @@ class MyPopup_histogram(QtGui.QWidget):
         
         self.main.intensitys2 = None
         self.main.histo_data = False
-        self.main.btn7.setText("Export only last ({}) points".format(len(self.main.intensitys)))
+#        self.main.btn7.setText("Export only last ({}) points".format(len(self.main.intensitys)))
 
         self.close()
 

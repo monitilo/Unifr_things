@@ -19,9 +19,14 @@ from scipy import optimize
 from pyqtgraph.Qt import QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
+from SMAnalyzer_Ro_GERMAN import MyPopup_histogram
+
 class Frontend(QtGui.QFrame):
 
     import_image_signal = pyqtSignal(bool)
+    make_histo_signal = pyqtSignal(bool)
+    
+
     shutter1_signal = pyqtSignal(bool)
     shutter2_signal = pyqtSignal(bool)
     shutter3_signal = pyqtSignal(bool)
@@ -158,8 +163,9 @@ class Frontend(QtGui.QFrame):
         # Define a top-level widget to hold everything
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('SMAnalyzer - Video')
-        self.w.resize(1500, 800)
+#        self.w.resize(1500, 800)
         self.w.setLayout(self.layout)
+        self.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
 
       # GUI layout
         
@@ -169,6 +175,8 @@ class Frontend(QtGui.QFrame):
 
         # button actions
         self.btn1.clicked.connect(self.import_image_button)
+        self.btn_histogram.clicked.connect(self.make_histo_button)
+
 #        self.btn2.clicked.connect(self.createROI)
 #        self.btn3.clicked.connect(self.deleteROI)
 #        self.btn4.clicked.connect(self.ROImean)
@@ -225,18 +233,22 @@ class Frontend(QtGui.QFrame):
     def import_image_button(self):
         self.import_image_signal.emit(True)
 
-    @pyqtSlot(bool)
-    def is_JPG_function(self, JPG):
-        self.JPG = JPG
-        print("JPG", self.JPG, JPG)
+    def make_histo_button(self):
+        self.make_histo_signal.emit(True)
 
-    @pyqtSlot(list)
-    def plot_image_imported(self, image):
+#    @pyqtSlot(bool)
+#    def is_JPG_function(self, JPG):
+#        self.JPG = JPG
+#        print("JPG", self.JPG, JPG)
+
+    @pyqtSlot(str, bool)
+    def plot_image_imported(self, file, JPG):
         print("plot image imported")
-        self.data = np.array(image)
 
-        if self.JPG:  # in case I want one picture
+        f = file
+        if JPG:  # in case I want one picture
             print("is jpg 2")
+            self.data = np.mean(io.imread(f), axis=2)                
             self.axes = (0,1)  # axe 2 is the coloms of RGB
 #            print("WORKING ON THIS \n","JPG =", self.JPG,)
             self.meanStartLabel.setStyleSheet(" color: red; ")
@@ -257,6 +269,7 @@ class Frontend(QtGui.QFrame):
         else:
             print("is tiff 2")
             # Import selected image
+            self.data = io.imread(f)
             self.axes = (1,2)  # axe 0 are the frames
             self.total_size = [self.data.shape[2], self.data.shape[1]]
 
@@ -267,53 +280,28 @@ class Frontend(QtGui.QFrame):
             plot_with_colorbar(self.imv, self.data)
     
 #            self.w.setWindowTitle('SMAnalyzer - Video - ' + self.f)
-            self.imv.sigTimeChanged.connect(self.indexChanged)
+            self.imv.sigTimeChanged.connect(self.index_changed)
     
             self.validator = QtGui.QIntValidator(0, self.data.shape[0])
             self.meanStartEdit.setValidator(self.validator)
             self.meanEndEdit.setValidator(self.validator)
-# =============================================================================
-# 
-# 
-#         self.data = image
-#         # Display the data and assign each frame a number
-#         x = np.linspace(1., self.data.shape[0], self.data.shape[0])
-# 
-#         # Load array as an image
-#         self.imv.setImage(self.data, xvals=x)
-# 
-#         # Set a custom color map
-#         colors = [
-#                 (0, 0, 0),
-#                 (45, 5, 61),
-#                 (84, 42, 55),
-#                 (150, 87, 60),
-#                 (208, 171, 141),
-#                 (255, 255, 255)
-#                 ]
-#         cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
-#         self.imv.setColorMap(cmap)
-#         self.w.setWindowTitle('SMAnalyzer - Video - ' + self.f)
-#         self.imv.sigTimeChanged.connect(self.indexChanged)
-# 
-#         self.validator = QtGui.QIntValidator(0, self.data.shape[0])
-#         self.meanStartEdit.setValidator(self.validator)
-#         self.meanEndEdit.setValidator(self.validator)
-#         try:
-#             self.maxThreshEdit.setText(str(np.mean(self.data[1,:,:])))
-#         except:
-#             pass
-# 
-# =============================================================================
+
+    def index_changed(self):
+        """ change the numbers of start and endig frame  when move the slide"""
+        self.meanStartEdit.setText(str((self.imv.currentIndex)))
+        self.meanEndEdit.setText(str(int(self.imv.currentIndex)+15))
+
+
     def make_connection(self, backend):
         backend.image_to_plot_signal.connect(self.plot_image_imported)
-        backend.read_pos_signal.connect(self.read_pos_list)
-        backend.is_JPG_signal.connect(self.is_JPG_function)
+#        backend.read_pos_signal.connect(self.read_pos_list)
+#        backend.is_JPG_signal.connect(self.is_JPG_function)
+
 
 class Backend(QtCore.QObject):
 
-    image_to_plot_signal = pyqtSignal(list)
-    is_JPG_signal = pyqtSignal(bool)
+    image_to_plot_signal = pyqtSignal(str, bool)
+#    is_JPG_signal = pyqtSignal(bool)
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -346,16 +334,44 @@ class Backend(QtCore.QObject):
             if f[-4:] == ".jpg":  # in case I want one picture
                 print("is jpg")
                 JPG = True
-                data = np.mean(io.imread(f), axis=2)                
+#                data = np.mean(io.imread(f), axis=2)                
             else:
                 print("is tiff")
                 # Import selected image
-                data = io.imread(f)
-
-            self.is_JPG_signal.emit(JPG)
-            self.image_to_plot_signal.emit(data.tolist())
+#                data = io.imread(f)
 
 
+#            self.is_JPG_signal.emit(JPG)
+            print("Se manda la señal")
+            self.image_to_plot_signal.emit(f, JPG)
+
+    @pyqtSlot(bool)
+    def make_histogram(self):  # connected to make histogram (btn_histogram)
+        """Prepare to make the histogram with all the spots detected.
+        It opens a new window to run in another thread and  make it easy.
+        If the new window is not closed, it add the new data to the histogram
+        and can save all of this.
+        When closed, starts over, AND CANNOT SAVE ALL THIS"""
+        print("make hist")
+#        self.calculate_images()
+        self.intensitys = np.linspace(0,10,10)
+        self.intensitys2 = self.intensitys
+        try:
+            self.intensitys2 = np.concatenate((self.intensitys,
+                                               self.intensitys2))
+        except:
+            self.intensitys2 = self.intensitys
+        self.doit()
+
+        self.histo_data = True
+#        self.btn7.setText("Export all histogram data ({})".format(len(self.intensitys2)))
+
+    def doit(self):  # from make_histogram
+        """start the new popup window. its run independenty of the Main win"""
+        self.time_adquisitionEdit = QtGui.QLineEdit('10')
+        self.w2 = MyPopup_histogram(self)
+        self.w2.setGeometry(QtCore.QRect(750, 50, 450, 600))
+        self.w2.show()
 
     def delete_ROI(self):
         print("delete_ROI")
@@ -370,42 +386,16 @@ class Backend(QtCore.QObject):
             openShutter(shutters[1])
         else:
             closeShutter(shutters[1])
-            
-    @pyqtSlot(bool)
-    def shutter2(self, shutterbool):  # 405
-        if shutterbool:
-            openShutter(shutters[2])
-        else:
-            closeShutter(shutters[2])
-            
-    @pyqtSlot(bool)
-    def shutter3(self, shutterbool): # 808
-        if shutterbool:
-            openShutter(shutters[3])
-        else:
-            closeShutter(shutters[3])
-            
-    @pyqtSlot(bool)
-    def power_change(self, flipperbool):
-        if flipperbool:
-           downFlipper() #potencia alta
-        else:
-           upFlipper() #potencia baja
-           
-    @pyqtSlot(bool)
-    def notch532_change(self, flipperbool):
-        if flipperbool:
-           Flipper_notch532('down') 
-        else:
-           Flipper_notch532('up') 
+
 
     def make_connection(self, frontend):
         frontend.import_image_signal.connect(self.import_image)
-        frontend.shutter1_signal.connect(self.shutter1)
-        frontend.shutter2_signal.connect(self.shutter2)
-        frontend.shutter3_signal.connect(self.shutter3)
-        frontend.flipper_signal.connect(self.power_change)
-        frontend.flipper_notch532_signal.connect(self.notch532_change)
+        frontend.make_histo_signal.connect(self.make_histogram)
+#        frontend.shutter1_signal.connect(self.shutter1)
+#        frontend.shutter2_signal.connect(self.shutter2)
+#        frontend.shutter3_signal.connect(self.shutter3)
+#        frontend.flipper_signal.connect(self.power_change)
+#        frontend.flipper_notch532_signal.connect(self.notch532_change)
 
 def plot_with_colorbar(imv,data):
     print("plot with colorbar start")
@@ -427,7 +417,6 @@ def plot_with_colorbar(imv,data):
     cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
     imv.setColorMap(cmap)
 
-
 if __name__ == '__main__':
 
     app = QtGui.QApplication([])
@@ -436,7 +425,7 @@ if __name__ == '__main__':
     worker = Backend()
 
     worker.make_connection(gui)
-    #gui.make_connection(worker)
+    gui.make_connection(worker)
 
     shuttersThread = QtCore.QThread()
     worker.moveToThread(shuttersThread)

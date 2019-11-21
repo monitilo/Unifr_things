@@ -16,7 +16,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from pyqtgraph.dockarea import DockArea, Dock
 
 import Shutters
-import Analizer
+import Analyzer
 
 class Frontend(QtGui.QMainWindow):
     
@@ -124,10 +124,10 @@ class Frontend(QtGui.QMainWindow):
 
         ## Shutters
 
-        analizerDock = Dock("SM analizer")
-        self.analizerWidget = Analizer.Frontend()
-        analizerDock.addWidget(self.analizerWidget)
-        self.dockArea.addDock(analizerDock, 'right', shuttersDock)
+        AnalyzerDock = Dock("SM Analyzer")
+        self.AnalyzerWidget = Analyzer.Frontend()
+        AnalyzerDock.addWidget(self.AnalyzerWidget)
+        self.dockArea.addDock(AnalyzerDock, 'right', shuttersDock)
 
     def get_openDir(self):
         self.openDirSignal.emit()
@@ -155,10 +155,11 @@ class Frontend(QtGui.QMainWindow):
         
         self.dimersWidget.show()
          
-#    def make_connection(self, backend):
+    def make_connection(self, backend):
 #        
 #        backend.focusWorker.make_connection(self.focusWidget)
-#        backend.shuttersWorker.make_connection(self.shuttersWidget)
+        backend.shuttersWorker.make_connection(self.shuttersWidget)
+        backend.analyzerWorker.make_connection(self.AnalyzerWidget)
 #        backend.nanopositioningWorker.make_connection(self.nanopositioningWidget)
 #        backend.traceWorker.make_connection(self.traceWidget)
 #        backend.confocalWorker.make_connection(self.confocalWidget)
@@ -190,7 +191,8 @@ class Backend(QtCore.QObject):
         super().__init__(*args, **kwargs)
         
         self.shuttersWorker = Shutters.Backend()
-        
+        self.analyzerWorker = Analyzer.Backend()
+
         self.file_path = os.path.abspath("C:\Julian\Data_PyPrinting")  #por default, por si se olvida de crear la carpeta del día
         
     @pyqtSlot()    
@@ -274,14 +276,16 @@ class Backend(QtCore.QObject):
         Flipper_notch532('down')
           
 
-#    def make_connection(self, frontend):
-#        
+    def make_connection(self, frontend):
+        print("one conecttions back")
 #        frontend.selectDirSignal.connect(self.selectDir)
 #        frontend.openDirSignal.connect(self.openDir)
 #        frontend.createDirSignal.connect(self.create_daily_directory)
 #        frontend.loadpositionSignal.connect(self.load_last_position)
 #        frontend.closeSignal.connect(self.close_all)
-#        
+
+        frontend.AnalyzerWidget.make_connection(self.analyzerWorker)
+
 #        frontend.focusWidget.make_connection(self.focusWorker)
 #        frontend.nanopositioningWidget.make_connection(self.nanopositioningWorker)
 #        frontend.traceWidget.make_connection(self.traceWorker)
@@ -297,13 +301,15 @@ if __name__ == '__main__':
     gui = Frontend()
     worker = Backend()
     
-#    gui.make_connection(worker)
-#    worker.make_connection(gui)
+    gui.make_connection(worker)
+    worker.make_connection(gui)
     
     multipleThread = QtCore.QThread()
     
-    #worker.shuttersWorker.moveToThread(multipleThread)
-    
+    worker.shuttersWorker.moveToThread(multipleThread)
+
+    worker.analyzerWorker.moveToThread(multipleThread)
+
     #worker.nanopositioningWorker.moveToThread(multipleThread)
     
     #worker.focusWorker.moveToThread(multipleThread)

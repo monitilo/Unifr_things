@@ -10,6 +10,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 #from Instrument import shutters, openShutter, closeShutter, downFlipper, upFlipper, Flipper_notch532
 
+shutters= [532, 640, "vaca", 88080808099]
+
 class Frontend(QtGui.QFrame):
 
     shutter0_signal = pyqtSignal(bool)
@@ -167,6 +169,21 @@ class Backend(QtCore.QObject):
         frontend.shutter3_signal.connect(self.shutter3)
         frontend.flipper_signal.connect(self.power_change)
         frontend.flipper_notch532_signal.connect(self.notch532_change)
+
+def openShutter(algo):
+    print("open", algo)
+
+def closeShutter(algo):
+    print("close", algo)
+
+def Flipper_notch532(algo):
+    print("Notch", algo)
+
+def downFlipper(algo="down"):
+    print("flipper", algo)
+
+def upFlipper(algo="up"):
+    print("flipper", algo)
 
 if __name__ == '__main__':
 
