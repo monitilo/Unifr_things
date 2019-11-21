@@ -68,7 +68,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.btnBadTrace = QtGui.QPushButton('Bad Trace')
 #        self.btnTonTimes = QtGui.QPushButton('Calculate Ton and Toff')
         self.btnExport = QtGui.QPushButton('Export Trace Selection and T')
-
+        self.btnautomatic_detect = QtGui.QPushButton('Automatic takes step ')
 
         # Create parameter fields with labels
         self.traceindex = QtGui.QLabel('Show Trace:')
@@ -110,7 +110,6 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.Amount_goodTraces_text = QtGui.QLabel('Good traces selection:')
         self.Amount_goodTraces = QtGui.QLabel() 
 
-
         # Labels to know the means to save
         self.labelmax = QtGui.QLabel("Left")
         self.labelmin = QtGui.QLabel("Rigth")
@@ -121,6 +120,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Button to print it (and save)
         self.btnmaxmin = QtGui.QPushButton('Calculate RigthMean - LeftMean')
 
+        self.labelstep2 = QtGui.QLabel("Usign threshold")
+        self.labelstep2.setFixedWidth(300)
 
         # Create a grid layout to manage the widgets size and position
         layout = QtGui.QGridLayout()
@@ -136,6 +137,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         layout.addWidget(self.traceindex,                  4.5, 0, 1, 1)
         layout.addWidget(self.traceindexEdit,              4.5, 1, 1, 2)
         layout.addWidget(self.btnShow,                     5, 0, 1, 3)        
+        layout.addWidget(self.btnautomatic_detect,             6, 0, 1, 3)
         
 #        layout.addWidget(self.StartFrame,                  6, 0, 1, 1)
 #        layout.addWidget(self.StartFrameEdit,              6, 1, 1, 2)
@@ -159,6 +161,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         layout.addWidget(self.labelstep,                   0, 30, 1, 3)
         layout.addWidget(self.labelmin,                    0, 45, 1, 3)
         layout.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
+        layout.addWidget(self.labelstep2,                  1, 30, 1, 3)
+
 
 #        layout.setColumnStretch(0,1)
 #        layout.setColumnStretch(1,10)
@@ -170,7 +174,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.btnBadTrace.clicked.connect(self.save_badSelection_traces)
 #        self.btnTonTimes.clicked.connect(self.Calculate_TON_times)
         self.btnExport.clicked.connect(self.exportTraces)
-        
+
+        self.btnautomatic_detect.clicked.connect(self.step_detection)
+
 #        self.btnmaxmin.clicked.connect(self.calculate_max_min)
 #        self.btnmaxmin.clicked.connect(self.make_histogram)
 
@@ -179,6 +185,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Slider Action
         self.traceSlider.valueChanged.connect(self.update_trace)
         self.thresholdSlider.valueChanged.connect(self.update_threshold)
+        
+
         
 #        self.traceindexEdit.textEdited.connect(self.showTrace)  # I like it more
 
@@ -192,7 +200,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         print("number of traces to check :", self.data.shape[1])
 
     def Quickanddirty(self):
+        self.step_detection()
         self.calculate_max_min()
+        print(self.step_intensity, self.stepintensity)
 #            self.make_histogram()
         self.next_trace()
         self.update_trace()
@@ -225,7 +235,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        
 #        print(self.avgmax - self.avgmin)
 #        print(self.stepintensity)
-        self.selection[int(self.traceSlider.value()), 5] = self.stepintensity
+        self.selection[int(self.traceSlider.value()), 5] = self.step_intensity  # stepintensity
 
     # Define Actions    
     def importTrace(self):
@@ -327,6 +337,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.threshold_index_Slider_Edit.setText(format(int(self.selection[int(self.traceSlider.value()), 2])))
         self.thresholdSlider.setMaximum((np.max(self.data[:, int(self.traceSlider.value())])))
         self.thresholdSlider.setValue(int(self.selection[int(self.traceSlider.value()), 2]))
+        self.step_detection()
         self.PlotBinaryTrace()
 # =============================================================================
 #         self.lr = pg.LinearRegionItem([int(self.selection[(int(self.traceSlider.value())),3]),int(self.selection[(int(self.traceSlider.value())),4])])
@@ -368,7 +379,28 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.BinaryTrace.plot(new_binary_trace,pen=pg.mkPen(color=(125,50,150), width=1))
         self.BinaryTrace.plot((self.data[:,(int(self.traceSlider.value()))]-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=self.colorgraph, width=1))
         self.BinaryTrace.plot((new_threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
-         
+
+    def step_detection(self):
+        print("underd development")
+#        self.thresholdSlider.setValue(int(self.selection[0, 2]))
+#        mode = stats.mode(self.data[:, int(self.traceSlider.value())])[0]
+#        print("mode", mode)
+        threshold = int(self.thresholdSlider.value())
+#        print("threshold", threshold)
+#        threshold_vector = threshold*np.ones(self.data.shape[0])
+#        self.BinaryTrace.plot((threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
+        self.threshold_line = pg.InfiniteLine(angle=0, movable=False, pen=pg.mkPen(color=(255,60,60), width=2))
+#        self.threshold_line.setPos(((threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode))[0])
+        self.threshold_line.setPos(threshold)
+        self.graph.addItem(self.threshold_line)
+        aux = self.data[:,(int(self.traceSlider.value()))]
+#        self.graph.plot(aux[np.where(aux>threshold)], pen='c')
+#        self.graph.plot(aux[np.where(aux<threshold)], pen='m')
+        self.step_intensity = np.mean(aux[np.where(aux>threshold)]) - np.mean(aux[np.where(aux<threshold)])
+#        print("step intensity", self.step_intensity)
+        self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: blue'>Step2=%0.1f</span>" % self.stepintensity)
+
+
     # Next trace when you touch good or bad trace button    
     def next_trace(self):
         self.make_histogram()
@@ -404,7 +436,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.selection[int(self.traceSlider.value()), 1] = -1
         self.colorgraph = (250, 150, 50)
 
-#        self.selection[int(self.traceSlider.value()), 5] = 0
+        self.selection[int(self.traceSlider.value()), 5] = 0
         print("BADselection traces")
         print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
         self.next_trace()
