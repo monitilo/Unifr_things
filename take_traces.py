@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy import ndimage as ndi
 from skimage.feature import peak_local_max
 from skimage import  io #,img_as_float, data
-
+from scipy.ndimage.measurements import center_of_mass, label
 # %% Functions to make the Gauss fit 1
 def gaussian(height, center_x, center_y, width_x, width_y):
     """Returns a gaussian function with the given parameters"""
@@ -49,22 +49,29 @@ def fitgaussian(data):
                                        data)
     p, success = optimize.leastsq(errorfunction, params)
     return p
-
+# %%
 #FILE = 'C:/Origami testing Widefield/2019-10-11/Morgane/1Atto542_1640um_50mW_1/1Atto542_1640um_50mW_1_MMStack_Pos0.ome.tif'
-FILE = 'C:/Origami testing Widefield/2019-10-16/Green_Reference-11mW(5,4)_532nm-100ms_1/Green_Reference-11mW(5,4)_532nm-100ms_1_MMStack_Pos0.ome.tif'
+#FILE = 'C:/Origami testing Widefield/2019-10-16/Green_Reference-11mW(5,4)_532nm-100ms_1/Green_Reference-11mW(5,4)_532nm-100ms_1_MMStack_Pos0.ome.tif'
+FILE = 'C:/Origami testing Widefield/2019-10-16/Green_Reference-11mW(5,4)_532nm-100ms_2/IMG_20191107_143820.jpg'
 plot = True
 tiff = io.imread(FILE)
 
 Nmeanstart = 50
 Nmeanfinish = 70
-im = np.sum(tiff[Nmeanstart:Nmeanfinish], axis=0)
-
+im = np.mean(tiff, axis=2)  #np.sum(tiff[Nmeanstart:Nmeanfinish], axis=0)
+print("shapes tiff, im", tiff.shape, im.shape)
 # image_max is the dilation of im with a 20*20 structuring element
 # It is used within peak_local_max function
 #image_max = ndi.maximum_filter(im, size=20, mode='constant')
 
 # Comparison between image_max and im to find the coordinates of local maxima
-coordinates = peak_local_max(im, min_distance=5)
+coordinates2 = peak_local_max(im, min_distance=50)
+
+is_peak = peak_local_max(im, min_distance=50, indices=False) # outputs bool image
+s = ndi.generate_binary_structure(2,50)
+labels = label(is_peak,structure=s)[0]
+merged_peaks = center_of_mass(is_peak, labels, range(1, np.max(labels)+1))
+coordinates = np.array(merged_peaks, dtype = int)
 
 # display results
 fig, axes = plt.subplots(1, 3, figsize=(8, 3), sharex=True, sharey=True)
@@ -127,6 +134,40 @@ for j in finalmax:
     plt.plot(newcoordinateY, newcoordinateX, 'm*')
 for j in goodmax:
     plt.plot(coordinates[j, 1], coordinates[j, 0], 'b.')
+# %%
+
+# Generate test data with two peaks, one of which consists of two pixels of equal value
+image = np.zeros((15,15),dtype=np.uint8)
+image[5,3] = 128
+image[5,2] = 255
+image[5,7:9] = 255
+image[3,8] = 255
+image[6,8] = 128
+image[7,8] = 255
+image[9,8] = 255
+image[9,3] = 255
+image[4,9] = 255
+d=2
+# Finding peaks normally; results in three peaks
+peaks = peak_local_max(image,min_distance=d)
+
+# Find peaks and merge equal regions; results in two peaks
+is_peak = peak_local_max(image,min_distance=d, indices=False) # outputs bool image
+s = ndi.generate_binary_structure(2,2)
+labels = label(is_peak,structure=s)[0]
+merged_peaks = center_of_mass(is_peak, labels, range(1, np.max(labels)+1))
+merged_peaks = np.array(merged_peaks, dtype=int)
+
+# Visualize the results
+fig,(ax1,ax2)=plt.subplots(1,2)
+ax1.imshow(image.T,cmap='gray')
+ax1.plot(peaks[:,0],peaks[:,1],'ro')
+
+ax2.imshow(image.T,cmap='gray')
+ax2.plot(merged_peaks[:,0],merged_peaks[:,1],'ro')
+
+
+
 
 #%%  takin the spots
 roisize = 6  # es el doble de esto

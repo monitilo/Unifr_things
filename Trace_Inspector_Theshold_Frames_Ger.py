@@ -381,6 +381,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.BinaryTrace.plot((new_threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
 
     def step_detection(self):
+        
         print("underd development")
 #        self.thresholdSlider.setValue(int(self.selection[0, 2]))
 #        mode = stats.mode(self.data[:, int(self.traceSlider.value())])[0]
@@ -389,7 +390,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        print("threshold", threshold)
 #        threshold_vector = threshold*np.ones(self.data.shape[0])
 #        self.BinaryTrace.plot((threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
-        self.threshold_line = pg.InfiniteLine(angle=0, movable=False, pen=pg.mkPen(color=(255,60,60), width=2))
+        self.threshold_line = pg.InfiniteLine(angle=0, movable=True, pen=pg.mkPen(color=(255,60,60), width=2))
 #        self.threshold_line.setPos(((threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode))[0])
         self.threshold_line.setPos(threshold)
         self.graph.addItem(self.threshold_line)
@@ -398,7 +399,19 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        self.graph.plot(aux[np.where(aux<threshold)], pen='m')
         self.step_intensity = np.mean(aux[np.where(aux>threshold)]) - np.mean(aux[np.where(aux<threshold)])
 #        print("step intensity", self.step_intensity)
-        self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: blue'>Step2=%0.1f</span>" % self.stepintensity)
+        self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: black'>Step2=%0.1f</span>" % self.step_intensity)
+#        print("markers?", self.threshold_line.markers)
+        
+        self.threshold_line.sigPositionChangeFinished.connect(self.moving_threshold)
+#        mouseClickEvent('button_release_event', moving_threshold)
+        # mouseDragEvent("draw_event", moving_threshold)
+#        connect(self.moving_threshold)
+
+    def moving_threshold(self):
+        print("pos", self.threshold_line.pos()[1])
+        self.thresholdSlider.setValue(int(self.threshold_line.pos()[1]))
+        self.selection[int(self.traceSlider.value()),2] = int(self.thresholdSlider.value())
+        self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: black'>Step2=%0.1f</span>" % self.step_intensity)
 
 
     # Next trace when you touch good or bad trace button    
