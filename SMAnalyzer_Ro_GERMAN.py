@@ -47,6 +47,8 @@ from pyqtgraph.dockarea import Dock, DockArea
 
 import time as time
 
+import Trace_Inspector_Theshold_Frames_Ger
+
 class smAnalyzer(pg.Qt.QtGui.QMainWindow):
 
     def __init__(self, *args, **kwargs):
@@ -240,10 +242,21 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.dockArea = dockArea
         grid.addWidget(self.dockArea)
 
+
+
         viewDock = Dock('viewbox', size=(300, 50))
         viewDock.addWidget(self.viewer_wid)
 #        viewDock.hideTitleBar()
         self.dockArea.addDock(viewDock)
+
+# =============================================================================
+#         TracesDock = Dock("Traces asassas", size=(300, 50))
+#         self.TracesWidget = Trace_Inspector_Theshold_Frames_Ger.Trace_Inspector()
+#         TracesDock.addWidget(self.TracesWidget)
+#         self.dockArea.addDock(TracesDock)
+# =============================================================================
+
+#'bottom', 'top', 'left', 'right', 'above', or 'below'
 
         postDock = Dock('posDetection', size=(1, 1))
         postDock.addWidget(self.post_wid)
@@ -252,6 +265,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         optionsDock = Dock('Load options', size=(1, 1))
         optionsDock.addWidget(self.optios_wid)
         self.dockArea.addDock(optionsDock, "left", viewDock)
+
 
         self.setWindowTitle("Single Molecule Analizer")  # Nombre de la ventana
         self.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
