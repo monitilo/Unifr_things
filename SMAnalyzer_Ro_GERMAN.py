@@ -242,8 +242,6 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         self.dockArea = dockArea
         grid.addWidget(self.dockArea)
 
-
-
         viewDock = Dock('viewbox', size=(300, 50))
         viewDock.addWidget(self.viewer_wid)
 #        viewDock.hideTitleBar()
@@ -826,8 +824,8 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         # Create dict with traces
         self.trace = dict()
         molArray = dict()
-#        bgArray = dict()
-#        bg = dict()
+        bgArray = dict()
+        bg = dict()
         bgNorm = dict()
 
 #        s = (2*int(self.BgSizeEdit.text()))  # bgsize = molsize + s
@@ -836,13 +834,23 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
             if i not in self.removerois:
                 # get molecule array
                 molArray[i] = self.molRoi[i].getArrayRegion(self.data, self.imv.imageItem, axes=self.axes, returnMappedCoords=False)
-                # get normalized background
-                bgNorm[i] = get_counts_bgNorm(self.imv, self.data,
-                                          self.molRoi[i], self.bgRoi[i],
-                                          int(self.moleculeSizeEdit.text()),
-                                          int(self.BgSizeEdit.text()))
+                bgArray[i] = self.bgRoi[i].getArrayRegion(self.data,
+                                                    self.imv.imageItem,
+                                                    axes=(1,2),
+                                                    returnMappedCoords=False)
+# =============================================================================
+#                 # get normalized background
+#                 bgNorm[i] = get_counts_bgNorm(self.imv, self.data,
+#                                           self.molRoi[i], self.bgRoi[i],
+#                                           int(self.moleculeSizeEdit.text()),
+#                                           int(self.BgSizeEdit.text()))
+# =============================================================================
 
-                self.trace[p] = np.sum(molArray[i], axis=self.axes) - bgNorm[i]
+                bg[i] = np.sum(bgArray[i], axis=(1,2)) - np.sum(molArray[i], axis=(1,2))
+                n = int(self.moleculeSizeEdit.text())
+                m = (2*int(self.BgSizeEdit.text())) + n
+                bgNorm[i] = (n*n)*(bg[i]) / (m*m - n*n)
+                self.trace[p] = (np.sum(molArray[i], axis=self.axes) - bgNorm[i]) / float(self.time_adquisitionEdit.text())
                 p +=1 # I have to use this to have order because of removerois
 
         # Save traces as an array

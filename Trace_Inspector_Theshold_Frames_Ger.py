@@ -28,15 +28,18 @@ con el programa para hacer un post analisis.
 OJO: Si no ponen el exposure time, el programa no va a calcular los tiempos On y Off
 """
 import numpy as np
-from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph as pg
+from pyqtgraph.Qt import QtCore, QtGui
 import os
 from tkinter import Tk, filedialog
 #from skimage.feature import peak_local_max
 from scipy import stats
+from pyqtgraph.dockarea import Dock, DockArea
 
+class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 
-class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
+    def closeEvent(self, event):
+        print("close Event")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -54,7 +57,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.w = QtGui.QWidget()
         self.w.setWindowTitle('Trace Inspector')
 #        self.w.resize(500, 800)
-        self.w.setGeometry(10, 40, 300, 300)  # (PosX, PosY, SizeX, SizeY)
+#        self.w.setGeometry(10, 40, 300, 300)  # (PosX, PosY, SizeX, SizeY)
 
         # Create ImagePlot
         self.graph = pg.PlotWidget()
@@ -74,7 +77,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.traceindex = QtGui.QLabel('Show Trace:')
         self.traceindexEdit = QtGui.QLineEdit('0')
         self.ExposureTime = QtGui.QLabel('Exposure Time [ms]')
-        self.ExposureTimeEdit = QtGui.QLineEdit("100")
+        self.ExposureTimeEdit = QtGui.QLineEdit("1")
 #        self.ThesholdIndex= QtGui.QLabel('Threshold:')
 #        self.ThesholdIndexEdit = QtGui.QLineEdit()
 #        self.StartFrame = QtGui.QLabel('Start frame:')
@@ -124,45 +127,70 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.labelstep2.setFixedWidth(300)
 
         # Create a grid layout to manage the widgets size and position
-        layout = QtGui.QGridLayout()
-        self.w.setLayout(layout)
+#        layout = QtGui.QGridLayout()
+#        self.w.setLayout(layout)
+
+        self.Trace_grid = QtGui.QGridLayout()
+        self.Trace_wid = QtGui.QWidget()
+        self.Trace_wid.setLayout(self.Trace_grid)
 
         # Add widgets to the layout in their proper positions
-        layout.addWidget(self.btnLoad,                     0, 0, 1, 3)
-        layout.addWidget(self.ExposureTime,                1, 0, 1, 1)
-        layout.addWidget(self.ExposureTimeEdit,            1, 1, 1, 2)
-        layout.addWidget(Trace_index_Slider,               2.5, 0, 1, 3)
-        layout.addWidget(self.Trace_index_Slider_Edit,     2.5, 1, 1, 3)
-        layout.addWidget(self.traceSlider,                 3, 0, 1, 3)        
-        layout.addWidget(self.traceindex,                  4.5, 0, 1, 1)
-        layout.addWidget(self.traceindexEdit,              4.5, 1, 1, 2)
-        layout.addWidget(self.btnShow,                     5, 0, 1, 3)        
-        layout.addWidget(self.btnautomatic_detect,             6, 0, 1, 3)
+        self.Trace_grid.addWidget(self.btnLoad,                     0, 0, 1, 3)
+        self.Trace_grid.addWidget(self.ExposureTime,                1, 0, 1, 1)
+        self.Trace_grid.addWidget(self.ExposureTimeEdit,            1, 1, 1, 2)
+        self.Trace_grid.addWidget(Trace_index_Slider,               2.5, 0, 1, 3)
+        self.Trace_grid.addWidget(self.Trace_index_Slider_Edit,     2.5, 1, 1, 3)
+        self.Trace_grid.addWidget(self.traceSlider,                 3, 0, 1, 3)        
+        self.Trace_grid.addWidget(self.traceindex,                  4.5, 0, 1, 1)
+        self.Trace_grid.addWidget(self.traceindexEdit,              4.5, 1, 1, 2)
+        self.Trace_grid.addWidget(self.btnShow,                     5, 0, 1, 3)        
+        self.Trace_grid.addWidget(self.btnautomatic_detect,             6, 0, 1, 3)
         
-#        layout.addWidget(self.StartFrame,                  6, 0, 1, 1)
-#        layout.addWidget(self.StartFrameEdit,              6, 1, 1, 2)
-#        layout.addWidget(self.EndFrame,                    7, 0, 1, 1)
-#        layout.addWidget(self.EndFrameEdit,                7, 1, 1, 2)
+#        self.Trace_grid.addWidget(self.StartFrame,                  6, 0, 1, 1)
+#        self.Trace_grid.addWidget(self.StartFrameEdit,              6, 1, 1, 2)
+#        self.Trace_grid.addWidget(self.EndFrame,                    7, 0, 1, 1)
+#        self.Trace_grid.addWidget(self.EndFrameEdit,                7, 1, 1, 2)
 
 
-#        layout.addWidget(threshold_index_Slider,           8, 0, 1, 3)
-#        layout.addWidget(self.threshold_index_Slider_Edit, 8, 1, 1, 3)
-#        layout.addWidget(self.thresholdSlider,             9, 0, 1, 3)       
-        layout.addWidget(self.btnGoodTrace,                10, 0, 1, 1)
-        layout.addWidget(self.btnBadTrace,                 10, 2, 1, 1)
-#        layout.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
-        layout.addWidget(self.btnExport,                   12, 0, 1, 3)
-        layout.addWidget(self.graph,                     0, 4, 13, 50)
-#        layout.addWidget(self.BinaryTrace,               14,0,500, 104)
-        layout.addWidget(self.histo_window,             14,0,40, 50)
+#        self.Trace_grid.addWidget(threshold_index_Slider,           8, 0, 1, 3)
+#        self.Trace_grid.addWidget(self.threshold_index_Slider_Edit, 8, 1, 1, 3)
+#        self.Trace_grid.addWidget(self.thresholdSlider,             9, 0, 1, 3)       
+        self.Trace_grid.addWidget(self.btnGoodTrace,                10, 0, 1, 1)
+        self.Trace_grid.addWidget(self.btnBadTrace,                 10, 2, 1, 1)
+#        self.Trace_grid.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
+        self.Trace_grid.addWidget(self.btnExport,                   12, 0, 1, 3)
+        self.Trace_grid.addWidget(self.graph,                     0, 4, 13, 50)
+#        self.Trace_grid.addWidget(self.BinaryTrace,               14,0,500, 104)
+        self.Trace_grid.addWidget(self.histo_window,             14,0,40, 50)
 
         
-        layout.addWidget(self.labelmax,                   0,  15, 1, 3)
-        layout.addWidget(self.labelstep,                   0, 30, 1, 3)
-        layout.addWidget(self.labelmin,                    0, 45, 1, 3)
-        layout.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
-        layout.addWidget(self.labelstep2,                  1, 30, 1, 3)
+        self.Trace_grid.addWidget(self.labelmax,                   0,  15, 1, 3)
+        self.Trace_grid.addWidget(self.labelstep,                   0, 30, 1, 3)
+        self.Trace_grid.addWidget(self.labelmin,                    0, 45, 1, 3)
+        self.Trace_grid.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
+        self.Trace_grid.addWidget(self.labelstep2,                  1, 30, 1, 3)
 
+
+#        # DOCK cosas, mas comodo!
+        self.state = None  # defines the docks state (personalize your oun UI!)
+
+        self.cwidget = QtGui.QWidget()
+        self.setCentralWidget(self.cwidget)
+#
+        grid = QtGui.QGridLayout()
+        self.cwidget.setLayout(grid)
+
+        dockArea = DockArea()
+        self.dockArea = dockArea
+        grid.addWidget(self.dockArea)
+
+        TraceDock = Dock('TraceDock', size=(300, 50))
+        TraceDock.addWidget(self.Trace_wid)
+#        viewDock.hideTitleBar()
+        self.dockArea.addDock(TraceDock)
+
+        self.setWindowTitle("Single Molecuzer")  # Nombre de la ventana
+        self.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
 
 #        layout.setColumnStretch(0,1)
 #        layout.setColumnStretch(1,10)
@@ -185,14 +213,30 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         # Slider Action
         self.traceSlider.valueChanged.connect(self.update_trace)
         self.thresholdSlider.valueChanged.connect(self.update_threshold)
-        
 
-        
 #        self.traceindexEdit.textEdited.connect(self.showTrace)  # I like it more
 
         self.Quickanddirtytimer = QtCore.QTimer()
         self.Quickanddirtytimer.timeout.connect(self.Quickanddirty)
-        
+
+
+        # Shortcut. ESC ==> close_win
+        self.close_Action = QtGui.QAction(self)
+        QtGui.QShortcut(
+            QtGui.QKeySequence('ESC'), self, self.close_win)
+
+        self.good_selection_Action = QtGui.QAction(self)
+        QtGui.QShortcut(
+            QtGui.QKeySequence('g'), self, self.save_goodSelection_traces)
+
+        self.bad_selection_Action = QtGui.QAction(self)
+        QtGui.QShortcut(
+            QtGui.QKeySequence('b'), self, self.save_badSelection_traces)
+
+    def close_win(self):  # called pressing ESC
+        """Close all when press ESC"""
+        print("Close win")
+        self.close()
 
     def Quickanddirtystart(self):
         self.timing = 0
@@ -382,34 +426,24 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 
     def step_detection(self):
         
-        print("underd development")
-#        self.thresholdSlider.setValue(int(self.selection[0, 2]))
-#        mode = stats.mode(self.data[:, int(self.traceSlider.value())])[0]
-#        print("mode", mode)
+
         threshold = int(self.thresholdSlider.value())
-#        print("threshold", threshold)
-#        threshold_vector = threshold*np.ones(self.data.shape[0])
-#        self.BinaryTrace.plot((threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
         self.threshold_line = pg.InfiniteLine(angle=0, movable=True, pen=pg.mkPen(color=(255,60,60), width=2))
-#        self.threshold_line.setPos(((threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode))[0])
         self.threshold_line.setPos(threshold)
         self.graph.addItem(self.threshold_line)
         aux = self.data[:,(int(self.traceSlider.value()))]
-#        self.graph.plot(aux[np.where(aux>threshold)], pen='c')
-#        self.graph.plot(aux[np.where(aux<threshold)], pen='m')
         self.step_intensity = np.mean(aux[np.where(aux>threshold)]) - np.mean(aux[np.where(aux<threshold)])
-#        print("step intensity", self.step_intensity)
         self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: black'>Step2=%0.1f</span>" % self.step_intensity)
-#        print("markers?", self.threshold_line.markers)
         
         self.threshold_line.sigPositionChangeFinished.connect(self.moving_threshold)
-#        mouseClickEvent('button_release_event', moving_threshold)
-        # mouseDragEvent("draw_event", moving_threshold)
-#        connect(self.moving_threshold)
 
     def moving_threshold(self):
         print("pos", self.threshold_line.pos()[1])
         self.thresholdSlider.setValue(int(self.threshold_line.pos()[1]))
+        threshold = int(self.thresholdSlider.value())
+        aux = self.data[:,(int(self.traceSlider.value()))]
+        self.step_intensity = np.mean(aux[np.where(aux>threshold)]) - np.mean(aux[np.where(aux<threshold)])
+
         self.selection[int(self.traceSlider.value()),2] = int(self.thresholdSlider.value())
         self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: black'>Step2=%0.1f</span>" % self.step_intensity)
 
@@ -528,12 +562,14 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
             self.histo_window.removeItem(self.plt1)
         except:
             print("Create the histogram")
-        
+
         vals = self.selection[:,5] / float(self.ExposureTimeEdit.text())
         self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
         y,x = np.histogram(vals[np.nonzero(vals)])
         self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
         self.plt1.showGrid(x = True, y = True, alpha = 0.5)
+        self.plt1.setLabel(axis="bottom",
+                    text='kHz, {} points'.format(len(vals[np.nonzero(vals)])))
 
     # Define export selection of traces       
     def exportTraces(self):
@@ -554,7 +590,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
 #        np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
 #        np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
         np.savetxt(folder+'/selection_'+file_traces_name, self.selection)
-        print("[selection saved]")
+        print("[selection saved]", folder+'/selection_'+file_traces_name)
 #        print(self.selection)
 #        print('and, [Ton and Toff saved]')
 
@@ -563,5 +599,5 @@ if __name__ == '__main__':
 
     app = pg.Qt.QtGui.QApplication([])
     exe = Trace_Inspector()
-    exe.w.show()
+    exe.show()
     app.exec_()
