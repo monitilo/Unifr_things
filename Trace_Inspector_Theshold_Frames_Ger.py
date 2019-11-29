@@ -67,8 +67,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         # Create buttons
         self.btnLoad = QtGui.QPushButton('Load Traces')
         self.btnShow = QtGui.QPushButton('Show Trace')
-        self.btnGoodTrace = QtGui.QPushButton('Good Trace')
-        self.btnBadTrace = QtGui.QPushButton('Bad Trace')
+        self.btnGoodTrace = QtGui.QPushButton('Good Trace (g)')
+        self.btnBadTrace = QtGui.QPushButton('Bad Trace (b)')
 #        self.btnTonTimes = QtGui.QPushButton('Calculate Ton and Toff')
         self.btnExport = QtGui.QPushButton('Export Trace Selection and T')
         self.btnautomatic_detect = QtGui.QPushButton('Automatic takes step ')
@@ -189,7 +189,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        viewDock.hideTitleBar()
         self.dockArea.addDock(TraceDock)
 
-        self.setWindowTitle("Single Molecuzer")  # Nombre de la ventana
+        self.setWindowTitle("Trazer Molecuzer")  # windows name
         self.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
 
 #        layout.setColumnStretch(0,1)
@@ -425,7 +425,6 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.BinaryTrace.plot((new_threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
 
     def step_detection(self):
-        
 
         threshold = int(self.thresholdSlider.value())
         self.threshold_line = pg.InfiniteLine(angle=0, movable=True, pen=pg.mkPen(color=(255,60,60), width=2))
@@ -434,7 +433,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         aux = self.data[:,(int(self.traceSlider.value()))]
         self.step_intensity = np.mean(aux[np.where(aux>threshold)]) - np.mean(aux[np.where(aux<threshold)])
         self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: black'>Step2=%0.1f</span>" % self.step_intensity)
-        
+
         self.threshold_line.sigPositionChangeFinished.connect(self.moving_threshold)
 
     def moving_threshold(self):
@@ -444,7 +443,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         aux = self.data[:,(int(self.traceSlider.value()))]
         self.step_intensity = np.mean(aux[np.where(aux>threshold)]) - np.mean(aux[np.where(aux<threshold)])
 
-        self.selection[int(self.traceSlider.value()),2] = int(self.thresholdSlider.value())
+        self.selection[int(self.traceSlider.value()), 2] = int(self.thresholdSlider.value())
         self.labelstep2.setText("<span style='font-size: 12pt'> <span style='color: black'>Step2=%0.1f</span>" % self.step_intensity)
 
 
@@ -563,7 +562,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         except:
             print("Create the histogram")
 
-        vals = self.selection[:,5] / float(self.ExposureTimeEdit.text())
+        vals = self.selection[:, 5] / float(self.ExposureTimeEdit.text())
         self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
         y,x = np.histogram(vals[np.nonzero(vals)])
         self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
