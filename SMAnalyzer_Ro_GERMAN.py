@@ -858,7 +858,7 @@ class smAnalyzer(pg.Qt.QtGui.QMainWindow):
         for p in range(len(self.trace)):
             a.append(self.trace[p])
 
-        b = np.array(a).T        
+        b = np.array(a).T
         print("len traces", len(b))
         self.traces = b
 

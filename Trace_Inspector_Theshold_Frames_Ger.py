@@ -469,7 +469,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         print("GOODselection traces")
 #        print(self.selection)
 #        print("\n")
-        print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
+#        print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
 
         self.next_trace()
         self.update_trace()
@@ -484,7 +484,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 
         self.selection[int(self.traceSlider.value()), 5] = 0
         print("BADselection traces")
-        print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
+#        print(self.selection[int(self.traceSlider.value())-1:int(self.traceSlider.value())+2])
         self.next_trace()
         self.update_trace()
         self.update_threshold()
