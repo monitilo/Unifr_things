@@ -90,7 +90,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
        
         Trace_index_Slider = QtGui.QLabel('Trace index:')
         self.Trace_index_Slider_Edit = QtGui.QLabel('0')
-        self.Trace_index_Slider_Edit.setText(format(int(self.traceSlider.value())))
+        self.Trace_index_Slider_Edit.setText(str(int(self.traceSlider.value())))
         
         # Create Slicer for the threshold
         self.thresholdSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
