@@ -171,9 +171,11 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.selection[:,0] = np.arange(0,self.data.shape[1])
         self.selection[:,4] = self.data.shape[0]
         self.colorgraph = (100, 150, 255)
-        self.lr = pg.LinearRegionItem([0,int(self.selection[0,4])], brush=None)
+        self.lr = pg.LinearRegionItem([0,int(self.selection[0,4])],
+                                       bounds=[0, int(self.selection[0,4])],
+                                       brush=None)
         self.lr.setZValue(10)
-        self.graph.addItem(self.lr)
+        self.graph.addItem(self.lr, ignoreBounds=True)
         self.graph.plot(self.data[:, 0], pen=pg.mkPen(color=self.colorgraph, width=1))
         # Define initial Threshold
         print('[Initial Threshold Calculation]')
@@ -233,10 +235,13 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.thresholdSlider.setMaximum((np.max(self.data[:, int(self.traceSlider.value())])))
         self.thresholdSlider.setValue(int(self.selection[int(self.traceSlider.value()), 2]))
         self.PlotBinaryTrace()
-        self.lr = pg.LinearRegionItem([int(self.selection[format(int(self.traceSlider.value())),3]),int(self.selection[format(int(self.traceSlider.value())),4])])
+        self.lr = pg.LinearRegionItem([int(self.selection[(int(self.traceSlider.value())),3]),int(self.selection[(int(self.traceSlider.value())),4])],
+                                       bounds=[0, int(self.selection[0,4])],
+                                       brush=None)
         self.lr.setZValue(10)
-        self.graph.addItem(self.lr)
-        
+        self.graph.addItem(self.lr, ignoreBounds=True)
+
+
     # Define update Binary Trace plot with slider    
     def update_threshold(self):
         self.BinaryTrace.clear()
@@ -280,12 +285,11 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
     # Calculate On times
     def Calculate_TON_times(self):
 
-        
-        
+
         self.times_frames_total_on = np.zeros(1, dtype = int)
         self.times_frames_total_off = np.zeros(1, dtype = int)
         Exposure_time = int(self.ExposureTimeEdit.text())
-        
+
         for j in range(0, int(self.selection.shape[0])):
             if int(self.selection[j, 1]) == 1:
                 trace = self.data[:, int(self.selection[j, 0])]
@@ -294,46 +298,61 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
                 binary_trace = np.where(trace < threshold, binary_trace, 1)
                 diff_binary_trace = np.diff(binary_trace)
                 indexes = np.argwhere(np.diff(binary_trace)).squeeze()
-                number = int(len(indexes))
-                times_frames_on = np.zeros(number//2, dtype = int)
-                times_frames_off = np.zeros(number//2, dtype = int)
-                c_on = 0 #to count
-                c_off = 0 
-                for n in np.arange(0,number,2):
-                    if np.sum(diff_binary_trace) == 0: #case 1
-                        if diff_binary_trace[indexes[0]] == 1:
-                            times_frames_on[c_on] = indexes[n+1] - indexes[n]
-                            c_on += 1
-                            if n > 0:
-                                times_frames_off[c_off] = indexes[n] - indexes[n-1]
-                                c_off += 1
-                        else: #case 2
-                            times_frames_off[c_off] = indexes[n+1] - indexes[n]
-                            c_off += 1
-                            if n > 0:
-                                times_frames_on[c_on] = indexes[n] - indexes[n-1]
-                                c_on += 1
-                    else: #case 3
-                        if diff_binary_trace[indexes[0]] == 1:
-                            if n > 0:
-                                times_frames_off[c_off] = indexes[n] - indexes[n-1]
-                                c_off += 1
-                            if n != number - 1: #porque tira error al final1
+                print("indexes:", indexes)
+                print("\n sum", np.sum(diff_binary_trace))
+                print("\n ==1?", diff_binary_trace[indexes])
+                try:
+                    number = int(len(indexes))
+                    print("\n number",number)
+                    times_frames_on = np.zeros(number//2, dtype = int)
+                    times_frames_off = np.zeros(number//2, dtype = int)
+                    c_on = 0 #to count
+                    c_off = 0 
+                    for n in np.arange(0,number,2):
+                        if np.sum(diff_binary_trace) == 0: #case 1
+                            if diff_binary_trace[indexes[0]] == 1:
                                 times_frames_on[c_on] = indexes[n+1] - indexes[n]
                                 c_on += 1
-                        else: #case 4
-                            if n != number - 1: #porque tira error al final1
+                                if n > 0:
+                                    times_frames_off[c_off] = indexes[n] - indexes[n-1]
+                                    c_off += 1
+                            else: #case 2
                                 times_frames_off[c_off] = indexes[n+1] - indexes[n]
                                 c_off += 1
-                            if n > 0: 
-                                times_frames_on[c_on] = indexes[n] - indexes[n-1]
-                                c_on += 1
+                                if n > 0:
+                                    times_frames_on[c_on] = indexes[n] - indexes[n-1]
+                                    c_on += 1
+                        else: #case 3
+                            if diff_binary_trace[indexes[0]] == 1:
+                                if n > 0:
+                                    times_frames_off[c_off] = indexes[n] - indexes[n-1]
+                                    c_off += 1
+                                if n != number - 1: #porque tira error al final1
+                                    times_frames_on[c_on] = indexes[n+1] - indexes[n]
+                                    c_on += 1
+                            else: #case 4
+                                if n != number - 1: #porque tira error al final1
+                                    times_frames_off[c_off] = indexes[n+1] - indexes[n]
+                                    c_off += 1
+                                if n > 0: 
+                                    times_frames_on[c_on] = indexes[n] - indexes[n-1]
+                                    c_on += 1
+                    times_frames_on = np.trim_zeros(times_frames_on)
+                    times_frames_off = np.trim_zeros(times_frames_off)
+                except TypeError:
+                    print("Excepticon")
+                    times_frames_on = 0
+                    times_frames_off = 0
+                    if diff_binary_trace[indexes] == -1:
+                        times_frames_on = indexes
+                    else:
+                        times_frames_off = indexes
 
-                    
-                times_frames_on = np.trim_zeros(times_frames_on)
-                times_frames_off = np.trim_zeros(times_frames_off)
-                self.times_frames_total_on = np.append(self.times_frames_total_on, times_frames_on)    
-                self.times_frames_total_off = np.append(self.times_frames_total_off, times_frames_off)     
+#                self.times_frames_total_on = np.append(self.times_frames_total_on, times_frames_on)
+#                self.times_frames_total_off = np.append(self.times_frames_total_off, times_frames_off)
+                self.times_frames_total_on = np.append(self.times_frames_total_on, np.sum(times_frames_on))
+                self.times_frames_total_off = np.append(self.times_frames_total_off, np.sum(times_frames_off))
+
 
         self.times_frames_total_on = np.trim_zeros(self.times_frames_total_on)
         self.times_frames_total_off = np.trim_zeros(self.times_frames_total_off)

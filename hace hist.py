@@ -294,6 +294,28 @@ ladata = ['C:/Analizando Imagenes/Single_molecule/attoold_nolabeled-redglitch-3.
 ladata = ['C:/Analizando Imagenes/Single_molecule/oldsambple-3.5mW_histogram-63 +old2 204 +redglitch 158 .txt']
 
 
+#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_2_histogram-145.txt']
+#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_histogram-102.txt']
+#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_2_histogram-145 + 102.txt']
+
+
+#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_2_histogram-132.txt']
+#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_histogram-136.txt']
+#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_2_histogram-132 + 136.txt']
+#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_0_Dimer_3.5mW_histogram-79.txt']
+
+ladata = ['C:/Analizando Imagenes/Single_molecule/Atto542_alone_3.4mW_50ms_histogram-196 +125.txt']
+
+ladata = ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-6.2mW-TIRF_5_histogram-72.txt']
+
+ladata= ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_8_histogram-152.txt']
+
+#ladata = ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_ROI15_histogram-79.txt']
+
+ladata = ['C:/Analizando Imagenes/Single_molecule/4-Cy5-PLL1_100-640nm_0.9mW_7_histogram-242 + TODO.txt']
+ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_0.9mW_9_histogram-318.txt']
+ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_2.3mW_7_histogram-303.txt']
+
 trazas = False
 
 selection = np.loadtxt(ladata[0])
@@ -319,7 +341,7 @@ N = 20
 #bins = np.linspace(0,int(np.max(histo)), N)
 bins = np.linspace(0,int(np.max(nozeros)), N)
 
-plt.hist(nozeros, bins=bins, alpha = 0.5, label = ladata)# , color="#900090",alpha=0.6,label='data')  # len(nozeros)//N
+plt.hist(nozeros, bins=bins, alpha = 0.5, label = ladata[0][-25:-4])# , color="#900090",alpha=0.6,label='data')  # len(nozeros)//N
 #plt.bar(x,y,20)
 #plt.plot(x,y,'r')
 #x = np.array(Histo[:,0], dtype=float)
@@ -341,9 +363,9 @@ perr = np.sqrt(np.diag(pcov))
 #plt.plot(x,y,'b+:',label='data')
 X = np.linspace(x[0], x[-1], 500)
 plt.plot()
-#plt.plot(X,gaus(X,*popt),'g',lw=2, label='1G fit')
-#plt.vlines(popt[1], color="k", ymin=0,ymax=0.5*popt[0])
-#plt.vlines((popt[1]-popt[2], popt[1]+popt[2]),color='orange', ymin=0, ymax=10)
+plt.plot(X,gaus(X,*popt),'g',lw=2, label='1G fit')
+plt.vlines(popt[1], color="k", ymin=0,ymax=0.5*popt[0])
+plt.vlines((popt[1]-popt[2], popt[1]+popt[2]),color='orange', ymin=0, ymax=10)
 plt.legend()
 plt.title('hist')
 plt.xlabel('Counts kHz')
