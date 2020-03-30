@@ -154,7 +154,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):
         self.traceSlider.valueChanged.connect(self.update_trace)
         self.thresholdSlider.valueChanged.connect(self.update_threshold)
 
-        
+
     # Define Actions    
     def importTrace(self):
 

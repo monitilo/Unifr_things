@@ -62,14 +62,14 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         # Create ImagePlot
         self.graph = pg.PlotWidget()
         self.BinaryTrace = pg.PlotWidget()
-        self.histo_window = pg.GraphicsWindow()
+#        self.histo_window = pg.GraphicsWindow()
 
         # Create buttons
         self.btnLoad = QtGui.QPushButton('Load Traces')
         self.btnShow = QtGui.QPushButton('Show Trace')
         self.btnGoodTrace = QtGui.QPushButton('Good Trace (g)')
         self.btnBadTrace = QtGui.QPushButton('Bad Trace (b)')
-#        self.btnTonTimes = QtGui.QPushButton('Calculate Ton and Toff')
+        self.btnTonTimes = QtGui.QPushButton('Calculate Ton and Toff')
         self.btnExport = QtGui.QPushButton('Export Trace Selection and T')
         self.btnautomatic_detect = QtGui.QPushButton('Automatic takes step ')
 
@@ -152,22 +152,22 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        self.Trace_grid.addWidget(self.EndFrameEdit,                7, 1, 1, 2)
 
 
-#        self.Trace_grid.addWidget(threshold_index_Slider,           8, 0, 1, 3)
-#        self.Trace_grid.addWidget(self.threshold_index_Slider_Edit, 8, 1, 1, 3)
-#        self.Trace_grid.addWidget(self.thresholdSlider,             9, 0, 1, 3)       
+        self.Trace_grid.addWidget(threshold_index_Slider,           8, 0, 1, 3)
+        self.Trace_grid.addWidget(self.threshold_index_Slider_Edit, 8, 1, 1, 3)
+        self.Trace_grid.addWidget(self.thresholdSlider,             9, 0, 1, 3)       
         self.Trace_grid.addWidget(self.btnGoodTrace,                10, 0, 1, 1)
         self.Trace_grid.addWidget(self.btnBadTrace,                 10, 2, 1, 1)
-#        self.Trace_grid.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
+        self.Trace_grid.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
         self.Trace_grid.addWidget(self.btnExport,                   12, 0, 1, 3)
         self.Trace_grid.addWidget(self.graph,                     0, 4, 13, 50)
-#        self.Trace_grid.addWidget(self.BinaryTrace,               14,0,500, 104)
-        self.Trace_grid.addWidget(self.histo_window,             14,0,40, 50)
+        self.Trace_grid.addWidget(self.BinaryTrace,               14,0,500, 104)
+#        self.Trace_grid.addWidget(self.histo_window,             14,0,40, 50)
 
         
         self.Trace_grid.addWidget(self.labelmax,                   0,  15, 1, 3)
         self.Trace_grid.addWidget(self.labelstep,                   0, 30, 1, 3)
         self.Trace_grid.addWidget(self.labelmin,                    0, 45, 1, 3)
-        self.Trace_grid.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
+#        self.Trace_grid.addWidget(self.btnmaxmin,                   11, 0, 1, 3)
         self.Trace_grid.addWidget(self.labelstep2,                  1, 30, 1, 3)
 
 
@@ -200,7 +200,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.btnShow.clicked.connect(self.showTrace)
         self.btnGoodTrace.clicked.connect(self.save_goodSelection_traces)
         self.btnBadTrace.clicked.connect(self.save_badSelection_traces)
-#        self.btnTonTimes.clicked.connect(self.Calculate_TON_times)
+        self.btnTonTimes.clicked.connect(self.Calculate_TON_times)
         self.btnExport.clicked.connect(self.exportTraces)
 
         self.btnautomatic_detect.clicked.connect(self.step_detection)
@@ -449,7 +449,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 
     # Next trace when you touch good or bad trace button    
     def next_trace(self):
-        self.make_histogram()
+#        self.make_histogram()
 
         self.Trace_index_Slider_Edit.setText(format(int(self.traceSlider.value()) + 1))
         self.traceSlider.setValue(int(self.traceSlider.value()) + 1)
@@ -490,85 +490,97 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.update_threshold()
 
 
-# =============================================================================
-#     # Calculate On times
-#     def Calculate_TON_times(self):
-# 
-#         
-#         
-#         self.times_frames_total_on = np.zeros(1, dtype = int)
-#         self.times_frames_total_off = np.zeros(1, dtype = int)
-#         Exposure_time = int(self.ExposureTimeEdit.text())
-#         
-#         for j in range(0, int(self.selection.shape[0])):
-#             if int(self.selection[j, 1]) == 1:
-#                 trace = self.data[:, int(self.selection[j, 0])]
-#                 threshold = self.selection[j, 2]
-#                 binary_trace = np.zeros(int(self.data.shape[0]), dtype = int)
-#                 binary_trace = np.where(trace < threshold, binary_trace, 1)
-#                 diff_binary_trace = np.diff(binary_trace)
-#                 indexes = np.argwhere(np.diff(binary_trace)).squeeze()
-#                 number = int(len(indexes))
-#                 times_frames_on = np.zeros(number//2, dtype = int)
-#                 times_frames_off = np.zeros(number//2, dtype = int)
-#                 c_on = 0 #to count
-#                 c_off = 0 
-#                 for n in np.arange(0,number,2):
-#                     if np.sum(diff_binary_trace) == 0: #case 1
-#                         if diff_binary_trace[indexes[0]] == 1:
-#                             times_frames_on[c_on] = indexes[n+1] - indexes[n]
-#                             c_on += 1
-#                             if n > 0:
-#                                 times_frames_off[c_off] = indexes[n] - indexes[n-1]
-#                                 c_off += 1
-#                         else: #case 2
-#                             times_frames_off[c_off] = indexes[n+1] - indexes[n]
-#                             c_off += 1
-#                             if n > 0:
-#                                 times_frames_on[c_on] = indexes[n] - indexes[n-1]
-#                                 c_on += 1
-#                     else: #case 3
-#                         if diff_binary_trace[indexes[0]] == 1:
-#                             if n > 0:
-#                                 times_frames_off[c_off] = indexes[n] - indexes[n-1]
-#                                 c_off += 1
-#                             if n != number - 1: #porque tira error al final1
-#                                 times_frames_on[c_on] = indexes[n+1] - indexes[n]
-#                                 c_on += 1
-#                         else: #case 4
-#                             if n != number - 1: #porque tira error al final1
-#                                 times_frames_off[c_off] = indexes[n+1] - indexes[n]
-#                                 c_off += 1
-#                             if n > 0: 
-#                                 times_frames_on[c_on] = indexes[n] - indexes[n-1]
-#                                 c_on += 1
-# 
-#                     
-#                 times_frames_on = np.trim_zeros(times_frames_on)
-#                 times_frames_off = np.trim_zeros(times_frames_off)
-#                 self.times_frames_total_on = np.append(self.times_frames_total_on, times_frames_on)    
-#                 self.times_frames_total_off = np.append(self.times_frames_total_off, times_frames_off)     
-# 
-#         self.times_frames_total_on = np.trim_zeros(self.times_frames_total_on)
-#         self.times_frames_total_off = np.trim_zeros(self.times_frames_total_off)
-#         self.times_frames_total_on = self.times_frames_total_on*Exposure_time
-#         self.times_frames_total_off = self.times_frames_total_off*Exposure_time
-#         print('[Ton and Toff Calculation finished]')
-# =============================================================================
+    # Calculate On times
+    def Calculate_TON_times(self):
 
-    def make_histogram(self):
-        try:
-            self.histo_window.removeItem(self.plt1)
-        except:
-            print("Create the histogram")
+        
+        
+        self.times_frames_total_on = np.zeros(1, dtype = int)
+        self.times_frames_total_off = np.zeros(1, dtype = int)
+        Exposure_time = int(self.ExposureTimeEdit.text())
+        
+        for j in range(0, int(self.selection.shape[0])):
+            if int(self.selection[j, 1]) == 1:
+                trace = self.data[:, int(self.selection[j, 0])]
+                threshold = self.selection[j, 2]
+                binary_trace = np.zeros(int(self.data.shape[0]), dtype = int)
+                binary_trace = np.where(trace < threshold, binary_trace, 1)
+                diff_binary_trace = np.diff(binary_trace)
+                indexes = np.argwhere(np.diff(binary_trace)).squeeze()
+                print("indexes:", indexes)
+                print("\n sum", np.sum(diff_binary_trace))
+                print("\n ==1?", diff_binary_trace[indexes])
+                try:
+                    number = int(len(indexes))
+                    print("\n number",number)
+                    times_frames_on = np.zeros(number//2, dtype = int)
+                    times_frames_off = np.zeros(number//2, dtype = int)
+                    c_on = 0 #to count
+                    c_off = 0 
+                    for n in np.arange(0,number,2):
+                        if np.sum(diff_binary_trace) == 0: #case 1
+                            if diff_binary_trace[indexes[0]] == 1:
+                                times_frames_on[c_on] = indexes[n+1] - indexes[n]
+                                c_on += 1
+                                if n > 0:
+                                    times_frames_off[c_off] = indexes[n] - indexes[n-1]
+                                    c_off += 1
+                            else: #case 2
+                                times_frames_off[c_off] = indexes[n+1] - indexes[n]
+                                c_off += 1
+                                if n > 0:
+                                    times_frames_on[c_on] = indexes[n] - indexes[n-1]
+                                    c_on += 1
+                        else: #case 3
+                            if diff_binary_trace[indexes[0]] == 1:
+                                if n > 0:
+                                    times_frames_off[c_off] = indexes[n] - indexes[n-1]
+                                    c_off += 1
+                                if n != number - 1: #porque tira error al final1
+                                    times_frames_on[c_on] = indexes[n+1] - indexes[n]
+                                    c_on += 1
+                            else: #case 4
+                                if n != number - 1: #porque tira error al final1
+                                    times_frames_off[c_off] = indexes[n+1] - indexes[n]
+                                    c_off += 1
+                                if n > 0: 
+                                    times_frames_on[c_on] = indexes[n] - indexes[n-1]
+                                    c_on += 1
+                    times_frames_on = np.trim_zeros(times_frames_on)
+                    times_frames_off = np.trim_zeros(times_frames_off)
+                except TypeError:
+                    print("Excepticon")
+                    times_frames_on = 0
+                    times_frames_off = 0
+                    if diff_binary_trace[indexes] == -1:
+                        times_frames_on = indexes
+                    else:
+                        times_frames_off = indexes
 
-        vals = self.selection[:, 5] / float(self.ExposureTimeEdit.text())
-        self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
-        y,x = np.histogram(vals[np.nonzero(vals)])
-        self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
-        self.plt1.showGrid(x = True, y = True, alpha = 0.5)
-        self.plt1.setLabel(axis="bottom",
-                    text='kHz, {} points'.format(len(vals[np.nonzero(vals)])))
+#                self.times_frames_total_on = np.append(self.times_frames_total_on, times_frames_on)
+#                self.times_frames_total_off = np.append(self.times_frames_total_off, times_frames_off)
+                self.times_frames_total_on = np.append(self.times_frames_total_on, np.sum(times_frames_on))
+                self.times_frames_total_off = np.append(self.times_frames_total_off, np.sum(times_frames_off))
+
+        self.times_frames_total_on = np.trim_zeros(self.times_frames_total_on)
+        self.times_frames_total_off = np.trim_zeros(self.times_frames_total_off)
+        self.times_frames_total_on = self.times_frames_total_on*Exposure_time
+        self.times_frames_total_off = self.times_frames_total_off*Exposure_time
+        print('[Ton and Toff Calculation finished]')
+
+#    def make_histogram(self):
+#        try:
+#            self.histo_window.removeItem(self.plt1)
+#        except:
+#            print("Create the histogram")
+#
+#        vals = self.selection[:, 5] / float(self.ExposureTimeEdit.text())
+#        self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
+#        y,x = np.histogram(vals[np.nonzero(vals)])
+#        self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
+#        self.plt1.showGrid(x = True, y = True, alpha = 0.5)
+#        self.plt1.setLabel(axis="bottom",
+#                    text='kHz, {} points'.format(len(vals[np.nonzero(vals)])))
 
     # Define export selection of traces       
     def exportTraces(self):
@@ -586,12 +598,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         np.savetxt(folder+'/FILTERED_'+file_traces_name, filtered_traces)
         amount_goodTraces = (np.count_nonzero(self.selection[:, 1] == 1)/int(self.data.shape[1]))*100
         print('[Filtered Traces Saved]: Amount of Good Traces: '+str(amount_goodTraces)[0:3]+'%')
-#        np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
-#        np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
+        np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
+        np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
         np.savetxt(folder+'/selection_'+file_traces_name, self.selection)
         print("[selection saved]", folder+'/selection_'+file_traces_name)
-#        print(self.selection)
-#        print('and, [Ton and Toff saved]')
+        print(self.selection)
+        print('and, [Ton and Toff saved]')
 
         
 if __name__ == '__main__':
