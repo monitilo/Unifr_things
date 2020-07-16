@@ -163,6 +163,9 @@ ladata = ['C:/Analizando Imagenes/Power dependent/New Run circular/New day 2 sma
 #ladata=['C:/Analizando Imagenes/Single_molecule/Place1-1spot-5_powers_from0.5 to 6.2_histogram-5.txt']
 ladata=['C:/Analizando Imagenes/Single_molecule/Place2-1spot-5_powers_from0.5 to 6.2_histogram-4.txt']
 
+
+
+
 x = np.array([ 0.5, 1.2, 2.0, 3.5, 6.2])  # powers
 y3 = np.array([ 5.55125   , 11.35770833, 17.75317708, 34.60130208, 53.5978125 ])  # one single spot alive. from place 3
 #y1 = np.array([ 5.8315625 , 12.05578125, 11.98088542, 16.62135417, 31.26265625])  # one single spot alive. from place 1
@@ -312,9 +315,18 @@ ladata= ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_8_histogra
 
 #ladata = ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_ROI15_histogram-79.txt']
 
-ladata = ['C:/Analizando Imagenes/Single_molecule/4-Cy5-PLL1_100-640nm_0.9mW_7_histogram-242 + TODO.txt']
+#ladata = ['C:/Analizando Imagenes/Single_molecule/4-Cy5-PLL1_100-640nm_0.9mW_7_histogram-242 + TODO.txt']
 ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_0.9mW_9_histogram-318.txt']
 ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_2.3mW_7_histogram-303.txt']
+
+ladata = ['C:/Analizando Imagenes/Single_molecule/No scavenger cy5-origami_histogram-32.txt']
+
+#25.05.2020
+ladata = ['C:/Analizando Imagenes/Single_molecule/1_cy5alone_PLL_2.1mW_640nm _10_histogram-658.txt']
+
+ladata = ['C:/Analizando Imagenes/Single_molecule/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_5_histogram-271.txt']
+
+ladata = ['C:/Analizando Imagenes/Single_molecule/1_cy5alone_PLL_2.1mW_640nm _10_histogram-658.txt']
 
 trazas = False
 
@@ -600,6 +612,7 @@ filesAT = ['C:/Analizando Imagenes/Single_molecule/ATTO_0.7mW_histogram-153.txt'
 
 #ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer3.5mW-NEW_histogram-146 - +21.txt']
 
+
 dimerfiles = dict()
 dimerdata = dict()
 monomerfiles = dict()
@@ -805,3 +818,109 @@ ax3.legend(loc='best')
 ax3.set_xlabel ("roi size (pix)")
 
 #plt.yscale("log")
+
+# %%  Total amount of intensity analisys (for cy5@SiO2)
+
+import numpy as np
+import matplotlib.pyplot as plt
+from skimage import io
+
+muestras = ["cy5", "cy5trolox"]
+
+muestra = muestras[1]
+
+promedio = {}
+#for muestra in muestras:
+if muestra == "cy5":
+    f = ['C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _1/1_cy5alone_PLL_2.1mW_640nm _1_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _2/1_cy5alone_PLL_2.1mW_640nm _2_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _3/1_cy5alone_PLL_2.1mW_640nm _3_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _4/1_cy5alone_PLL_2.1mW_640nm _4_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _5/1_cy5alone_PLL_2.1mW_640nm _5_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _6/1_cy5alone_PLL_2.1mW_640nm _6_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _7/1_cy5alone_PLL_2.1mW_640nm _7_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _8/1_cy5alone_PLL_2.1mW_640nm _8_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _9/1_cy5alone_PLL_2.1mW_640nm _9_MMStack_Pos0.ome.tif',
+         'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_cy5alone_PLL_2.1mW_640nm _10/1_cy5alone_PLL_2.1mW_640nm _10_MMStack_Pos0.ome.tif']
+elif muestra == "cy5trolox":
+    f=['C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_20minWait_cy5alone_2.1mW_640nm_1/1_TROLOX_30min_cy5alone_2.1mW_640nm_1_MMStack_Pos0.ome.tif',
+       'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_30minWait_cy5alone_2.1mW_640nm_1/1_TROLOX_30minUV_30minWait_cy5alone_2.1mW_640nm_1_MMStack_Pos0.ome.tif',
+       'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_30minWait_cy5alone_2.1mW_640nm_2/1_TROLOX_30minUV_30minWait_cy5alone_2.1mW_640nm_2_MMStack_Pos0.ome.tif']
+#    ,
+#       'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_1/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_1_MMStack_Pos0.ome.tif',
+#       'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_2/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_2_MMStack_Pos0.ome.tif',
+#       'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_3/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_3_MMStack_Pos0.ome.tif',
+#       'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_4/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_4_MMStack_Pos0.ome.tif',
+#       'C:/Origami testing Widefield/2020-05-22 Silica again & trolox/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_5/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_5_MMStack_Pos0.ome.tif']
+# %%
+zprofile = {}
+
+for files in range(len(f)):
+    
+    data = io.imread(f[files])
+
+    print(data.shape[0], data.shape[1], data.shape[2], "files=", files,"/", len(f))  # Nframes, heigth, length
+
+    zprofile[files] = np.zeros((len(data[:,0,0])))
+    for i in range(len(data[:,0,0])):
+        zprofile[files][i] = np.mean(data[i,:,:])
+
+    plt.plot(zprofile[files], label=f[files][-80:-50])
+plt.legend()
+
+
+#%%
+
+largos = []
+for i in range(len(zprofile)): largos.append(len(zprofile[i]))
+print (largos)
+
+promedios = promedio
+promedios[muestra] = np.zeros((np.max(largos), np.max(largos))) * np.nan
+
+for j in range(len(zprofile)):
+    print(j)
+    promedios[muestra][j] = (zprofile[j])
+
+#    plt.plot(promedios[muestra][j])
+
+#minimo = []
+#for i in range(len(zprofile)): minimo.append(len(zprofile[i]))
+#print (minimo)
+#
+#promedio[muestra] = zprofile[0][:min(minimo)]
+#
+#for j in range(1, len(zprofile)):
+#    print(j)
+#    promedio[muestra] = (zprofile[j][:min(minimo)] + promedio[muestra])
+#
+#plt.plot(promedio[muestra]/len(zprofile), 'm*')
+
+
+# %%
+for i in range(len(muestras)):
+    plt.plot(promedio[muestras[i]])
+plt.legend(muestras)
+
+
+
+for i in range(len(muestras)):
+)
+plt.plot(promedio[muestras[0]]/10)
+plt.plot(promedio[muestras[1]]/3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

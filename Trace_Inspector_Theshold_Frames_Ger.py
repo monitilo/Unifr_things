@@ -99,11 +99,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         
         # Create Slicer for the threshold
         self.thresholdSlider = QtGui.QSlider(QtCore.Qt.Horizontal)
-        self.thresholdSlider.setMinimum(0 )
+        self.thresholdSlider.setMinimum(0)
         self.thresholdSlider.setMaximum(1)
         self.thresholdSlider.setValue(0)
         self.thresholdSlider.setTickPosition(QtGui.QSlider.TicksBelow)
         self.thresholdSlider.setTickInterval(1)
+#        self.thresholdSlider.setSingleStep(1)
 
         threshold_index_Slider = QtGui.QLabel('Threshold Slider:')
         self.threshold_index_Slider_Edit = QtGui.QLabel('0')
@@ -323,7 +324,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         # Define initial Threshold
         print('[Initial Threshold Calculation]')
         for i in range(0, self.data.shape[1]):
-            initial_threshold = stats.mode(self.data[:, i]) + np.std(self.data[:, i])
+            initial_threshold = stats.mode(self.data[:, i]) + 5*np.std(self.data[:, i])
             self.selection[i, 2] = initial_threshold[0]
         self.thresholdSlider.setMaximum(((np.max(self.data[:,int(self.traceindexEdit.text())]))))
         self.thresholdSlider.setValue(int(self.selection[0, 2]))
@@ -357,6 +358,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
     def PlotBinaryTrace(self):
         self.BinaryTrace.clear()
         mode = stats.mode(self.data[:, int(self.traceSlider.value())])[0]
+        print("mode=", mode)
+        mode=0
         self.BinaryTrace.setLabel('left', "Normalized Intensity")
         self.BinaryTrace.setLabel('bottom', "Frame")
         binary_trace = np.zeros(self.data.shape[0])
@@ -415,6 +418,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.BinaryTrace.clear()
         self.threshold_index_Slider_Edit.setText(format(int(self.thresholdSlider.value())))
         mode = stats.mode(self.data[:, int(self.traceSlider.value())])[0]
+        mode=0
         trace = self.data[:, (int(self.traceSlider.value()))]
         new_binary_trace = np.zeros(self.data.shape[0])
         new_threshold = int(self.thresholdSlider.value())
