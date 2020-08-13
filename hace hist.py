@@ -909,18 +909,88 @@ for i in range(len(muestras)):
 plt.plot(promedio[muestras[0]]/10)
 plt.plot(promedio[muestras[1]]/3)
 
+# %%
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+#for j in range(20):
+
+def str2number(data):
+    x=[]
+    y=[]
+    for i in range(len(data[:,0])):
+        x.append(float(data[i,0]))
+        y.append(float(data[i,1]))
+    return x, y
 
 
+xdic = {}
+ydic = {}
 
+#data = [data1, data2, data3, data4, data5, data6, data7, data8, data9,
+#        data10, data11, data12, data13, data14, data15, data16, data17, data18,
+#        data19, data20,data21, data22, data23, data24, data25, data26,
+#        data27, data28, data29, data30, data31, data32, data33, data34, data35,
+#        data36, data37, data38, data39, data40]
+#loading = np.load("Tirf day 1.npz")
+#data = loading["txtdata"]
+data = [dataaaa]
+positions = []
+for i in range(len(data)):
+    xdic[i], ydic[i] = str2number(data[i])
+    positions.append(xdic[i][np.where(ydic[i]==np.max(ydic[i]))[0][0]])
+    punto = plt.plot(positions[i], ydic[i][np.where(ydic[i]==np.max(ydic[i]))[0][0]], 'm*')
 
+    plt.plot(xdic[i], ydic[i], '-',lw=0.3)
+    
+#plt.figure()
+umeters = np.linspace(1,40,40)
+#plt.plot(umeters, positions, '.')
+plt.xlabel("z distance")
+plt.ylabel("Plane movement")
 
+#print(positions)
 
+aux = ydic[0]
+for i in range(len(newpos)):
+    newpos[i] = aux[i]-aux[0]
+#name = "Tirf day 1"
+#np.savez(name, txtdata=data)
 
+#piop = np.load(name+".npz")
+#asdsa= piop['txtdata']
 
+# %%
 
+import numpy as np
+import matplotlib.pyplot as plt
 
+def smooth(y, box_pts):
+    box = np.ones(box_pts)/box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
 
+name = 'C:/Origami testing Widefield/Tirf_angle_2.729_640nm_13mW_z_3050-1-3090_ all together/profile.txt'
+macro = np.loadtxt(name)
 
+maxes = []
+places= []
+for i in range(len(macro)):
 
+#    maxes.append(np.nanargmax(macro[i,:]))
+    maxes.append(np.nanargmax(smooth(macro[i,:],10)))
+#    places.append(np.where(macro[i,:]==np.nanargmax(macro[i,:]))[0])
+    plt.plot(smooth(macro[i,:],100))
+#
 
+maxes = np.array(maxes)*0.065
+print(maxes)
+#print(places)
+plt.figure()
+plt.plot(maxes)
+plt.plot(np.diff(maxes))
+fit = np.mean(np.diff(maxes))
+print(fit)
+print(np.rad2deg(np.arctan(fit)))
 
