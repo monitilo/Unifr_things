@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #%%
-#file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 NP y Antennas/UV-Vis 1_15_2020 6_46_40 AM german antennas.tsv'
-file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 Gold NPs/UV-Vis 1_15_2020 8_29_14 AM gold antennas german.tsv'
+file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 NP y Antennas/UV-Vis 1_15_2020 6_46_40 AM german antennas.tsv'
+#file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 Gold NPs/UV-Vis 1_15_2020 8_29_14 AM gold antennas german.tsv'
 a = 1333
 skip = 9
 N = 50

@@ -249,85 +249,98 @@ plt.show()
 print(m1,m2, "\n", b1, b2)
 # %% Histo por imagenes
 
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_0.6mW_histogram-129.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_1.4mW_histogram-121.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_2.0mW_histogram-130.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_3.5mW_histogram-180.txt']
-#ladata =['C:/Analizando Imagenes/Single_molecule/Dimer_5.0mW(5.7last)_histogram-128.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_7.4mW_histogram-7.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_8.9mW_histogram-39.txt']
+import numpy as np
+import matplotlib.pyplot as plt
 
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_0.7mW_histogram-26.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_1.4mW_histogram-41.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_2.0mW_histogram-45.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_3.5mW_histogram-45.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_5.0mWTOTAL_histogram-90.txt']
-#ladata = [ 'C:/Analizando Imagenes/Single_molecule/Monomer_8.9mW_histogram-38.txt']
+import pylab as plb
+from scipy.optimize import curve_fit
+from scipy import asarray as ar,exp
 
-#ladata =['C:/Analizando Imagenes/Single_molecule/ATTO_3.5_histogram-78.txt']
-
-#ladata =['C:/Analizando Imagenes/Single_molecule/atto3.5mW-from02_12_19_histogram-77.txt']
-#
-ladata =['C:/Analizando Imagenes/Single_molecule/atto3.5mW-NEW_histogram-186.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer3.5mW-NEW_histogram-109.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer3.5mW-NEW_histogram-146 - +21.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Agdim3.5mW_histogram-92.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/oldsambple-3.5mW_histogram-63.txt']
-#
-#ladata = ['C:/Analizando Imagenes/Single_molecule/oldSample2-3.5mW_histogram-204.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_0.6mW_histogram-129.txt',
-#           'C:/Analizando Imagenes/Single_molecule/Dimer_1.4mW_histogram-121.txt',
-#           'C:/Analizando Imagenes/Single_molecule/Dimer_2.0mW_histogram-130.txt',
-#           'C:/Analizando Imagenes/Single_molecule/Dimer_3.5mW_histogram-180.txt',
-#           'C:/Analizando Imagenes/Single_molecule/Dimer_5.0mW(5.7last)_histogram-128.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/1-24HBCy5_1.0mW_histogram-9.txt']
-ladata = [ 'C:/Analizando Imagenes/Single_molecule/1-24HBCy5_2.0mW_histogram-24.txt']
-#ladata =['C:/Analizando Imagenes/Single_molecule/2-24HBCy5@SiO_1_2.0mW_histogram-70.txt']
-
-ladata = ['C:/Analizando Imagenes/Single_molecule/F-atto542-3.5mW_histogram-166.txt']
-ladata = ['C:/Analizando Imagenes/Single_molecule/attoold_nolabeled-redglitch-3.5mW_histogram-158.txt']
-ladata = ['C:/Analizando Imagenes/Single_molecule/attoold_nolabeled-redglitch-3.5mW_histogram-111.txt']
-
-ladata = ['C:/Analizando Imagenes/Single_molecule/oldsambple-3.5mW_histogram-63 +old2 204 +redglitch 158 .txt']
-
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_2_histogram-145.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_histogram-102.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_2_histogram-145 + 102.txt']
-
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_2_histogram-132.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_histogram-136.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_2_histogram-132 + 136.txt']
-#ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_0_Dimer_3.5mW_histogram-79.txt']
-
-ladata = ['C:/Analizando Imagenes/Single_molecule/Atto542_alone_3.4mW_50ms_histogram-196 +125.txt']
-
-ladata = ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-6.2mW-TIRF_5_histogram-72.txt']
-
-ladata= ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_8_histogram-152.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_ROI15_histogram-79.txt']
-
-#ladata = ['C:/Analizando Imagenes/Single_molecule/4-Cy5-PLL1_100-640nm_0.9mW_7_histogram-242 + TODO.txt']
-ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_0.9mW_9_histogram-318.txt']
-ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_2.3mW_7_histogram-303.txt']
-
-ladata = ['C:/Analizando Imagenes/Single_molecule/No scavenger cy5-origami_histogram-32.txt']
-
-#25.05.2020
-ladata = ['C:/Analizando Imagenes/Single_molecule/1_cy5alone_PLL_2.1mW_640nm _10_histogram-658.txt']
-
-ladata = ['C:/Analizando Imagenes/Single_molecule/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_5_histogram-271.txt']
-
-ladata = ['C:/Analizando Imagenes/Single_molecule/1_cy5alone_PLL_2.1mW_640nm _10_histogram-658.txt']
-
+ladata = ['C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_532nm_4mW_moving_1_histogram-444.txt']
+ladata = ['C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_532nm_4mW_moving_final frames_histogram-121.txt']
+ladata = ['C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_640nm_7.7mW_moving_satrting frames_histogram-149.txt']
+ladata = ['C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_640nm_7.7mW_moving_1_histogram-395.txt']
+# =============================================================================
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_0.6mW_histogram-129.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_1.4mW_histogram-121.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_2.0mW_histogram-130.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_3.5mW_histogram-180.txt']
+# #ladata =['C:/Analizando Imagenes/Single_molecule/Dimer_5.0mW(5.7last)_histogram-128.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_7.4mW_histogram-7.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_8.9mW_histogram-39.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_0.7mW_histogram-26.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_1.4mW_histogram-41.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_2.0mW_histogram-45.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_3.5mW_histogram-45.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer_5.0mWTOTAL_histogram-90.txt']
+# #ladata = [ 'C:/Analizando Imagenes/Single_molecule/Monomer_8.9mW_histogram-38.txt']
+# 
+# #ladata =['C:/Analizando Imagenes/Single_molecule/ATTO_3.5_histogram-78.txt']
+# 
+# #ladata =['C:/Analizando Imagenes/Single_molecule/atto3.5mW-from02_12_19_histogram-77.txt']
+# #
+# ladata =['C:/Analizando Imagenes/Single_molecule/atto3.5mW-NEW_histogram-186.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer3.5mW-NEW_histogram-109.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Monomer3.5mW-NEW_histogram-146 - +21.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Agdim3.5mW_histogram-92.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/oldsambple-3.5mW_histogram-63.txt']
+# #
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/oldSample2-3.5mW_histogram-204.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/Dimer_0.6mW_histogram-129.txt',
+# #           'C:/Analizando Imagenes/Single_molecule/Dimer_1.4mW_histogram-121.txt',
+# #           'C:/Analizando Imagenes/Single_molecule/Dimer_2.0mW_histogram-130.txt',
+# #           'C:/Analizando Imagenes/Single_molecule/Dimer_3.5mW_histogram-180.txt',
+# #           'C:/Analizando Imagenes/Single_molecule/Dimer_5.0mW(5.7last)_histogram-128.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/1-24HBCy5_1.0mW_histogram-9.txt']
+# ladata = [ 'C:/Analizando Imagenes/Single_molecule/1-24HBCy5_2.0mW_histogram-24.txt']
+# #ladata =['C:/Analizando Imagenes/Single_molecule/2-24HBCy5@SiO_1_2.0mW_histogram-70.txt']
+# 
+# ladata = ['C:/Analizando Imagenes/Single_molecule/F-atto542-3.5mW_histogram-166.txt']
+# ladata = ['C:/Analizando Imagenes/Single_molecule/attoold_nolabeled-redglitch-3.5mW_histogram-158.txt']
+# ladata = ['C:/Analizando Imagenes/Single_molecule/attoold_nolabeled-redglitch-3.5mW_histogram-111.txt']
+# 
+# ladata = ['C:/Analizando Imagenes/Single_molecule/oldsambple-3.5mW_histogram-63 +old2 204 +redglitch 158 .txt']
+# 
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_2_histogram-145.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_histogram-102.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_1000mM_Dimer_3.5mW_2_histogram-145 + 102.txt']
+# 
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_2_histogram-132.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_histogram-136.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_500mM_Dimer_3.5mW_2_histogram-132 + 136.txt']
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/NaCl_0_Dimer_3.5mW_histogram-79.txt']
+# 
+# ladata = ['C:/Analizando Imagenes/Single_molecule/Atto542_alone_3.4mW_50ms_histogram-196 +125.txt']
+# 
+# ladata = ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-6.2mW-TIRF_5_histogram-72.txt']
+# 
+# ladata= ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_8_histogram-152.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/OriT-cy5-640nm-7.0mW_ROI15_histogram-79.txt']
+# 
+# #ladata = ['C:/Analizando Imagenes/Single_molecule/4-Cy5-PLL1_100-640nm_0.9mW_7_histogram-242 + TODO.txt']
+# ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_0.9mW_9_histogram-318.txt']
+# ladata = ['C:/Analizando Imagenes/Single_molecule/3-Cy5@SiO2-2-PLL1_100-640nm_2.3mW_7_histogram-303.txt']
+# 
+# ladata = ['C:/Analizando Imagenes/Single_molecule/No scavenger cy5-origami_histogram-32.txt']
+# 
+# #25.05.2020
+# ladata = ['C:/Analizando Imagenes/Single_molecule/1_cy5alone_PLL_2.1mW_640nm _10_histogram-658.txt']
+# 
+# ladata = ['C:/Analizando Imagenes/Single_molecule/1_TROLOX_30minUV_105minWait_cy5alone_2.1mW_640nm_5_histogram-271.txt']
+# 
+# ladata = ['C:/Analizando Imagenes/Single_molecule/1_cy5alone_PLL_2.1mW_640nm _10_histogram-658.txt']
+# 
+# =============================================================================
 trazas = False
 
 selection = np.loadtxt(ladata[0])
@@ -458,7 +471,13 @@ files = ['C:/Analizando Imagenes/Single_molecule/oldsambple-3.5mW_histogram-63 +
          'C:/Analizando Imagenes/Single_molecule/ATTO_3.5_histogram-135 - +NEW 186.txt']
 #         'C:/Analizando Imagenes/Single_molecule/atto3.5mW-NEW_histogram-186.txt']
 
-powers = ["old R&2G", "old 1 atto542 sandwich", "NEW atto542 sandwich", "labtek"]
+#powers = ["old R&2G", "old 1 atto542 sandwich", "NEW atto542 sandwich", "labtek"]
+powers = ["532 moving", "532 low", "647N low", "647N moving"]
+
+files = ['C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_532nm_4mW_moving_1_histogram-444.txt',
+         'C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_532nm_4mW_moving_final frames_histogram-121.txt',
+         'C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_640nm_7.7mW_moving_satrting frames_histogram-149.txt',
+         'C:/Analizando Imagenes/Single_molecule/4_boat-incubating-allweekend_640nm_7.7mW_moving_1_histogram-395.txt']
 
 data = dict()
 largos = []
@@ -468,7 +487,7 @@ for i in range(len(files)):
 
 largos = np.array(largos)
 
-gaussplot = False  # True
+gaussplot = True #False  # True
 
 
 fits = dict()
@@ -965,26 +984,53 @@ for i in range(len(newpos)):
 
 import numpy as np
 import matplotlib.pyplot as plt
+import time as time
 
 def smooth(y, box_pts):
     box = np.ones(box_pts)/box_pts
     y_smooth = np.convolve(y, box, mode='same')
     return y_smooth
 
-name = 'C:/Origami testing Widefield/Tirf_angle_2.729_640nm_13mW_z_3050-1-3090_ all together/profile.txt'
+#name = 'C:/Origami testing Widefield/Tirf_angle_2.729_640nm_13mW_z_3050-1-3090_ all together/profile.txt'
+#name = 'C:/Origami testing Widefield/Tirf_angle_2.729_640nm_13mW_z_3050-1-3090_ all together/profile_rectangle.txt'
+
+#name = 'C:/Origami testing Widefield/2020-08-14 TIRF/640nm_5mW_2610Tirf_3064-3084_Z_1 All/profile.txt'
+#name = 'C:/Origami testing Widefield/2020-08-14 TIRF/640nm_5mW_2650Tirf_3064-3084_Z_Alltogether/profile.txt'
+#name = 'C:/Origami testing Widefield/2020-08-14 TIRF/640nm_5mW_2660Tirf_3064-3084_Z_Alltogether/profile.txt'
+#name = 'C:/Origami testing Widefield/2020-08-14 TIRF/640nm_5mW_2680Tirf_3064-3084_Z_1 ALL/profile.txt'
+#name = 'C:/Origami testing Widefield/2020-08-14 TIRF/640nm_5mW_2710Tirf_3064-3084_Z_1 ALL/profile.txt'
+
+name = '//physpc07/German/2020-08-25 Paint Quencher/Tirf angle moving/profile.txt'
+name = '//physpc07/German/2020-08-25 Paint Quencher/TIRF angle bleach/profile.txt'
 macro = np.loadtxt(name)
 
-maxes = []
+smoo = 10
+maxes = np.zeros(len(macro))
 places= []
 for i in range(len(macro)):
-
+#    if i > 19:
+#    #    maxes.append(np.nanargmax(macro[i,:]))
+#        maxes[i] = (np.nanargmax(smooth(macro[i,:-500],smoo)))
+#    #    places.append(np.where(macro[i,:]==np.nanargmax(macro[i,:]))[0])
+#        plt.plot(smooth(macro[i,:-500],smoo), lw=0.4)
+#        punto = plt.plot(maxes[i], np.max(macro[i,:-500]), 'b*')
+#    elif i < 5 :
+#        print("not using this")
+##    #    maxes.append(np.nanargmax(macro[i,:]))
+##        maxes[i] = (np.nanargmax(smooth(macro[i,:],smoo)))
+##    #    places.append(np.where(macro[i,:]==np.nanargmax(macro[i,:]))[0])
+##        plt.plot(smooth(macro[i,:],smoo), lw=0.9)
+##        punto = plt.plot(maxes[i], np.max(macro[i,:]), 'ro')
+#    else:
 #    maxes.append(np.nanargmax(macro[i,:]))
-    maxes.append(np.nanargmax(smooth(macro[i,:],10)))
+    maxes[i] = (np.nanargmax(smooth(macro[i,:],smoo)))
 #    places.append(np.where(macro[i,:]==np.nanargmax(macro[i,:]))[0])
-    plt.plot(smooth(macro[i,:],100))
-#
+    plt.plot(smooth(macro[i,:],smoo), lw=0.5)
+    punto = plt.plot(maxes[i], np.max(macro[i,:]), 'm*')
 
-maxes = np.array(maxes)*0.065
+#
+#
+maxes = np.array((maxes)) * 0.065
 print(maxes)
 #print(places)
 plt.figure()
@@ -993,4 +1039,21 @@ plt.plot(np.diff(maxes))
 fit = np.mean(np.diff(maxes))
 print(fit)
 print(np.rad2deg(np.arctan(fit)))
+
+# %%
+
+fites = [[-2.90282 , 0.19069], [-3.34674 , 0.10981],[ -3.54351 , 0.08272],[ -3.69757 , 0.0655],
+       [ -3.79136, 0.05647]]
+
+for j in range(len(fites)):
+    medio = np.rad2deg(np.arctan((fites[j][0])))
+    errorup =  np.rad2deg(np.arctan((fites[j][0] +fites[j][1])))
+    errodown = np.rad2deg(np.arctan((fites[j][0] -fites[j][1])))
+    final = [errodown, medio, errorup]
+    error = (final[2]-final[1] + final[1]-final[0])/2
+    print([medio,error])
+
+
+#print(np.rad2deg(np.arctan(fites)))
+
 

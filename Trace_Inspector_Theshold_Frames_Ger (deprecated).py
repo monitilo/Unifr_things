@@ -62,7 +62,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         # Create ImagePlot
         self.graph = pg.PlotWidget()
         self.BinaryTrace = pg.PlotWidget()
-#        self.histo_window = pg.GraphicsWindow()
+        self.histo_window = pg.GraphicsWindow()
 
         # Create buttons
         self.btnLoad = QtGui.QPushButton('Load Traces')
@@ -161,8 +161,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.Trace_grid.addWidget(self.btnTonTimes,                 11, 0, 1, 3)
         self.Trace_grid.addWidget(self.btnExport,                   12, 0, 1, 3)
         self.Trace_grid.addWidget(self.graph,                     0, 4, 13, 50)
-        self.Trace_grid.addWidget(self.BinaryTrace,               14,0,500, 104)
-#        self.Trace_grid.addWidget(self.histo_window,             14,0,40, 50)
+#        self.Trace_grid.addWidget(self.BinaryTrace,               14,0,500, 104)
+        self.Trace_grid.addWidget(self.histo_window,             14,0,40, 50)
 
         
         self.Trace_grid.addWidget(self.labelmax,                   0,  15, 1, 3)
@@ -453,7 +453,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 
     # Next trace when you touch good or bad trace button    
     def next_trace(self):
-#        self.make_histogram()
+        self.make_histogram()
 
         self.Trace_index_Slider_Edit.setText(format(int(self.traceSlider.value()) + 1))
         self.traceSlider.setValue(int(self.traceSlider.value()) + 1)
@@ -572,19 +572,19 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.times_frames_total_off = self.times_frames_total_off*Exposure_time
         print('[Ton and Toff Calculation finished]')
 
-#    def make_histogram(self):
-#        try:
-#            self.histo_window.removeItem(self.plt1)
-#        except:
-#            print("Create the histogram")
-#
-#        vals = self.selection[:, 5] / float(self.ExposureTimeEdit.text())
-#        self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
-#        y,x = np.histogram(vals[np.nonzero(vals)])
-#        self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
-#        self.plt1.showGrid(x = True, y = True, alpha = 0.5)
-#        self.plt1.setLabel(axis="bottom",
-#                    text='kHz, {} points'.format(len(vals[np.nonzero(vals)])))
+    def make_histogram(self):
+        try:
+            self.histo_window.removeItem(self.plt1)
+        except:
+            print("Create the histogram")
+
+        vals = self.selection[:, 5] / float(self.ExposureTimeEdit.text())
+        self.plt1 = self.histo_window.addPlot(title="Histogram (kHz)")
+        y,x = np.histogram(vals[np.nonzero(vals)])
+        self.plt1.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150))
+        self.plt1.showGrid(x = True, y = True, alpha = 0.5)
+        self.plt1.setLabel(axis="bottom",
+                    text='kHz, {} points'.format(len(vals[np.nonzero(vals)])))
 
     # Define export selection of traces       
     def exportTraces(self):
