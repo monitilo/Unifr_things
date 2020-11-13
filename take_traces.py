@@ -880,3 +880,63 @@ plt.imshow(im2, cmap=plt.cm.gray)
 #     
 # #    return finaldata
 # =============================================================================
+# %% Probando cosas de cuando restar o dividir el background.
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+N = 100
+
+np.random.normal()
+
+bleach = 1
+signal = np.random.normal(8,1,N)
+signal[int(bleach*N):] = 0
+plt.figure(1)
+plt.plot(signal, '-*m', label="signal"
+         )
+
+bg = np.linspace(4,2,N)
+plt.plot(bg,'--', label="bg")
+
+plt.legend()
+plt.figure(2)
+
+plt.plot(bg,'--', label="bg")
+realsignal = signal+bg
+plt.plot(realsignal, '-og', label="signal+bg")
+
+
+realmean = np.mean(realsignal)
+signalmean = np.mean(signal)
+bgmean = np.mean(bg)
+print("\n realmean = ",realmean)
+print(" bgmean = ",bgmean)
+print("\n realmean/bgmean = ",realmean/bgmean)
+#print(np.mean(signal), np.mean(bg))
+#print(np.mean(signal)/ np.mean(bg))
+
+normal = signal/bg
+
+#plt.plot(normal, '.-r')
+plt.plot((realsignal-bg)/bg, '.-r', label="signal/bg")
+
+#print(np.mean(normal))
+print("realsignal-bg/bg = ", np.mean((realsignal-bg)/bg))
+
+realnormal = realsignal/bg
+plt.plot(realnormal, 'c', label="signal+bg/bg")
+print("realnormal =       ", np.mean(realnormal))
+
+#plt.plot(realsignal/np.mean(bg))
+plt.legend()
+#
+#print("\n np.mean(signal)/bgmean = ",np.mean((signal+bg)/np.mean(bg)))
+#print("np.mean(signal/bg) = ", np.mean((signal+bg)/bg))
+#
+#plt.figure(3)
+#plt.plot((signal+bg), 'b')
+#plt.plot((signal+bg)/bg, c='orange')
+#plt.plot(signal)
+#plt.plot((signal)/bg)
+
