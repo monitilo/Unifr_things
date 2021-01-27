@@ -1056,4 +1056,50 @@ for j in range(len(fites)):
 
 #print(np.rad2deg(np.arctan(fites)))
 
+# %%
+
+good = np.zeros((len(histo), 2))
+for i in range(len(histo)):
+    for j in range(2):
+        good[i,j] = float(histo[i,j].replace(',', '.'))
+
+plt.plot(good[:,0],good[:,1])
+
+#plt.hist(good[:,1],bins=good[:,0])
+
+# %% Nicole Duetta Diagonal Matix
+
+fname = 'C:/Origami testing Widefield/EEM for extinction/EzspecCompatible_SiDBSNP-2mM- for extiction_EEM.txt'
+
+#data = np.genfromtxt(name)
+
+f = open(fname,'r')
+
+data = []
+for line in f.readlines():
+#    data.append(line.replace('\n','').split(' '))
+    data.append(line.replace('\t\t',' ').replace('\t',' ').split(' '))
+
+f.close()
+
+#%%
+matrix = dict()
+
+#skip first 2 rows
+
+for i in range(2, 6):#len(data)):
+    print(i, "\n")
+    print(data[i])
+
+#    matrix[i] = []
+#    for j in range(len(data[i])):
+#        print(j)
+#        matrix[i].append(np.float(data[i][j]))
+
+
+
+#print(Ez[0,1])
+#
+#for i in range(len(Ez)):
+#    print(Ez[i])
 
