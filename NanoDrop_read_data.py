@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 
 file = '//common/Physics/nicoleS/buffer stability/UV-Vis 2_3_2021 4_30_24 PM.tsv'
 
+
 a = 1333  # cantidad de puntos. # 1333 en UV, 273 en ssDNA
 skip = 10  # header y texto entre espectros.
 N = 3  # Cantidad de espectros esperados
@@ -75,8 +76,13 @@ for i in range(N):
 #    plt.plot(waveleng, alldata[i+16,:])
 
 
-datatosave_name = "//common/Physics/nicoleS/buffer stability/PYTHON_UV-Vis 2_3_2021 4_30_24 PM.txt"
-#datatosave_waveleng = "//common/Physics/nicoleS/buffer stability/Wavelengs_UV-Vis.txt"
-#np.savetxt(datatosave_waveleng, np.array(waveleng).T, delimiter="    ", newline='\r\n')
+finalpart = file.split("/")[-1]
 
+datatosave_name = file[:-len(finalpart)] + "PYTHON_" + finalpart
+#datatosave_name = "//common/Physics/nicoleS/buffer stability/PYTHON_UV-Vis 2_3_2021 4_30_24 PM.txt"
+
+datatosave_name = file[:-len(finalpart)] + "Wabeleng_" + finalpart[:6]
+#datatosave_waveleng = "//common/Physics/nicoleS/buffer stability/Wavelengs_UV-Vis.txt"
+
+#np.savetxt(datatosave_waveleng, np.array(waveleng).T, delimiter="    ", newline='\r\n')
 #np.savetxt(datatosave_name, np.array(datatosave).T, delimiter="    ", newline='\r\n')
