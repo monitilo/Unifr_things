@@ -14,17 +14,17 @@ import matplotlib.pyplot as plt
 #file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 NP y Antennas/UV-Vis 1_15_2020 6_46_40 AM german antennas.tsv'
 #file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 Gold NPs/UV-Vis 1_15_2020 8_29_14 AM gold antennas german.tsv'
 
-file = 'C:/Origami testing Widefield/NanodropOne_AZY1812252 Nicole/UV-Vis 1_27_2021 1_43_01 PM.tsv'
+file = '//common/Physics/nicoleS/buffer stability/UV-Vis 2_3_2021 4_30_24 PM.tsv'
 
-a = 1333  # cantidad de puntos.
+a = 1333  # cantidad de puntos. # 1333 en UV, 273 en ssDNA
 skip = 10  # header y texto entre espectros.
-N = 5  # Cantidad de espectros esperados
+N = 3  # Cantidad de espectros esperados
 #c = ['g','r','b','k','g','r','b']
 alldata=np.zeros((N,a-2-skip))
 allxaxis=np.copy(alldata)
 
 #labels = ["BLank", "NP recovered/10", "Dimer", "Monomer", "NP diluted 1:10"]
-labels = ["60", "40", "Si", "Blank", "Si"]
+#labels = ["60", "40", "Si", "Blank", "Si"]
 
 dos = 1
 
@@ -39,15 +39,15 @@ for i in range(N):
     alldata[i,:] = spectrum[:,1]
     waveleng = spectrum[:,0]
     plt.figure(file)
-    if i == 4:
-        plt.plot(spectrum[:,0], spectrum[:,1], label=labels[i]) #, c[i])
-    else:
-        plt.plot(spectrum[:,0], spectrum[:,1], label=labels[i]) #, c[i])
+#    if i < len(labels):
+#        plt.plot(spectrum[:,0], spectrum[:,1], label=labels[i]) #, c[i])
+#    else:
+    plt.plot(spectrum[:,0], spectrum[:,1]) #, c[i])
 #    plt.xlim((300,700))
 #    plt.ylim((-0.1, 2))
 
-    left = np.where(waveleng==340)[0][0]
-    right = np.where(waveleng==600)[0][0]
+#    left = np.where(waveleng==340)[0][0]
+#    right = np.where(waveleng==600)[0][0]
     
 #    maxpeak = np.where(spectrum[left:right,1]==np.max(spectrum[left:right,1]))[0][0]
 #    maxvalue = spectrum[maxpeak+left,1]
@@ -75,7 +75,8 @@ for i in range(N):
 #    plt.plot(waveleng, alldata[i+16,:])
 
 
-datatosave_name = "27.01_spectros.txt"
-datatosave_waveleng = "27.01_Waveleng_spectros1.txt"
-np.savetxt(datatosave_waveleng, np.array(waveleng).T, delimiter="    ", newline='\r\n')
-np.savetxt(datatosave_name, np.array(datatosave).T, delimiter="    ", newline='\r\n')
+datatosave_name = "//common/Physics/nicoleS/buffer stability/PYTHON_UV-Vis 2_3_2021 4_30_24 PM.txt"
+#datatosave_waveleng = "//common/Physics/nicoleS/buffer stability/Wavelengs_UV-Vis.txt"
+#np.savetxt(datatosave_waveleng, np.array(waveleng).T, delimiter="    ", newline='\r\n')
+
+#np.savetxt(datatosave_name, np.array(datatosave).T, delimiter="    ", newline='\r\n')
