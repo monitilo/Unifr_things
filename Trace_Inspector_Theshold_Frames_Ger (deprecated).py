@@ -256,7 +256,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         if self.timing == self.data.shape[1]-1:
             self.Quickanddirtytimer.stop()
             print(" automatic analysis finished")
-        
+
     def updatelr(self):
         self.lrmax.setZValue(10)
         minX, maxX = self.lrmax.getRegion()
@@ -264,7 +264,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         minX2, maxX2 = self.lrmin.getRegion()
         self.avgmax = np.nanmean(self.data[int(minX):int(maxX), (int(self.traceSlider.value()))])
         self.avgmin = np.nanmean(self.data[int(minX2):int(maxX2), (int(self.traceSlider.value()))])
-    
+
         self.stepintensity = (self.avgmax-self.avgmin)
         self.labelmax.setText("<span style='font-size: 12pt'> <span style='color: green'>LeftMean=%0.1f</span>" % (self.avgmax))
         self.labelmin.setText("<span style='font-size: 12pt'> <span style='color: red'>RigthMean=%0.1f</span>" % (self.avgmin))
@@ -280,7 +280,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        
 #        print(self.avgmax - self.avgmin)
 #        print(self.stepintensity)
-        self.selection[int(self.traceSlider.value()), 5] = self.step_intensity  # stepintensity
+        self.selection[int(self.traceSlider.value()), 5] = self.stepintensity  # stepintensity
+        self.selection[int(self.traceSlider.value()), 6] = self.step_intensity
 
     # Define Actions    
     def importTrace(self):
@@ -294,7 +295,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.data = np.loadtxt(self.file_name)
         self.traceSlider.setMaximum(self.data.shape[1]-1)
         self.graph.clear()
-        self.selection = np.zeros((self.data.shape[1], 6))  # + Step column (5 ==> 6)
+        self.selection = np.zeros((self.data.shape[1], 7))  # + Steps columns (5 ==> 7)
         self.selection[:,0] = np.arange(0,self.data.shape[1])
         self.selection[:,4] = self.data.shape[0]
         self.colorgraph = (100, 150, 255)
@@ -469,6 +470,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 # =============================================================================
 
         self.selection[int(self.traceSlider.value()), 5] = self.stepintensity
+        self.selection[int(self.traceSlider.value()), 6] = self.step_intensity
 
         print("GOODselection traces")
 #        print(self.selection)
