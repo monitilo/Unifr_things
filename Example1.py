@@ -29,7 +29,7 @@ b = np.array(a).T
 c = np.array(morgane)
 #
 intensities_morgane_name = 'intensities_morgane' + str(len(c))+"(" + str(n)+")"+ '.txt'
-np.savetxt(intensities_morgane_name, c, delimiter="    ", newline='\r\n')
+#np.savetxt(intensities_morgane_name, c, delimiter="    ", newline='\r\n')
 print("\n", len(c), "Intensities exported as", intensities_morgane_name)
 
 

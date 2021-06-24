@@ -923,8 +923,8 @@ plt.legend(muestras)
 
 
 
-for i in range(len(muestras)):
-)
+#for i in range(len(muestras)):
+
 plt.plot(promedio[muestras[0]]/10)
 plt.plot(promedio[muestras[1]]/3)
 
