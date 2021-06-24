@@ -126,44 +126,50 @@ sigmay_laser = 4200
 a = 0.5*(int(sigmax_laser/pixsize))
 b = 0.5*(int(sigmay_laser/pixsize))
 
-s=0
-
-x = np.array(finaldata[samples[s]]["x"])
-y = np.array(finaldata[samples[s]]["y"])
-
-
-x_circle = dict()
-y_circle = dict()
-phothons_circle = dict()
-bg_circle = dict()
-
 N_circles = 3
-#parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
 
-
-
+x_circles = []
+y_circles = []
+photons_circles = []
+bg_circles = []
 for c in range(N_circles):
-    tic = time.time()
+    x_circles.append("x_circle_{}".format(c))
+    y_circles.append("y_circle_{}".format(c))
+    photons_circles.append("photon_circle_{}".format(c))
+    bg_circles.append("bg_circle_{}".format(c))
 
-    x_circle[c] = []
-    y_circle[c] = []
-    phothons_circle[c] = []
-    bg_circle[c] = []
+s=0
+for s in range(len(samples)):
     
-    for i in range(len(x)):
-
-        if c**2 < (((x[i]-xc)/a)**2 + ((y[i]-yc)/b)**2) <= (c+1)**2:
-            x_circle[c].append(x[i])
-            y_circle[c].append(y[i])
-            phothons_circle[c].append(finaldata[samples[s]]["photons"][i])
-            bg_circle[c].append(finaldata[samples[s]]["bg"][i])
-
-    print("\n c=",c,";time=", time.time()-tic, ":")
-
-
-    hist2d = plt.hist2d(x_circle[c], y_circle[c], bins=bines, range=([0,154], [0,154]), cmin=0, cmax=4000)
-    plt.colorbar()
-    plt.show()
+    x = np.array(finaldata[samples[s]]["x"])
+    y = np.array(finaldata[samples[s]]["y"])
+    
+    
+    #parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
+    
+    
+    for c in range(N_circles):
+        tic = time.time()
+    
+        finaldata[samples[s]][x_circles[c]] = []
+        finaldata[samples[s]][y_circles[c]] = []
+        finaldata[samples[s]][photons_circles[c]] = []
+        finaldata[samples[s]][bg_circles[c]] = []
+        
+        for i in range(len(x)):
+    
+            if c**2 < (((x[i]-xc)/a)**2 + ((y[i]-yc)/b)**2) <= (c+1)**2:
+                finaldata[samples[s]][x_circles[c]].append(finaldata[samples[s]]["x"][i])
+                finaldata[samples[s]][y_circles[c]].append(finaldata[samples[s]]["y"][i])
+                finaldata[samples[s]][photons_circles[c]].append(finaldata[samples[s]]["photons"][i])
+                finaldata[samples[s]][bg_circles[c]].append(finaldata[samples[s]]["bg"][i])
+    
+        print("\n c=",c,";time=", time.time()-tic, ":")
+    
+    
+        hist2d = plt.hist2d(finaldata[samples[s]][x_circles[c]], finaldata[samples[s]][y_circles[c]], bins=bines, range=([0,154], [0,154]), cmin=0, cmax=4000)
+        plt.colorbar()
+        plt.show()
 
 #bines = 50
 #hin = plt.hist2d(finaldata[samples[0]]['x'],finaldata[samples[0]]["y"], bins=bines, range=([0,154], [0,154]), cmin=0, cmax=4000)
@@ -176,8 +182,22 @@ for c in range(N_circles):
 
 #%%
 for c in range(N_circles):
-    h1 = plt.hist(phothons_circle[c], bins=60, alpha=0.5, range=(0,3500))
-    
+    hin = plt.hist(finaldata[samples[0]][photons_circles[c]], bins=60, alpha=0.5, range=(0,3500), label=photons_circles[c])
+plt.legend()
+plt.show()
+for c in range(N_circles):
+    hout = plt.hist(finaldata[samples[1]][photons_circles[c]], bins=60, alpha=0.5, range=(0,3500), label=photons_circles[c])
+plt.legend()
+plt.show()
+
+#%%
+from
+data = finaldata[samples[0]][photons_circles[0]]
+
+bines = 100
+
+(gauss1, gauss2) = plot_histo_fit(data, bines)
+
 #%%
 import numpy as np
 import matplotlib.pyplot as plt
@@ -189,7 +209,7 @@ from scipy import asarray as ar,exp
 #N=[50,200,200]
 largos = []
 for c in range(N_circles):
-    largos.append(len(phothons_circle[c]))
+    largos.append(len(finaldata[samples[s]][photons_circles[c]]))
 largos = np.array(largos)
 
 bines = 100
@@ -274,3 +294,88 @@ for c in range(N_circles):
 
 print(fit_max)
 print("\n",fit_min)
+
+#%%
+
+bines = 100
+#auxe = largos / bines
+#largos/auxe
+
+#nbins = auxe #[10]*4 # [10, 10, 10, 10, 10, 10, 10]
+
+c=0
+
+def plot_histo_fit(vector, bines):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    
+    import pylab as plb
+    from scipy.optimize import curve_fit
+    from scipy import asarray as ar,exp
+    N = len(vector)/bines
+    bins = np.linspace(0,int(np.max(vector)), N)
+    
+    plt.hist(vector, bins=bins, alpha = 0.5, label="Photons_circle {}".format(c))# , color="#900090",alpha=0.6,label='data')  # len(nozeros)//N
+    y,x = np.histogram(vector, bins=bins)  #len(nozeros)//N
+    x=(x[1:]+x[:-1])/2 # for len(x)==len(y)
+    
+    n = len(x)                          #the number of data
+    mean = sum(x*y)/sum(y)                   #note this correction
+    sigma = sum(y*(x-mean)**2)/sum(y)        #note this correction
+    
+    def gaus(x,a,x0,sigma):
+        return a*exp(-(x-x0)**2/(2*sigma**2))
+    
+    popt,pcov = curve_fit(gaus,x,y,p0=[1,mean,sigma/100])
+    perr = np.sqrt(np.diag(pcov))
+    
+    
+    #plt.plot(x,y,'b+:',label='data')
+    X = np.linspace(x[0], x[-1], 500)
+    plt.plot()
+    plt.plot(X,gaus(X,*popt),'g',lw=2, label='1G fit')
+    plt.vlines(popt[1], color="k", ymin=0,ymax=0.5*popt[0])
+    plt.vlines((popt[1]-popt[2], popt[1]+popt[2]),color='orange', ymin=0, ymax=10)
+    plt.legend()
+    plt.title('hist')
+    plt.xlabel('Counts kHz')
+    plt.ylabel("total points ={} in {} bins".format(len(vector), N))
+    plt.xlim([0,3000])
+    #    plt.text(30,50, "mean ={:.2f}±{:.2f}".format(popt[1], popt[2]))
+    print(popt[1], popt[2], "1")
+    #plt.xlim(np.min(x), popt[1]+abs(popt[2]*3))
+    #plt.xlim(0, int(np.max(nozeros)))
+    #plt.show()
+        
+    
+    def gauss(x,mu,sigma,A):
+        return A*exp(-(x-mu)**2/2/sigma**2)
+    
+    def bimodal(x,mu1,sigma1,A1,mu2,sigma2,A2):
+        return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
+    
+    
+    expected = (popt[1],abs(popt[2]),popt[0],
+                0.5*popt[1], 0.5*abs(popt[2]), 0.5*popt[0])
+    
+    
+    try:
+        params,cov = curve_fit(bimodal,x,y,expected)
+        sigma = np.sqrt(np.diag(cov))
+    
+        if params[0] < 0 or params[3] < 0:
+            print("bad adjusts 2G")
+        else:
+            #X = np.linspace(x[0]-50, x[-1]+50, 5000)
+            plt.plot(X,bimodal(X,*params),color='orange',lw=3,label='2G model')
+            plt.legend()
+            plt.vlines((params[0], params[3]), color=('r','b'), ymin=0,ymax=0.5*popt[0])
+#        print(params,'\n',sigma)
+        #print("\n mal Gauss", (viejopopt[1],"±", viejopopt[2]),"*",viejopopt[0])
+    except:
+        params = ["no"]*6
+    
+#    print("\n 1Gaus=",(popt[1],"±", popt[2]), "*", popt[0])
+#    print("\n 2Gaus=",(params[0], "±", params[1]), "*", params[2],
+#              "\n",(params[3],"±",params[4]), "*", params[5])
+    return (int(params[0]), int(params[3]))
