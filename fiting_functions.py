@@ -5,11 +5,11 @@ Created on Thu Jun 24 13:32:39 2021
 @author: chiarelg
 """
 
-def plot_histo_fit(vector, bines, name):
+def plot_histo_fit(vector, bines, name, shift=0.5):
     import numpy as np
     import matplotlib.pyplot as plt
     
-    import pylab as plb
+#    import pylab as plb
     from scipy.optimize import curve_fit
     from scipy import asarray as ar,exp
     N = len(vector)/bines
@@ -19,7 +19,7 @@ def plot_histo_fit(vector, bines, name):
     y,x = np.histogram(vector, bins=bins)  #len(nozeros)//N
     x=(x[1:]+x[:-1])/2 # for len(x)==len(y)
     
-    n = len(x)                          #the number of data
+#    n = len(x)                          #the number of data
     mean = sum(x*y)/sum(y)                   #note this correction
     sigma = sum(y*(x-mean)**2)/sum(y)        #note this correction
     
@@ -38,11 +38,11 @@ def plot_histo_fit(vector, bines, name):
     plt.vlines((popt[1]-popt[2], popt[1]+popt[2]),color='orange', ymin=0, ymax=10)
     plt.legend()
     plt.title('hist')
-    plt.xlabel('Counts kHz')
+    plt.xlabel('Photons')
     plt.ylabel("total points ={} in {} bins".format(len(vector), N))
-    plt.xlim([0,3000])
+#    plt.xlim([0,3000])
     #    plt.text(30,50, "mean ={:.2f}±{:.2f}".format(popt[1], popt[2]))
-    print(popt[1], popt[2], "1")
+    print(popt[1], popt[2], "Gauss 1D")
     #plt.xlim(np.min(x), popt[1]+abs(popt[2]*3))
     #plt.xlim(0, int(np.max(nozeros)))
     #plt.show()
@@ -53,12 +53,10 @@ def plot_histo_fit(vector, bines, name):
     
     def bimodal(x,mu1,sigma1,A1,mu2,sigma2,A2):
         return gauss(x,mu1,sigma1,A1)+gauss(x,mu2,sigma2,A2)
-    
-    
+
     expected = (popt[1],abs(popt[2]),popt[0],
-                0.5*popt[1], 0.5*abs(popt[2]), 0.5*popt[0])
-    
-    
+                shift*popt[1], 0.5*abs(popt[2]), 0.5*popt[0])
+
     try:
         params,cov = curve_fit(bimodal,x,y,expected)
         sigma = np.sqrt(np.diag(cov))

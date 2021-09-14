@@ -11,88 +11,104 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time as time
 
-filename_inflake = 'C:/Origami testing Widefield/2021-06-10_MoS2_samples_456_BSA_test/4_100ms_130nmpix_mode1/DNA_PAINT_1mW_9merAtto4881nM_trolox_glox_in_150ul_1xTAE12_2/DNA_PAINT_1mW_picked_IN flake2.hdf5'
-finelame_outflake = 'C:/Origami testing Widefield/2021-06-10_MoS2_samples_456_BSA_test/4_100ms_130nmpix_mode1/DNA_PAINT_1mW_9merAtto4881nM_trolox_glox_in_150ul_1xTAE12_2/DNA_PAINT_1mW_picked_out of flake2.hdf5'
+#filename_inflake = 'C:/Origami testing Widefield/2021-06-10_MoS2_samples_456_BSA_test/4_100ms_130nmpix_mode1/DNA_PAINT_1mW_9merAtto4881nM_trolox_glox_in_150ul_1xTAE12_2/DNA_PAINT_1mW_picked_IN flake2.hdf5'
+#finelame_outflake = 'C:/Origami testing Widefield/2021-06-10_MoS2_samples_456_BSA_test/4_100ms_130nmpix_mode1/DNA_PAINT_1mW_9merAtto4881nM_trolox_glox_in_150ul_1xTAE12_CONTROL_1/DNA_PAINT_1mW_488CONTROL_allorigamispicked.hdf5'
+#finelame_outflake = 'C:/Origami testing Widefield/2021-07-01 slide for basel/Slide_600pM_15min_oriBasel_50pM_10min_NP_30nM_imagerQ_scanSlow_16mW(30F1)_circular_1/aaa_all origamis in image.hdf5'
+#filename_inflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1_MMStack_Pos0.ome_locs_filter_lpxy_picked_centers.hdf5'
+#finelame_outflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1_MMStack_Pos0.ome_locs_filter_lpxy_picked_laterals.hdf5'
+
+
+filename_inflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_488_picked_centers.hdf5'
+finelame_outflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_picked_laterals.hdf5'
+names = [filename_inflake, finelame_outflake]
 
 import h5py
-#filename = "file.hdf5"
+
 tic = time.time()
-with h5py.File(filename_inflake, "r") as f:
-    # List all groups
-    print("Keys: %s" % f.keys())
-    a_group_key = list(f.keys())[0]
 
-    # Get the data
-    data_inflake = list(f[a_group_key])
+files = dict()
+for n in range(len(names)):
+    with h5py.File(names[n], "r") as f:
+        # List all groups
+        print("Keys: %s" % f.keys())
+        a_group_key = list(f.keys())[0]
+    
+        # Get the data
+        data_inflake = list(f[a_group_key])
+        files[n] = list(f[a_group_key])
+    print( time.time()-tic)
 
-print( time.time()-tic)
-tac = time.time()
-with h5py.File(finelame_outflake, "r") as f:
-    # List all groups
-    print("Keys: %s" % f.keys())
-    a_group_key = list(f.keys())[0]
+#tac = time.time()
+#with h5py.File(finelame_outflake, "r") as f:
+#    # List all groups
+#    print("Keys: %s" % f.keys())
+#    a_group_key = list(f.keys())[0]
+#
+#    # Get the data
+#    data_outflake = list(f[a_group_key])
 
-    # Get the data
-    data_outflake = list(f[a_group_key])
-
-print( time.time()-tac)
-files = [data_inflake,data_outflake]
+#print( time.time()-tic)
+#files = [data_inflake,data_outflake]
+#files = [data_outflake]
 
 #%% 
 
 parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
 
-samples = ["in flake", "out flake"]
+#samples = ["in flake", "out flake"]
+#samples = ["out flake control"]
+#samples = ["Fret 3 spots"]
+samples = ["center", "laterals"]
 
 finaldata = dict()
 
 for l in range(len(samples)):
     data = files[l]
     tic = time.time()
-    
+
     alldata = dict()
-    alldata[parameters[0]] = []
-    alldata[parameters[1]] = []
-    alldata[parameters[2]] = []
-    alldata[parameters[3]] = []
-    alldata[parameters[4]] = []
-    alldata[parameters[5]] = []
-    alldata[parameters[6]] = []
-    alldata[parameters[7]] = []
-    alldata[parameters[8]] = []
-    alldata[parameters[9]] = []
-    alldata[parameters[10]] = []
-    alldata[parameters[11]] = []
-    
+    alldata[parameters[0]]  = np.zeros([len(data)])
+    alldata[parameters[1]]  = np.zeros([len(data)])
+    alldata[parameters[2]]  = np.zeros([len(data)])
+    alldata[parameters[3]]  = np.zeros([len(data)])
+    alldata[parameters[4]]  = np.zeros([len(data)])
+    alldata[parameters[5]]  = np.zeros([len(data)])
+    alldata[parameters[6]]  = np.zeros([len(data)])
+    alldata[parameters[7]]  = np.zeros([len(data)])
+    alldata[parameters[8]]  = np.zeros([len(data)])
+    alldata[parameters[9]]  = np.zeros([len(data)])
+    alldata[parameters[10]] = np.zeros([len(data)])
+    alldata[parameters[11]] = np.zeros([len(data)])
+
     for j in range(len(data)):
     #    frame.append(data[j][0])
-        alldata[parameters[0]].append(data[j][0])  # Frames
-        alldata[parameters[1]].append(data[j][1])  # x
-        alldata[parameters[2]].append(data[j][2])  # y
-        alldata[parameters[3]].append(data[j][3])  # photons
-        alldata[parameters[4]].append(data[j][4])  # sx
-        alldata[parameters[5]].append(data[j][5])  # sy
-        alldata[parameters[6]].append(data[j][6])  # bg
-        alldata[parameters[7]].append(data[j][7])  # lpx
-        alldata[parameters[8]].append(data[j][8])  # lpy
-        alldata[parameters[9]].append(data[j][9])  # ellipticity
-        alldata[parameters[10]].append(data[j][10])  # net_gradient
-        alldata[parameters[11]].append(data[j][11])  # group
+        alldata[parameters[0]][j]  = (data[j][0])  # Frames
+        alldata[parameters[1]][j]  = (data[j][1])  # x
+        alldata[parameters[2]][j]  = (data[j][2])  # y
+        alldata[parameters[3]][j]  = (data[j][3])  # photons
+        alldata[parameters[4]][j]  = (data[j][4])  # sx
+        alldata[parameters[5]][j]  = (data[j][5])  # sy
+        alldata[parameters[6]][j]  = (data[j][6])  # bg
+        alldata[parameters[7]][j]  = (data[j][7])  # lpx
+        alldata[parameters[8]][j]  = (data[j][8])  # lpy
+        alldata[parameters[9]][j]  = (data[j][9])  # ellipticity
+        alldata[parameters[10]][j] = (data[j][10])  # net_gradient
+        alldata[parameters[11]][j] = (data[j][11])  # group
 
 
     print( time.time()-tic)
 
     h1 = plt.hist(alldata["photons"], bins=200, range=(0,3000))
 
-    finaldata[samples[l]] = alldata
 
+
+
+    finaldata[samples[l]] = alldata
+plt.show()
 
 #%%
 
-bines = 50
-hin = plt.hist2d(finaldata[samples[0]]['x'],finaldata[samples[0]]["y"], bins=bines, range=([0,154], [0,154]), cmin=0, cmax=4000)
-plt.colorbar(hin[3])
-plt.show()
+#h7 = plt.hist(alldata["sx"], bins=200, range=(0.5,3))
 
 #hout = plt.hist2d(finaldata[samples[1]]["x"],finaldata[samples[1]]["y"], bins=bines, range=([0,154], [0,154]), cmin=0, cmax=4000)
 #plt.colorbar(hout[3])
@@ -118,13 +134,19 @@ Circle3 = 21.2 x 16.8 um Diameter ==> 164 x 128 pix aprox
 Circle4 = 26.5 x 21.0 um Diameter ==> 205 x 160 pix aprox
 """
 
-xc = 77
-yc = 77
-pixsize = 130
-sigmax_laser = 5300
-sigmay_laser = 4200
+xc = 154//2  # 77
+yc = 154//2  # 77
+pixsize = 130  # 130
+sigmax_laser = 5300  #  5300
+sigmay_laser = 4200  #  4200
 a = 0.5*(int(sigmax_laser/pixsize))
 b = 0.5*(int(sigmay_laser/pixsize))
+
+bines = 50
+#hin = plt.hist2d(finaldata[samples[0]]['x'],finaldata[samples[0]]["y"], bins=bines, range=([0,xc*2], [0,yc*2]), cmin=0, cmax=4000)
+#plt.colorbar(hin[3])
+#plt.show()
+
 
 N_circles = 3
 
@@ -140,14 +162,17 @@ for c in range(N_circles):
 
 s=0
 for s in range(len(samples)):
-    
+    hin = plt.hist2d(finaldata[samples[s]]['x'],finaldata[samples[s]]["y"], bins=bines, range=([0,xc*2], [0,yc*2]), cmin=0, cmax=4000)
+    plt.colorbar(hin[3])
+    plt.title("figure {}".format(samples[s]))
+    plt.show()
     x = np.array(finaldata[samples[s]]["x"])
     y = np.array(finaldata[samples[s]]["y"])
     
     
     #parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
-    
-    
+
+
     for c in range(N_circles):
         tic = time.time()
     
@@ -157,18 +182,19 @@ for s in range(len(samples)):
         finaldata[samples[s]][bg_circles[c]] = []
         
         for i in range(len(x)):
-    
+
             if c**2 < (((x[i]-xc)/a)**2 + ((y[i]-yc)/b)**2) <= (c+1)**2:
                 finaldata[samples[s]][x_circles[c]].append(finaldata[samples[s]]["x"][i])
                 finaldata[samples[s]][y_circles[c]].append(finaldata[samples[s]]["y"][i])
                 finaldata[samples[s]][photons_circles[c]].append(finaldata[samples[s]]["photons"][i])
                 finaldata[samples[s]][bg_circles[c]].append(finaldata[samples[s]]["bg"][i])
-    
+
         print("\n s=",s," c=",c,";time=", time.time()-tic, ":")
-    
-    
-        hist2d = plt.hist2d(finaldata[samples[s]][x_circles[c]], finaldata[samples[s]][y_circles[c]], bins=bines, range=([0,154], [0,154]), cmin=0, cmax=4000)
+
+
+        hist2d = plt.hist2d(finaldata[samples[s]][x_circles[c]], finaldata[samples[s]][y_circles[c]], bins=bines, range=([0,xc*2], [0,yc*2]), cmin=0, cmax=4000)
         plt.colorbar()
+        plt.title("Circle (start in cero) {}".format(c))
         plt.show()
 
 #bines = 50
@@ -180,18 +206,35 @@ for s in range(len(samples)):
 #plt.show()
 
 
-#%%
-for c in range(N_circles):
-    hin = plt.hist(finaldata[samples[0]][photons_circles[c]], bins=60, alpha=0.5, range=(0,3500), label=photons_circles[c])
-plt.legend()
-plt.show()
-for c in range(N_circles):
-    hout = plt.hist(finaldata[samples[1]][photons_circles[c]], bins=60, alpha=0.5, range=(0,3500), label=photons_circles[c])
-plt.legend()
-plt.show()
+##%%
+#for c in range(N_circles):
+#    hin = plt.hist(finaldata[samples[0]][photons_circles[c]], bins=60, alpha=0.5, range=(0,3500), label=photons_circles[c])
+#plt.legend()
+#plt.show()
+#for c in range(N_circles):
+#    hout = plt.hist(finaldata[samples[1]][photons_circles[c]], bins=60, alpha=0.5, range=(0,3500), label=photons_circles[c])
+#plt.legend()
+#plt.show()
 
-#%%
+
+#%% Until here it was the circular stuff for the gaussian
+        # Now is fitting to get the max of the photons in each of them
+import sys
+new_path = 'C:/Users/chiarelG/switchdrive/German data analysis/code'
+if new_path not in sys.path:
+    sys.path.append(new_path)
+#sys.path
+
 from fiting_functions import plot_histo_fit
+
+#if __name__ == '__main__':
+#    print("aa")
+#a = os.path.abspath('junk.txt')
+#os.path.dirname(a)
+#os.path.basename(a)
+#import glob
+#b = glob.glob('*.py')
+#b[1]
 
 data = finaldata[samples[0]][photons_circles[0]]
 
@@ -200,24 +243,42 @@ gauss1 = np.zeros((N_circles))
 gauss2 = np.zeros((N_circles))
 gauss3 = np.zeros((N_circles))
 gauss4 = np.zeros((N_circles))
-for c in range(N_circles):
-    (gauss1[c], gauss2[c]) = plot_histo_fit(finaldata[samples[0]][photons_circles[c]], bines, photons_circles[c])
-plt.show()
 
-for c in range(N_circles):
+for c in range(1,2):  # ,N_circles):
+    print(c)
+
+    (gauss1[c], gauss2[c]) = plot_histo_fit(finaldata[samples[0]][photons_circles[c]],
+                                bines, photons_circles[c])
+    plt.xlim([0,4000])
+    plt.show()
+
+#for c in range(N_circles):
     try:
         (gauss3[c], gauss4[c]) = plot_histo_fit(finaldata[samples[1]][photons_circles[c]], bines, photons_circles[c])
-    except:
-        pass
+    finally:
+        print("wtf?")
+plt.xlim([0,4000])
 plt.show()
 
-print("\n", gauss1, gauss2,"\n", gauss3, gauss4)
+print("\n", gauss1,"\n", gauss2)
+print("\n", gauss3,"\n", gauss4)
 
-#plt.plot(gauss1,".-")
-##plt.plot(gauss2,".-")
-#plt.plot(gauss3,".-")
-##plt.plot(gauss4,".-")
+#plt.plot(gauss1,".-",label=samples[0])
+##plt.plot(gauss2,".-",label="gauss2")
+#plt.plot(gauss3,".-",label=samples[1])
+##plt.plot(gauss4,".-",label="gauss4")
+#plt.legend()
 
+
+#%%
+bines = 100
+gauss5 = np.zeros(len(samples))
+gauss6 = np.zeros(len(samples))
+
+for s in range(len(samples)):
+    (gauss5[s], gauss6[s]) = plot_histo_fit(finaldata[samples[s]][photons_circles[2]], bines, samples[s])
+
+print("\n", gauss5,"\n")
 #%%
 # =============================================================================
 # import numpy as np
@@ -316,6 +377,29 @@ print("\n", gauss1, gauss2,"\n", gauss3, gauss4)
 # print(fit_max)
 # print("\n",fit_min)
 # =============================================================================
+
+#%% Open scans from labview:
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = np.loadtxt('C:/Data Confocal/CONFOCAL/2021-07-22 flake 25/4_scan G0,7/image in txt.txt')
+print(data.shape)
+
+
+fig = plt.figure(figsize=(8, 6))
+
+ax = fig.add_subplot(111)
+ax.set_title('colorMap')
+plt.imshow(data)
+ax.set_aspect('equal')
+#
+cax = fig.add_axes([0.12, 0.1, 0.78, 0.8])
+cax.get_xaxis().set_visible(False)
+cax.get_yaxis().set_visible(False)
+cax.patch.set_alpha(0)
+cax.set_frame_on(False)
+plt.colorbar(orientation='vertical')
+plt.show()
 
 #%%
 
