@@ -75,6 +75,7 @@ vector = np.linspace(0,2*np.pi,450)
 for i in range(35):
     data[:,i] = np.sin(vector+i)
 
+data[:,i//2] = np.tan(vector+i)
 
 data.shape
 np.mean(data[0:25, 0])
@@ -117,37 +118,37 @@ l=l+1
 avgdata[:,3]
 
 #%%
-columns = 37
-plot_columns = int(np.sqrt(columns))
-plot_files = int(np.ceil(columns/plot_columns))
+columns = 29
+plot_columns =  5  #  int(np.sqrt(columns))
+plot_files =  4  #   int(np.ceil(columns/plot_columns))
+graphs = int(np.ceil(columns / (plot_columns*plot_files)))
+
 
 print(plot_files,plot_columns, "=", plot_files*plot_columns)
 
 try:
-    fig, axs = plt.subplots(plot_files, plot_columns, sharex=True, sharey=True)
-    for i in range(plot_columns):
-        print(i,j)
-        for j in range(plot_files):
-            axs[j,i].plot(theta, avgdata[:,i+plot_columns*j], label="trace{}".format(i+plot_columns*j))
-    #        axs[j,i].set_title("main{}".format(i+plot_columns*j))
-            axs[j,i].legend()
-except:
-       pass
+    t=0
+    for n in range(graphs):
+        print("n",n)
+        fig, axs = plt.subplots(plot_files, plot_columns)
+        for i in range(plot_files):
+#            print("i,j", i,j)
+            for j in range(plot_columns):
+#                print("i,j", i,j)
+#                print("t",t)
+                axs[i,j].plot(theta, avgdata[:,t],
+                               label="{}".format((t)))
+        #        axs[j,i].set_title("main{}".format(i+plot_columns*j))
+                axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
+                t+=1
+except: pass
+#except IOError as e:
+#    print("I/O error({0}): {1}".format(e.errno, e.strerror))
     
     
 #%%
     
     
     
-axs[1, 0].plot(x, y**2)
-axs[1, 0].set_title("shares x with main")
-axs[1, 0].sharex(axs[0, 0])
-axs[0, 1].plot(x + 1, y + 1)
-axs[0, 1].set_title("unrelated")
-axs[1, 1].plot(x + 2, y + 2)
-axs[1, 1].set_title("also unrelated")
-fig.tight_layout()
-
-
 
 
