@@ -68,7 +68,9 @@ for l in range(colums):
 plt.plot(avgdata[:,0],"o")
 
 #np.savetxt()
-#%%
+#%% Here I create Fake data and bin it by 25
+
+
 #data = np.loadtxt('C:/Users/AdamczyA/Desktop/Pythons/Single_molecule/'+ name)
 data = np.zeros((450, 35))
 vector = np.linspace(0,2*np.pi,450)
@@ -117,7 +119,8 @@ l=l+1
 
 avgdata[:,3]
 
-#%%
+#%% Plot all of them in a no so crazy way
+
 columns = 29
 plot_columns =  5  #  int(np.sqrt(columns))
 plot_files =  4  #   int(np.ceil(columns/plot_columns))
@@ -146,9 +149,29 @@ except: pass
 #    print("I/O error({0}): {1}".format(e.errno, e.strerror))
     
     
-#%%
-    
-    
-    
+#%% Delete the ones That look bad
+todelete = [3,7,17]
+
+avgdata[:,todelete] = np.nan
+plt.plot(avgdata[:,1:5])
+plt.legend([1,2,3,4,5])
+
+#%% Find the max of each trace
+
+#plt.plot(theta,avgdata[:,2])
+#theta[np.where(avgdata[:,2] == np.max(avgdata[:,2]))]
+
+cy5_angle = np.zeros(columns)
+for i in range(columns):
+    if i not in todelete:
+        print(i)
+        cy5_angle[i] = theta[np.where(avgdata[:,i] == np.max(avgdata[:,i]))][0]
+
+#plt.plot(cy5_angle,'-o')
+plt.hist(cy5_angle)
+
+
+
+
 
 
