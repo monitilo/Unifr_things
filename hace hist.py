@@ -1113,8 +1113,8 @@ for i in range(2, 6):#len(data)):
 import numpy as np
 import matplotlib.pyplot as plt
 
-angles = np.linspace(40,180-40,10)
-#angles = np.array([0, 43, 90, 137])
+#angles = np.linspace(40,180-40,10)
+angles = np.array([0, 43, 90, 137])
 
 D = 6  # Distance acceptor - Capturing strands
 Q = 5  # Distance fully elongated Quencher imager
@@ -1136,5 +1136,91 @@ plt.plot(np.rad2deg(A),X,'-*')
 plt.show()
 
 print("\n", X)
+
+#%% Simple code To evaluate diferent angles for Dye that makes fret
+    """ 
+    for now is only in 2D,
+    I am not sure how to do it in 3D ( or if make sense to lose time doing it)
+    """
+    
+import numpy as np
+import matplotlib.pyplot as plt
+
+#angles = np.linspace(40,180-40,10)
+angles = np.array([0, 43, 90, 137])
+
+D = 6  # Distance acceptor - Capturing strands
+W = 2  # Distance Donor - origami
+A = np.deg2rad(angles)  # Angle between origami and Donor
+
+h = W* np.sin(A) 
+r = W* np.cos(A)  # if the angle is bigger than 90 the quencher is farder away so r is negative
+
+#r = np.sqrt(Q**2 + h**2)
+#l = D - r
+#X = np.sqrt(h**2 + l**2)
+Y = np.sqrt(h**2 + (D-r)**2)
+
+
+
+
+plt.plot(np.rad2deg(A),Y,'-*')
+#plt.plot(np.rad2deg(A),r,'-*')
+plt.show()
+
+print("\n", Y)
+
+#%% Now itarating in all the new distances
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+#angles = np.linspace(40,180-40,10)
+angles = np.array([0, 43, 90, 137])
+
+D = 6  # Distance acceptor - Capturing strands
+W = 2  # Distance Donor - origami
+A = np.deg2rad(angles)  # Angle between origami and Donor
+
+h = W* np.sin(A) 
+r = W* np.cos(A)  # if the angle is bigger than 90 the quencher is farder away so r is negative
+
+#r = np.sqrt(Q**2 + h**2)
+#l = D - r
+#X = np.sqrt(h**2 + l**2)
+Y = np.sqrt(h**2 + (D-r)**2)
+print("Y = ", Y)
+mapping = []
+for i in Y:
+    #angles = np.linspace(40,180-40,10)
+    angles = np.array([0, 43, 90, 137])
+    
+    D = i  # Distance acceptor - Capturing strands
+    Q = 5  # Distance fully elongated Quencher imager
+    A = np.deg2rad(angles)  # Angle between D and the quencher
+    
+    h = Q* np.sin(A) 
+    r = Q* np.cos(A)  # if the angle is bigger than 90 the quencher is farder away so r is negative
+    
+    #r = np.sqrt(Q**2 + h**2)
+    #l = D - r
+    #X = np.sqrt(h**2 + l**2)
+    X = np.sqrt(h**2 + (D-r)**2)
+    mapping.append(X)
+    
+    
+    
+    
+#    plt.plot(np.rad2deg(A),X,'-*')
+    #plt.plot(np.rad2deg(A),r,'-*')
+#    plt.show()
+#    print("\n", X)
+    
+    plt.plot(np.rad2deg(A),X,'-*',label="Y_distance = {:.1f}".format(i))
+    
+plt.legend()
+plt.show()
+print(np.array(mapping))
+
 
 

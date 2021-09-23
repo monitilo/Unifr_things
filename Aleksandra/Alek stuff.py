@@ -168,8 +168,48 @@ for i in range(columns):
         cy5_angle[i] = theta[np.where(avgdata[:,i] == np.max(avgdata[:,i]))][0]
 
 #plt.plot(cy5_angle,'-o')
-plt.hist(cy5_angle)
+plt.hist(cy5_angle-90)
 
+
+#%% Determine the Relative_angle:
+"""
+first: change the angle range from -180 _ 180 to 0_360
+"""
+
+origami_angle_m = np.copy(cy5_angle)  # it should come from super res analisis
+diff_angles = np.zeros(len(cy5_angle))
+for i in range(len(origami_angle_m)):
+    diff_angles[i] =  (np.random.rand()*200)
+    origami_angle_m[i] = cy5_angle[i] + diff_angles[i]
+    
+origami_angle_ok = np.copy(origami_angle_m)
+
+for i in range(len(origami_angle_m)):
+    if origami_angle_m[i] < 0:
+        origami_angle_ok[i] = 360 + origami_angle_m[i]
+    else:
+        origami_angle_ok[i] = origami_angle_m [i]  # dah
+
+"""
+Then, calculate the difference between origami_angle_ok and cy5_angle
+"""
+difference = cy5_angle-origami_angle_ok
+
+"""
+difference goes between -180_180 les change it to 0_180
+"""
+
+relative_angle = np.copy(difference)
+for i in range(len(difference)):
+    if difference[i] > (-180):
+        relative_angle[i] = abs(difference[i])
+    else:
+        relative_angle[i] = abs(180+difference[i])
+
+bines = len(diff_angles//2)
+plt.hist(relative_angle, bins=bines, alpha=0.8)
+plt.hist(diff_angles, bins=bines, alpha=0.2)
+#print(diff_angles, "\n")
 
 
 
