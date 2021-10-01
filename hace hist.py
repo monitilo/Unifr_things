@@ -1176,7 +1176,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #angles = np.linspace(40,180-40,10)
-angles = np.array([0, 43, 90, 137])
+angles = np.array([0, 43, 90, 137, 180])
 
 D = 6  # Distance acceptor - Capturing strands
 W = 2  # Distance Donor - origami
@@ -1192,8 +1192,8 @@ Y = np.sqrt(h**2 + (D-r)**2)
 print("Y = ", Y)
 mapping = []
 for i in Y:
-    #angles = np.linspace(40,180-40,10)
-    angles = np.array([0, 43, 90, 137])
+#    angles = np.linspace(40,180-40,10)
+    angles = np.array([43, 90, 137])
     
     D = i  # Distance acceptor - Capturing strands
     Q = 5  # Distance fully elongated Quencher imager
@@ -1222,5 +1222,22 @@ plt.legend()
 plt.show()
 print(np.array(mapping))
 
+
+#%% Ploting Fret Energy
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.linspace(0, 12, 100)
+ro = 6.46
+E = 1-(1 / (1+(r/ro)**6))
+
+
+plt.plot(r,E,".-")
+plt.xlabel("Distance [nm]")
+plt.ylabel(" 1-FRET Eff")
+plt.xlim([4,8])
+plt.ylim([0,1])
+plt.grid()
+plt.show()
 
 

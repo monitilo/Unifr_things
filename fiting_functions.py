@@ -71,11 +71,13 @@ def plot_histo_fit(vector, bines, name, shift=0.5):
             
 #        print(params,'\n',sigma)
         #print("\n mal Gauss", (viejopopt[1],"±", viejopopt[2]),"*",viejopopt[0])
+        return (int(params[0]), int(params[3]))
     except:
         params = ["no"]*6
+        return
     
 #    print("\n 1Gaus=",(popt[1],"±", popt[2]), "*", popt[0])
 #    print("\n 2Gaus=",(params[0], "±", params[1]), "*", params[2],
 #              "\n",(params[3],"±",params[4]), "*", params[5])
 
-    return (int(params[0]), int(params[3]))
+

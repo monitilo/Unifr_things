@@ -169,7 +169,7 @@ for i in range(columns):
 
 #plt.plot(cy5_angle,'-o')
 plt.hist(cy5_angle-90)
-
+plt.show()
 
 #%% Determine the Relative_angle:
 """

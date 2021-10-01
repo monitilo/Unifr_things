@@ -18,9 +18,17 @@ import time as time
 #finelame_outflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1_MMStack_Pos0.ome_locs_filter_lpxy_picked_laterals.hdf5'
 
 
-filename_inflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_488_picked_centers.hdf5'
-finelame_outflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_picked_laterals.hdf5'
-names = [filename_inflake, finelame_outflake]
+#filename_inflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_488_picked_centers.hdf5'
+#finelame_outflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_picked_laterals.hdf5'
+
+filename_inflake = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/Flake2_640nm_2.3mW_circular_optosplit_1/Flake2_cutted_forPicasso_locs.hdf5'
+finelame_outflake = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/Flake2_640nm_2.3mW_circular_optosplit_1/Origamis picked info.hdf5'
+
+filename_inflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/Glass3_cuttedforPicasso_locs.hdf5'
+finelame_outflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/origamis picked info.hdf5'
+
+names = [filename_inflake, finelame_outflake, filename_inflake2, finelame_outflake2]
+samples = ["Flake2_complete", "flake2_origamis", "glass3_complete", "glass3_origamis"]
 
 import h5py
 
@@ -47,7 +55,7 @@ for n in range(len(names)):
 #    # Get the data
 #    data_outflake = list(f[a_group_key])
 
-#print( time.time()-tic)
+print( time.time()-tic)
 #files = [data_inflake,data_outflake]
 #files = [data_outflake]
 
@@ -58,7 +66,7 @@ parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ell
 #samples = ["in flake", "out flake"]
 #samples = ["out flake control"]
 #samples = ["Fret 3 spots"]
-samples = ["center", "laterals"]
+#samples = ["center", "laterals"]
 
 finaldata = dict()
 
@@ -93,7 +101,7 @@ for l in range(len(samples)):
         alldata[parameters[8]][j]  = (data[j][8])  # lpy
         alldata[parameters[9]][j]  = (data[j][9])  # ellipticity
         alldata[parameters[10]][j] = (data[j][10])  # net_gradient
-        alldata[parameters[11]][j] = (data[j][11])  # group
+#        alldata[parameters[11]][j] = (data[j][11])  # group
 
 
     print( time.time()-tic)
@@ -134,13 +142,13 @@ Circle3 = 21.2 x 16.8 um Diameter ==> 164 x 128 pix aprox
 Circle4 = 26.5 x 21.0 um Diameter ==> 205 x 160 pix aprox
 """
 
-xc = 154//2  # 77
-yc = 154//2  # 77
+xc = 335//2  # 77
+yc = 256//2  # 77
 pixsize = 130  # 130
 sigmax_laser = 5300  #  5300
 sigmay_laser = 4200  #  4200
-a = 0.5*(int(sigmax_laser/pixsize))
-b = 0.5*(int(sigmay_laser/pixsize))
+a = 1.0*(int(sigmax_laser/pixsize))
+b = 1.0*(int(sigmay_laser/pixsize))
 
 bines = 50
 #hin = plt.hist2d(finaldata[samples[0]]['x'],finaldata[samples[0]]["y"], bins=bines, range=([0,xc*2], [0,yc*2]), cmin=0, cmax=4000)
@@ -215,7 +223,29 @@ for s in range(len(samples)):
 #    hout = plt.hist(finaldata[samples[1]][photons_circles[c]], bins=60, alpha=0.5, range=(0,3500), label=photons_circles[c])
 #plt.legend()
 #plt.show()
+        
+        
+#%% Until here it was the circular stuff for the gaussian
 
+#s, c = 0, 1
+for c in range((N_circles)):
+    for s in range(1,len(samples)-1):
+        hist2d = plt.hist2d(finaldata[samples[s]][x_circles[c]], finaldata[samples[s]][y_circles[c]], bins=bines, range=([0,xc*2], [0,yc*2]), cmin=0, cmax=1000)
+        plt.colorbar()
+        plt.show()
+    
+    
+#%%
+#s, c = 0, 0
+rango = (0, 3000)
+bines= 100
+#h1 = plt.hist(finaldata[samples[s]][photons_circles[c]], bins=200, range=rango, alpha=0.5)
+#s, c = 1, 0
+for c in range((N_circles)):
+    for s in range(2,3):  #range(1,len(samples)-1):
+        h1 = plt.hist(finaldata[samples[s]][photons_circles[c]], bins=bines, range=rango, alpha=0.5, density=True, label="sample{}_circle{}".format(samples[s], c))
+        plt.legend()
+plt.show()
 
 #%% Until here it was the circular stuff for the gaussian
         # Now is fitting to get the max of the photons in each of them
@@ -244,7 +274,7 @@ gauss2 = np.zeros((N_circles))
 gauss3 = np.zeros((N_circles))
 gauss4 = np.zeros((N_circles))
 
-for c in range(1,2):  # ,N_circles):
+for c in range(2):  # ,N_circles):
     print(c)
 
     (gauss1[c], gauss2[c]) = plot_histo_fit(finaldata[samples[0]][photons_circles[c]],
