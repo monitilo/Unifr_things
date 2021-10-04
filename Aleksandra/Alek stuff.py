@@ -71,16 +71,17 @@ plt.plot(avgdata[:,0],"o")
 #%% Here I create Fake data and bin it by 25
 
 
-#data = np.loadtxt('C:/Users/AdamczyA/Desktop/Pythons/Single_molecule/'+ name)
-data = np.zeros((450, 35))
+data = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/b 2bp _traces-45.txt')
+
+#data = np.zeros((450, 35))
 vector = np.linspace(0,2*np.pi,450)
-for i in range(35):
-    data[:,i] = np.sin(vector+i)
+#for i in range(35):
+#    data[:,i] = np.sin(vector+i)
+#
+#data[:,i//2] = np.tan(vector+i)
 
-data[:,i//2] = np.tan(vector+i)
-
-data.shape
-np.mean(data[0:25, 0])
+#data.shape
+#np.mean(data[0:25, 0])
 
 length=data.shape[0]
 columns=data.shape[1]
@@ -107,7 +108,8 @@ tosavedata[:,1:] = avgdata
 
 #plt.plot(theta,avgdata[:,0],"o")
 #plt.plot(tosavedata[:,0], tosavedata[:,1], '*')
-
+#%%
+#avgdata = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/average curves_e 2bp_traces-39.txt')
 for i in range(columns):
     plt.plot(theta, avgdata[:,i])
     print(np.mean(avgdata[:,i]))
@@ -117,11 +119,11 @@ print(l)
 plt.plot(theta, avgdata[:,l])
 l=l+1
 
-avgdata[:,3]
+
 
 #%% Plot all of them in a no so crazy way
 
-columns = 29
+#columns = 29
 plot_columns =  5  #  int(np.sqrt(columns))
 plot_files =  4  #   int(np.ceil(columns/plot_columns))
 graphs = int(np.ceil(columns / (plot_columns*plot_files)))
@@ -150,7 +152,7 @@ except: pass
 plt.show()
     
 #%% Delete the ones That look bad
-todelete = [3,7,17]
+todelete = [37]
 
 avgdata[:,todelete] = np.nan
 plt.plot(avgdata[:,1:5])
@@ -164,11 +166,11 @@ plt.show()
 cy5_angle = np.zeros(columns)
 for i in range(columns):
     if i not in todelete:
-        print(i)
+#        print(i)
         cy5_angle[i] = theta[np.where(avgdata[:,i] == np.max(avgdata[:,i]))][0]
 
 #plt.plot(cy5_angle,'-o')
-plt.hist(cy5_angle-90)
+plt.hist(cy5_angle)
 plt.show()
 
 #%% Determine the Relative_angle:
@@ -226,7 +228,7 @@ for i in range(len(difference)):
     else:
         relative_angle[i] = 180+difference[i]
 
-bines = len(diff_angles//2)
+bines = len(diff_angles)
 plt.hist(relative_angle, bins=bines, alpha=0.8)
 plt.hist(diff_angles, bins=bines, alpha=0.2)
 #print(diff_angles, "\n")
