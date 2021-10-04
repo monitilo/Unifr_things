@@ -17,18 +17,19 @@ import time as time
 #filename_inflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1_MMStack_Pos0.ome_locs_filter_lpxy_picked_centers.hdf5'
 #finelame_outflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1_MMStack_Pos0.ome_locs_filter_lpxy_picked_laterals.hdf5'
 
+DATAFROM = "Sample22"
+filename_inflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_488_picked_centers.hdf5'
+finelame_outflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_picked_laterals.hdf5'
 
-#filename_inflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_488_picked_centers.hdf5'
-#finelame_outflake = 'C:/Origami testing Widefield/2021-07-02/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_no_flake_1/sample22_picked_laterals.hdf5'
+#filename_inflake = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/Flake2_640nm_2.3mW_circular_optosplit_1/Flake2_cutted_forPicasso_locs.hdf5'
+#finelame_outflake = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/Flake2_640nm_2.3mW_circular_optosplit_1/Origamis picked info.hdf5'
+#
+#filename_inflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/Glass3_cuttedforPicasso_locs.hdf5'
+#finelame_outflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/origamis picked info.hdf5'
 
-filename_inflake = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/Flake2_640nm_2.3mW_circular_optosplit_1/Flake2_cutted_forPicasso_locs.hdf5'
-finelame_outflake = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/Flake2_640nm_2.3mW_circular_optosplit_1/Origamis picked info.hdf5'
-
-filename_inflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/Glass3_cuttedforPicasso_locs.hdf5'
-finelame_outflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/origamis picked info.hdf5'
-
-names = [filename_inflake, finelame_outflake, filename_inflake2, finelame_outflake2]
-samples = ["Flake2_complete", "flake2_origamis", "glass3_complete", "glass3_origamis"]
+names = [filename_inflake, finelame_outflake ]  #, filename_inflake2, finelame_outflake2]
+#samples = ["Flake2_complete", "flake2_origamis"]  # , "glass3_complete", "glass3_origamis"]
+samples = ["Flake2_centers", "flake2_ laterals"]  # , "glass3_complete", "glass3_origamis"]
 
 import h5py
 
@@ -142,8 +143,8 @@ Circle3 = 21.2 x 16.8 um Diameter ==> 164 x 128 pix aprox
 Circle4 = 26.5 x 21.0 um Diameter ==> 205 x 160 pix aprox
 """
 
-xc = 335//2  # 77
-yc = 256//2  # 77
+xc = 77 # 335//2  # 77
+yc = 77 # 256//2  # 77
 pixsize = 130  # 130
 sigmax_laser = 5300  #  5300
 sigmay_laser = 4200  #  4200
@@ -236,16 +237,27 @@ for c in range((N_circles)):
     
     
 #%%
+import os
 #s, c = 0, 0
-rango = (0, 3000)
+rango = (0, 5000)
 bines= 100
 #h1 = plt.hist(finaldata[samples[s]][photons_circles[c]], bins=200, range=rango, alpha=0.5)
 #s, c = 1, 0
+folder_path = "C:/Projects/FLAKES/Figuras Intensidad circles"
+
 for c in range((N_circles)):
-    for s in range(2,3):  #range(1,len(samples)-1):
+    figure_name = '{}_Glass_circle{}'.format(DATAFROM,c)
+    plt.figure(figure_name)
+    for s in range(len(samples)):  #range(1,len(samples)-1):
         h1 = plt.hist(finaldata[samples[s]][photons_circles[c]], bins=bines, range=rango, alpha=0.5, density=True, label="sample{}_circle{}".format(samples[s], c))
         plt.legend()
-plt.show()
+    plt.show()
+    figure_path = os.path.join(folder_path, '%s.png' % figure_name)
+    plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
+    plt.close()
+
+
+
 
 #%% Until here it was the circular stuff for the gaussian
         # Now is fitting to get the max of the photons in each of them
