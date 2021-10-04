@@ -147,7 +147,7 @@ try:
 except: pass
 #except IOError as e:
 #    print("I/O error({0}): {1}".format(e.errno, e.strerror))
-    
+plt.show()
     
 #%% Delete the ones That look bad
 todelete = [3,7,17]
@@ -155,7 +155,7 @@ todelete = [3,7,17]
 avgdata[:,todelete] = np.nan
 plt.plot(avgdata[:,1:5])
 plt.legend([1,2,3,4,5])
-
+plt.show()
 #%% Find the max of each trace
 
 #plt.plot(theta,avgdata[:,2])
@@ -194,17 +194,37 @@ for i in range(len(origami_angle_m)):
 Then, calculate the difference between origami_angle_ok and cy5_angle
 """
 difference = cy5_angle-origami_angle_ok
+#
+#"""
+#difference goes between -180_180 les change it to 0_180
+#"""
+#
+#relative_angle = np.copy(difference)
+#for i in range(len(difference)):
+#    if difference[i] > (-180):
+#        relative_angle[i] = abs(difference[i])
+#    else:
+#        relative_angle[i] = abs(180+difference[i])
+#
+#bines = len(diff_angles//2)
+#plt.hist(relative_angle, bins=bines, alpha=0.8)
+#plt.hist(diff_angles, bins=bines, alpha=0.2)
+##print(diff_angles, "\n")
+
 
 """
-difference goes between -180_180 les change it to 0_180
+difference goes between -180_180 les change it to 0_180, NEW version 01.10
 """
+
 
 relative_angle = np.copy(difference)
 for i in range(len(difference)):
-    if difference[i] > (-180):
-        relative_angle[i] = abs(difference[i])
+    if difference[i] > (0):
+        relative_angle[i] = difference[i]
+    elif difference[i]< (-180):
+        relative_angle[i] = abs(360+difference[i])
     else:
-        relative_angle[i] = abs(180+difference[i])
+        relative_angle[i] = 180+difference[i]
 
 bines = len(diff_angles//2)
 plt.hist(relative_angle, bins=bines, alpha=0.8)
