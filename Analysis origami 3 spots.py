@@ -16,27 +16,23 @@ folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center"
 
 DATAFROM = "Sample22_2lvlBiotin2"
 
-filename_1 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/1_left-center-right.hdf5'
-filename_2 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/2_left-center-right.hdf5'
-filename_3 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/3_left-center-right.hdf5'
-filename_4 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/4_left-center-right.hdf5'
-filename_5 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/5_left-center-right.hdf5'
-filename_6 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/6_left-center-right.hdf5'
-filename_7 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/7_left-center-right.hdf5'
-filename_8 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/8_left-center-right.hdf5'
-filename_9 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/9_left-center-right.hdf5'
-filename_10 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/10_left-center-right.hdf5'
-filename_11 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/11_left-center-right.hdf5'
-
-
-
+#filename_1 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/1_left-center-right.hdf5'
+#filename_2 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/2_left-center-right.hdf5'
+#filename_3 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/3_left-center-right.hdf5'
+#filename_4 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/4_left-center-right.hdf5'
+#filename_5 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/5_left-center-right.hdf5'
+#filename_6 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/6_left-center-right.hdf5'
+#filename_7 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/7_left-center-right.hdf5'
+#filename_8 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/8_left-center-right.hdf5'
+#filename_9 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/9_left-center-right.hdf5'
+#filename_10 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/10_left-center-right.hdf5'
+#filename_11 = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/11_left-center-right.hdf5'
 
 #names = [filename_2, filename_3, filename_4, filename_5, filename_6, filename_7, filename_8, filename_9, filename_10, filename_11]  
 
 #samples = ["left", "center", "right"]  # , "glass3_complete", "glass3_origamis"]
 
 #samples = ["origami_2","origami_3","origami_4","origami_5","origami_6","origami_7","origami_8","origami_9","origami_10","origami_11"]
-
 
 origin_folder_name = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/'
 nsamples = 10
@@ -88,6 +84,7 @@ finaldata = dict()
 finalphotons = dict()
 
 subgroups = ["left", "center", "right"]
+
 for l in range(len(samples)):
     data = files[l]
     tic = time.time()
@@ -153,13 +150,187 @@ for l in range(len(samples)):
     plt.gca().get_xticklabels()[-2].set_color('red')
     #    plt.xticks()
     figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
-    plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
+#    plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
 
     plt.show()
     plt.close()
 
     
     
+    
+#%%
+    
+#%%
+#%%
+#%%
+#%%
+#%%
+    
+#%%
+#%%
+#%%
+#%%
+
+#%%
+    
+#%%
+#%%
+#%%
+#%%
+
+#%%
+    
+#%%
+#%%
+#%%
+#%%
+
+
+
+
+#%% Change to pick only once, in order (left center right)
+
+import numpy as np
+import matplotlib.pyplot as plt
+import time as time
+import os
+
+folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center"
+
+DATAFROM = "Sample22_2lvlBiotin2_automatic"
+
+names = ['C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_85 origamis.hdf5']
+
+
+import h5py
+
+tic = time.time()
+
+files = dict()
+for n in range(len(names)):
+    with h5py.File(names[n], "r") as f:
+        # List all groups
+        print("Keys: %s" % f.keys())
+        a_group_key = list(f.keys())[0]
+    
+        # Get the data
+        data_inflake = list(f[a_group_key])
+        files[n] = list(f[a_group_key])
+    print("time one load = ", time.time()-tic)
+
+#tac = time.time()
+#with h5py.File(finelame_outflake, "r") as f:
+#    # List all groups
+#    print("Keys: %s" % f.keys())
+#    a_group_key = list(f.keys())[0]
+#
+#    # Get the data
+#    data_outflake = list(f[a_group_key])
+
+print("time total load = ", time.time()-tic)
+#files = [data_inflake,data_outflake]
+#files = [data_outflake]
+
+#%% 
+
+
+nsamples = 85
+samples = []
+for i in range(1,nsamples+1):
+    samples.append("origami_{}".format(i))
+
+
+parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
+
+finaldata = dict()
+finalphotons = dict()
+
+subgroups = ["left", "center", "right"]*nsamples
+
+#for l in range(len(samples)):
+for l in range(1):
+    data = files[l]
+    tic = time.time()
+
+    alldata = dict()
+#    alldata[parameters[0]]  = np.zeros([len(data)])
+#    alldata[parameters[1]]  = np.zeros([len(data)])
+#    alldata[parameters[2]]  = np.zeros([len(data)])
+#    alldata[parameters[3]]  = np.zeros([len(data)])
+#    alldata[parameters[4]]  = np.zeros([len(data)])
+#    alldata[parameters[5]]  = np.zeros([len(data)])
+#    alldata[parameters[6]]  = np.zeros([len(data)])
+#    alldata[parameters[7]]  = np.zeros([len(data)])
+#    alldata[parameters[8]]  = np.zeros([len(data)])
+#    alldata[parameters[9]]  = np.zeros([len(data)])
+#    alldata[parameters[10]] = np.zeros([len(data)])
+#    alldata[parameters[11]] = np.zeros([len(data)])
+
+    photons = dict()
+    for g in range(len(subgroups)):
+        photons[g] = []  # left 0, 3, 6, 9, ... 
+        photons[g] = []  # center 1, 4, 7, 10, ...
+        photons[g] = []  # right 2, 5, 8, 11, ...
+        for j in range(len(data)):
+        #    frame.append(data[j][0])
+#            alldata[parameters[0]][j]  = (data[j][0])  # Frames
+#            alldata[parameters[1]][j]  = (data[j][1])  # x
+#            alldata[parameters[2]][j]  = (data[j][2])  # y
+#            alldata[parameters[3]][j]  = (data[j][3])  # photons
+#            alldata[parameters[4]][j]  = (data[j][4])  # sx
+#            alldata[parameters[5]][j]  = (data[j][5])  # sy
+#            alldata[parameters[6]][j]  = (data[j][6])  # bg
+#            alldata[parameters[7]][j]  = (data[j][7])  # lpx
+#            alldata[parameters[8]][j]  = (data[j][8])  # lpy
+#            alldata[parameters[9]][j]  = (data[j][9])  # ellipticity
+#            alldata[parameters[10]][j] = (data[j][10])  # net_gradient
+#            alldata[parameters[11]][j] = (data[j][11])  # group
+            if (data[j][11]) == g:
+                photons[g].append((data[j][3]))
+
+
+    print( time.time()-tic)
+
+    h1 = plt.hist(photons[g], bins=200, range=(0,3000))
+
+
+
+
+#    finaldata[samples[l]] = alldata
+    finalphotons[samples[l]] = photons
+plt.show()
+#%%
+h1 = plt.hist(photons[0], bins=50, range=(0,3000), density=True, alpha=0.5,
+                      label=(str(i)+subgroups[i]+" "+str(len(finalphotons[samples[l]][i]))+" locs"))
+#%%
+#for l in range(len(samples)):
+
+multi3 = ((np.arange(nsamples)+1)*3)-1
+
+Norigami = 0
+for l in range(1):
+    figure_name = '{}_{}'.format(DATAFROM, samples[l])
+    plt.title(figure_name)
+    for i in range(len(subgroups)):
+        h1 = plt.hist(finalphotons[samples[l]][i], bins=30, range=(0,3000), density=True, alpha=0.5,
+                      label=(str(i)+subgroups[i]+" "+str(len(finalphotons[samples[l]][i]))+" locs"))
+        if i in multi3: 
+#            print(i)
+            Norigami += 1
+            figure_name = '{}_{}'.format(DATAFROM, Norigami)
+            plt.title(figure_name)
+            plt.legend()
+            plt.xlabel("photons")
+            plt.gca().get_xticklabels()[-2].set_color('red')
+#            plt.xticks()
+            figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
+            plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
+        
+            plt.show()
+            plt.close()
+
+    
+# TODO: que el scrip sepa solo cuantos origmais hay. groups[-1]//3 tendria que andar
     
 
 #%%
