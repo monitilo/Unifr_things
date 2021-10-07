@@ -146,15 +146,15 @@ for l in range(len(samples)):
     figure_name = '{}_{}'.format(DATAFROM, samples[l])
     plt.title(figure_name)
     for i in range(len(subgroups)):
-        h1 = plt.hist(finalphotons[samples[l]][subgroups[i]], bins=50, range=(0,4000), density=True, alpha=0.5,
+        h1 = plt.hist(finalphotons[samples[l]][subgroups[i]], bins=50, range=(0,3000), density=True, alpha=0.5,
                       label=(subgroups[i]+" "+str(len(finalphotons[samples[l]][subgroups[i]]))+" points"))
     plt.legend()
     plt.xlabel("photons")
+    plt.gca().get_xticklabels()[-2].set_color('red')
+    #    plt.xticks()
     figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
-#    plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
-    h1 = plt.hist(finalphotons[samples[l]][subgroups[i]], bins=50, range=(0,4000), density=True, alpha=0.5,
-                  label=(subgroups[i]+" "+str(len(finalphotons[samples[l]][subgroups[i]]))+" points"))
-    plt.xticks(color="red")
+    plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
+
     plt.show()
     plt.close()
 
