@@ -22,9 +22,9 @@ folder_path = "C:/Projects/FLAKES/Figuras Intensidad circles"
 #filename_inflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1/sample22_488_picked_centers.hdf5'
 #finelame_outflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_1/sample22_488_picked_laterals.hdf5'
 
-DATAFROM = "Sample22_Flake2"
-filename_inflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/sample22_488_picked_centers.hdf5'
-finelame_outflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/sample22_488_picked_laterals.hdf5'
+#DATAFROM = "Sample22_Flake2"
+#filename_inflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/sample22_488_picked_centers.hdf5'
+#finelame_outflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/sample22_488_picked_laterals.hdf5'
 
 #DATAFROM = "Sample22_Flake3"
 #filename_inflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_3/sample22_488_picked_centers.hdf5'
@@ -39,6 +39,9 @@ finelame_outflake = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sam
 #
 #filename_inflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/Glass3_cuttedforPicasso_locs.hdf5'
 #finelame_outflake2 = 'C:/Origami testing Widefield/2029-09-23 Sample 35 NO-ssDNA Pyrene/glass3_640nm_2.3mW_circular_optosplit_1/origamis picked info.hdf5'
+
+DATAFROM = "Test"
+
 
 names = [filename_inflake, finelame_outflake ]  #, filename_inflake2, finelame_outflake2]
 #samples = ["Flake2_complete", "flake2_origamis"]  # , "glass3_complete", "glass3_origamis"]
