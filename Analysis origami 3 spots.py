@@ -146,13 +146,14 @@ DATAFROM = "Sample22_2lvlBiotin2_Filtered_{}_{}%".format(threshold, int(delta*10
 #for i in range(1,nsamples+1):
 #    samples.append("origami_{}".format(i))
 #subgroups = ["left", "center", "right"]*nsamples
-
+mean_values = np.zeros(len(photons_of_groups))
 multi3 = ((np.arange(nsamples)+1)*3)-1
 good_origamis = []
 for i in range(len(photons_of_groups)):
     if i in simetric_picks:
         h1 = plt.hist(photons_of_groups[i], bins=30, range=(0,3000), density=True, alpha=0.5,
                       label=(str(i)+subgroups[i]+" "+str(len(photons_of_groups[i]))+" locs"))
+        mean_values[i] = np.mean(photons_of_groups[i])
         if i in multi3: 
     #            print(i)
             Norigami = (i+1)//3
@@ -166,40 +167,51 @@ for i in range(len(photons_of_groups)):
             plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
             plt.show()
             plt.close()
-            good_origamis.append(i)
+            good_origamis.append(Norigami)
 print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
 
 
 #%% Now do analysis of the good ones only
 
-mean_values = np.zeros(len(photons_of_groups))
-good_origamis = []
-for i in range(len(photons_of_groups)):
+#mean_values = np.zeros(len(photons_of_groups))
+
+left_picks = np.arange(0,len(photons_of_groups),3)
+#center_picks = np.arange(1,len(photons_of_groups),3)
+#right_picks = np.arange(2,len(photons_of_groups),3)
+
+#multiples3 = (np.arange(nsamples))*3 is above
+
+
+
+for i in left_picks:  # in multiples3:
     if i in simetric_picks:
-        h1 = plt.hist(photons_of_groups[i], bins=30, range=(0,3000), density=True, alpha=0.5,
-                      label=(str(i)+subgroups[i]+" "+str(len(photons_of_groups[i]))+" locs"))
-        mean_values[i] = np.mean(photons_of_groups[i])
+        left_mean = mean_values[i]
+        center_mean = mean_values[i+1]
+        right_mean = mean_values[i+2]
         
+        plt.plot(["left","center","right"],[left_mean, center_mean, right_mean],'*')
+#        h1 = plt.hist(photons_of_groups[i], bins=30, range=(0,3000), density=True, alpha=0.5,
+#                      label=(str(i)+subgroups[i]+" "+str(len(photons_of_groups[i]))+" locs"))
+#        mean_values[i] = np.mean(photons_of_groups[i])
+            
         if i in multi3:
             Norigami = (i+1)//3
-#            figure_name = '{}_{}'.format(DATAFROM, Norigami)
-#            plt.title(figure_name)
-#            plt.legend()
-#            plt.xlabel("photons")
-#            plt.gca().get_xticklabels()[-2].set_color('red')
-#    #            plt.xticks()
-##            figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
-##            plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
-#            plt.show()
-            plt.close()
-            good_origamis.append(i)
+            figure_name = '{}_{}'.format(DATAFROM, Norigami)
+            plt.title(figure_name)
+            plt.legend()
+    #            plt.xlabel("photons")
+    #            plt.gca().get_xticklabels()[-2].set_color('red')
+    ##            figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
+    ##            plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
+            plt.show()
+    #            plt.close()
 
-plt.plot(simetric_picks, mean_values[simetric_picks],'*-')
-plt.show()
-
-plt.hist(mean_values[good_picks], density=True,alpha=0.5)
-plt.hist(mean_values[good_origamis], density=True, color="red",alpha=0.5)
-plt.show()
+#plt.plot(simetric_picks, mean_values[simetric_picks],'*-')
+#plt.show()
+#
+#plt.hist(mean_values[good_picks], density=True,alpha=0.5)
+#plt.hist(mean_values[good_origamis], density=True, color="red",alpha=0.5)
+#plt.show()
 #%%
 
 
