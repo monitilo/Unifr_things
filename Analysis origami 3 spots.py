@@ -199,7 +199,7 @@ folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center"
 
 DATAFROM = "Sample22_2lvlBiotin2_automatic"
 
-names = ['C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_85 origamis.hdf5']
+names = ['C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_127 origamis.hdf5']
 
 
 import h5py
@@ -232,9 +232,33 @@ print("time total load = ", time.time()-tic)
 #files = [data_outflake]
 
 #%% 
+#%%
+#%% 
+#%%
+#%% 
+#%%
+#%% 
+#%%
+#%% 
+parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
+
+names = ['C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_15 origamis.hdf5']
+
+nametoload = names[0][:-5] + ".npz"
+with open(nametoload,"r") as f:
+    data = np.load(nametoload)  #,allow_pickle=True)
 
 
-nsamples = 85
+hout = plt.hist2d(data["x"],data["y"], bins=500)
+plt.colorbar(hout[3])
+
+
+#%%
+
+#nsamples = 85
+nsamples = int((data["group"][-1]+1)//3)
+print("{} different origamis".format(nsamples))
+
 samples = []
 for i in range(1,nsamples+1):
     samples.append("origami_{}".format(i))
@@ -242,96 +266,107 @@ for i in range(1,nsamples+1):
 
 parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
 
-finaldata = dict()
-finalphotons = dict()
-
 subgroups = ["left", "center", "right"]*nsamples
 
 #for l in range(len(samples)):
-for l in range(1):
-    data = files[l]
-    tic = time.time()
 
-    alldata = dict()
-#    alldata[parameters[0]]  = np.zeros([len(data)])
-#    alldata[parameters[1]]  = np.zeros([len(data)])
-#    alldata[parameters[2]]  = np.zeros([len(data)])
-#    alldata[parameters[3]]  = np.zeros([len(data)])
-#    alldata[parameters[4]]  = np.zeros([len(data)])
-#    alldata[parameters[5]]  = np.zeros([len(data)])
-#    alldata[parameters[6]]  = np.zeros([len(data)])
-#    alldata[parameters[7]]  = np.zeros([len(data)])
-#    alldata[parameters[8]]  = np.zeros([len(data)])
-#    alldata[parameters[9]]  = np.zeros([len(data)])
-#    alldata[parameters[10]] = np.zeros([len(data)])
-#    alldata[parameters[11]] = np.zeros([len(data)])
+tic = time.time()
 
-    photons = dict()
-    for g in range(len(subgroups)):
-        photons[g] = []  # left 0, 3, 6, 9, ... 
-        photons[g] = []  # center 1, 4, 7, 10, ...
-        photons[g] = []  # right 2, 5, 8, 11, ...
-        for j in range(len(data)):
-        #    frame.append(data[j][0])
-#            alldata[parameters[0]][j]  = (data[j][0])  # Frames
-#            alldata[parameters[1]][j]  = (data[j][1])  # x
-#            alldata[parameters[2]][j]  = (data[j][2])  # y
-#            alldata[parameters[3]][j]  = (data[j][3])  # photons
-#            alldata[parameters[4]][j]  = (data[j][4])  # sx
-#            alldata[parameters[5]][j]  = (data[j][5])  # sy
-#            alldata[parameters[6]][j]  = (data[j][6])  # bg
-#            alldata[parameters[7]][j]  = (data[j][7])  # lpx
-#            alldata[parameters[8]][j]  = (data[j][8])  # lpy
-#            alldata[parameters[9]][j]  = (data[j][9])  # ellipticity
-#            alldata[parameters[10]][j] = (data[j][10])  # net_gradient
-#            alldata[parameters[11]][j] = (data[j][11])  # group
-            if (data[j][11]) == g:
-                photons[g].append((data[j][3]))
+photons = dict()
+for g in range(len(subgroups)):
+    photons[g] = []  # left 0, 3, 6, 9, ... 
+    photons[g] = []  # center 1, 4, 7, 10, ...
+    photons[g] = []  # right 2, 5, 8, 11, ...
+    for j in range(len(data["photons"])):
+        if (data["group"][j]) == g:
+            photons[g].append((data["photons"][j]))
+
 
 
     print( time.time()-tic)
 
-    h1 = plt.hist(photons[g], bins=200, range=(0,3000))
+    h1 = plt.hist(photons[g], bins=30)#, range=(0,3000))
 
-
-
-
-#    finaldata[samples[l]] = alldata
-    finalphotons[samples[l]] = photons
 plt.show()
-#%%
-h1 = plt.hist(photons[0], bins=50, range=(0,3000), density=True, alpha=0.5,
-                      label=(str(i)+subgroups[i]+" "+str(len(finalphotons[samples[l]][i]))+" locs"))
+##%%
+#h1 = plt.hist(photons[0], bins=50, range=(0,3000), density=True, alpha=0.5,
+#                      label=(str(i)+subgroups[i]+" "+str(len(photons[samples[l]][i]))+" locs"))
 #%%
 #for l in range(len(samples)):
 
 multi3 = ((np.arange(nsamples)+1)*3)-1
 
 Norigami = 0
-for l in range(1):
-    figure_name = '{}_{}'.format(DATAFROM, samples[l])
-    plt.title(figure_name)
-    for i in range(len(subgroups)):
-        h1 = plt.hist(finalphotons[samples[l]][i], bins=30, range=(0,3000), density=True, alpha=0.5,
-                      label=(str(i)+subgroups[i]+" "+str(len(finalphotons[samples[l]][i]))+" locs"))
-        if i in multi3: 
+plt.title(figure_name)
+for i in range(len(subgroups)):
+    h1 = plt.hist(photons[i], bins=30, range=(0,3000), density=True, alpha=0.5,
+                  label=(str(i)+subgroups[i]+" "+str(len(photons[i]))+" locs"))
+    if i in multi3: 
 #            print(i)
-            Norigami += 1
-            figure_name = '{}_{}'.format(DATAFROM, Norigami)
-            plt.title(figure_name)
-            plt.legend()
-            plt.xlabel("photons")
-            plt.gca().get_xticklabels()[-2].set_color('red')
+        Norigami += 1
+        figure_name = '{}_{}'.format(DATAFROM, Norigami)
+        plt.title(figure_name)
+        plt.legend()
+        plt.xlabel("photons")
+        plt.gca().get_xticklabels()[-2].set_color('red')
 #            plt.xticks()
-            figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
-            plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
-        
-            plt.show()
-            plt.close()
+        figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
+#        plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
+    
+        plt.show()
+        plt.close()
 
+
+#%%
+for i in range(3):
+    plt.plot(photons[i])
+
+np.mean(photons[i])
+plt.hist(photons[i])
+len(photons[i])
+
+multi3 = (np.arange(nsamples))*3
+for i in range(len(photons)):
+    if len(photons[i]) < 400:
+        photons[i] = photons[i]*0
     
-# TODO: que el scrip sepa solo cuantos origmais hay. groups[-1]//3 tendria que andar
-    
+
+
+
+#%%
+
+# =============================================================================
+# theta = np.linspace(61.41, 61.5, 10)
+# crit = 61.4
+# #np.sin(np.deg2rad(90))
+# 
+# multiplicaA = 488/(4*np.pi*1.52)
+# 
+# aux = np.sqrt(np.sin(np.deg2rad(theta))**2 - np.sin(np.deg2rad(crit))**2)
+# 
+# d = multiplicaA *(aux**-1)
+# plt.plot(theta, d, '.-')
+# plt.title("d")
+# plt.show()
+# z = 20
+# np.exp(z/d)
+# 
+# plt.plot((theta),np.exp(z/d), '.-', color="orange")
+# plt.title("exp(20/d)")
+# plt.show()
+# 
+# 
+# #%%
+# dataorigin = [2.9, 3.34, 3.54, 3.69, 3.79]
+# plt.plot(dataorigin,np.rad2deg(np.arctan(dataorigin)),'.-')
+# 
+# x = np.rad2deg(np.arctan(dataorigin))[-1] - np.rad2deg(np.arctan(dataorigin))[0]
+# y = dataorigin[-1] - dataorigin[0]
+# 
+# y/x
+# =============================================================================
+
+
 
 #%%
 # =============================================================================
