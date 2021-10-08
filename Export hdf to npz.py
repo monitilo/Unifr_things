@@ -14,7 +14,7 @@ import os
 
 #folder_path = "C:/Projects/FLAKES/Figuras Intensidad circles"
 
-filename = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_85 origamis.hdf5'
+filename = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_127 origamis.hdf5'
 
 #DATAFROM = "Test"
 
@@ -131,14 +131,8 @@ with open(nametosave,"w") as f:
     
 #%%
 
-for g in range(len(subgroups)):
-    h1 = plt.hist(photons[subgroups[g]], bins=200, range=(0,3000))
-
 
 #%%
-
-
-
 
 
 
