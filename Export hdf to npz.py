@@ -65,7 +65,6 @@ parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ell
 
 samples = [1]
 finaldata = dict()
-subgroups = ["left", "center", "right"]
 
 for l in range(len(samples)):
     data = files[l]
@@ -84,27 +83,22 @@ for l in range(len(samples)):
     alldata[parameters[9]]  = np.zeros([len(data)])
     alldata[parameters[10]] = np.zeros([len(data)])
     alldata[parameters[11]] = np.zeros([len(data)])
-    photons = dict()
-    for g in range(len(subgroups)):
-        photons[subgroups[g]] = []  # left
-        photons[subgroups[g]] = []  # center
-        photons[subgroups[g]] = []  # right
-        for j in range(len(data)):
-        #    frame.append(data[j][0])
-            alldata[parameters[0]][j]  = (data[j][0])  # Frames
-            alldata[parameters[1]][j]  = (data[j][1])  # x
-            alldata[parameters[2]][j]  = (data[j][2])  # y
-            alldata[parameters[3]][j]  = (data[j][3])  # photons
-            alldata[parameters[4]][j]  = (data[j][4])  # sx
-            alldata[parameters[5]][j]  = (data[j][5])  # sy
-            alldata[parameters[6]][j]  = (data[j][6])  # bg
-            alldata[parameters[7]][j]  = (data[j][7])  # lpx
-            alldata[parameters[8]][j]  = (data[j][8])  # lpy
-            alldata[parameters[9]][j]  = (data[j][9])  # ellipticity
-            alldata[parameters[10]][j] = (data[j][10])  # net_gradient
-            alldata[parameters[11]][j] = (data[j][11])  # group
-            if (data[j][11]) == g:
-                photons[subgroups[g]].append((data[j][3]))
+
+    for j in range(len(data)):
+    #    frame.append(data[j][0])
+        alldata[parameters[0]][j]  = (data[j][0])  # Frames
+        alldata[parameters[1]][j]  = (data[j][1])  # x
+        alldata[parameters[2]][j]  = (data[j][2])  # y
+        alldata[parameters[3]][j]  = (data[j][3])  # photons
+        alldata[parameters[4]][j]  = (data[j][4])  # sx
+        alldata[parameters[5]][j]  = (data[j][5])  # sy
+        alldata[parameters[6]][j]  = (data[j][6])  # bg
+        alldata[parameters[7]][j]  = (data[j][7])  # lpx
+        alldata[parameters[8]][j]  = (data[j][8])  # lpy
+        alldata[parameters[9]][j]  = (data[j][9])  # ellipticity
+        alldata[parameters[10]][j] = (data[j][10])  # net_gradient
+        alldata[parameters[11]][j] = (data[j][11])  # group
+
 
     print( time.time()-tic)
 
@@ -128,20 +122,3 @@ with open(nametosave,"w") as f:
 #nametoload = names[0][:-5] + ".npz"
 #with open(nametoload,"r") as f:
 #    data = np.load(nametoload)
-    
-#%%
-
-
-#%%
-
-
-
-
-
-
-
-
-
-
-
-
