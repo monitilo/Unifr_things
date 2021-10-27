@@ -5,16 +5,17 @@ Created on Tue Jun 15 18:41:42 2021
 @author: chiarelg
 """
 
+#%% Here I take the data and bin it by 25
+
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy, scipy.optimize
 
 
-#%% Here I take the data and bin it by 25
-
-
 filename = 'C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/b 2bp _traces-45.txt'
 data = np.loadtxt(filename)
+
+file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt',skiprows=1)
 
 length=data.shape[0]
 columns=data.shape[1]
@@ -50,9 +51,6 @@ for i in range(columns):
 # =============================================================================
 
 
-
-
-
 # =============================================================================
 # Find the max of each trace (old method. Now we use the fit)
 # cy5_angle = np.zeros(columns)
@@ -81,8 +79,19 @@ plot_columns =  5  #  int(np.sqrt(columns))
 plot_files =  4  #   int(np.ceil(columns/plot_columns))
 graphs = int(np.ceil(columns / (plot_columns*plot_files)))
 
-fits = dict()
 
+origami_number = np.zeros(len(file_origami[:,0]),dtype=int)
+for i in range(len(origami_number)):
+    origami_number[i] = int(file_origami[i,0])
+
+origami_angle_m = file_origami[:,1]
+
+all_posibles_oris = np.arange(columns)
+
+not_in_superres = np.delete(all_posibles_oris, origami_number)
+
+
+fits = dict()
 x=theta
 def my_sin2(t,peroid,amplitude,phase,offset):
            return (amplitude*(sp.sin((t-phase)*sp.pi/peroid)))**2 + offset
@@ -95,24 +104,25 @@ try:
         fig, axs = plt.subplots(plot_files, plot_columns)
         for i in range(plot_files):
             for j in range(plot_columns):
-                V = avgdata[:,t]
-                
-                guess_peroid= 180
-                guess_amplitude = np.max(V)/2.
-                minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
-                guess_phase = minimo
-                guess_offset = 2
-                guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
-                p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
-                fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
-                data_fit = my_sin2(x1,*fit[0])
-
-                fits[t] = fit[0]  # fit[0] = Period, amplitud, phase, offset
-
-                axs[i,j].plot(x, V, linewidth=2,
-                               label="{}".format((t)))
-                axs[i,j].plot(x1, data_fit, "r--", linewidth=1)  # ,
-                axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
+                if t not in not_in_superres:
+                    V = avgdata[:,t]
+                    
+                    guess_peroid= 180
+                    guess_amplitude = np.max(V)/2.
+                    minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
+                    guess_phase = minimo
+                    guess_offset = 2
+                    guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
+                    p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
+                    fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
+                    data_fit = my_sin2(x1,*fit[0])
+    
+                    fits[t] = fit[0]  # fit[0] = Period, amplitud, phase, offset
+    
+                    axs[i,j].plot(x, V, linewidth=2,
+                                   label="{}".format((t)))
+                    axs[i,j].plot(x1, data_fit, "r--", linewidth=1)  # ,
+                    axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
                 t+=1
 except: pass
 #except IOError as e:
@@ -122,10 +132,13 @@ plt.show()
 
 #%% Delete the ones That look bad
 
-todelete = [15]  # [37,9]
+
+add_to_delete = [11, 16]
 
 
-cy5_angle = np.zeros(columns)-1
+todelete = np.sort(np.concatenate((not_in_superres, add_to_delete)))
+
+cy5_angle = np.zeros(columns)
 
 try:
     t=0
@@ -163,17 +176,7 @@ first: change the angle range from -180 _ 180 to 0_360
 Colum 1: #traces  || column2: origamis_angles_m
 """
 
-file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt',skiprows=1) #  fake data np.copy(cy5_angle)
 
-origami_number = np.zeros(len(file_origami[:,0]),dtype=int)
-for i in range(len(origami_number)):
-    origami_number[i] = int(file_origami[i,0])
-
-origami_angle_m = file_origami[:,1]
-#diff_angles = np.zeros(len(cy5_angle))
-#for i in range(len(origami_angle_m)):
-#    diff_angles[i] =  (np.random.rand()*180)*(-1)**i
-#    origami_angle_m[i] = cy5_angle[i] + diff_angles[i]
 
 
 origami_angle_ok = np.copy(origami_angle_m)
@@ -187,6 +190,9 @@ for i in range(len(origami_angle_m)):
 """
 Then, calculate the difference between origami_angle_ok and cy5_angle
 """
+
+
+good_origamis = np.delete(origami_number, add_to_delete)
 
 difference = np.zeros(len(origami_number))
 for p in range(len(origami_number)):
