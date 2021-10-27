@@ -138,11 +138,12 @@ add_to_delete = [11, 16]
 #todelete = np.sort(np.concatenate((not_in_superres, add_to_delete)))
 
 good_origamis = np.copy(origami_number)
+origami_angle_minus = np.copy(origami_angle_m)
 
 for i in range(len(add_to_delete)):
 #    print(i,add_to_delete[i])
+    origami_angle_minus = np.delete(origami_angle_minus, np.where(good_origamis == add_to_delete[i])[0])
     good_origamis = np.delete(good_origamis, np.where(good_origamis == add_to_delete[i])[0])
-
 
 cy5_angle = np.zeros(columns)
 
@@ -185,13 +186,13 @@ Colum 1: #traces  || column2: origamis_angles_m
 
 
 
-origami_angle_ok = np.copy(origami_angle_m)
+origami_angle_ok = np.copy(origami_angle_minus)
 
-for i in range(len(origami_angle_m)):
-    if origami_angle_m[i] < 0:
-        origami_angle_ok[i] = 360 + origami_angle_m[i]
+for i in range(len(origami_angle_ok)):
+    if origami_angle_ok[i] < 0:
+        origami_angle_ok[i] = 360 + origami_angle_minus[i]
     else:
-        origami_angle_ok[i] = origami_angle_m [i]  # dah
+        origami_angle_ok[i] = origami_angle_minus[i]  # dah
 
 """
 Then, calculate the difference between origami_angle_ok and cy5_angle
@@ -234,10 +235,10 @@ for i in range(len(difference)):
     else:
         relative_angle[i] = 180+difference[i]
 
-bines = len(relative_angle)//4
-plt.hist(relative_angle, bins=bines, alpha=0.8, label="relative")
-#plt.hist(diff_angles, bins=bines, alpha=0.3, label="dif from sr")
-plt.hist(cy5_angle[good_origamis], bins=bines, alpha=0.3, label="cy5 angle")
+bines = len(relative_angle)//2
+plt.hist(relative_angle, bins=bines, alpha=0.8, label="Relative")
+plt.hist(origami_angle_ok, bins=bines, alpha=0.3, label="SuperRes_Angles")
+plt.hist(cy5_angle[good_origamis], bins=bines, alpha=0.3, label="Cy5 angle")
 plt.legend()
 #print(diff_angles, "\n")
 
@@ -255,9 +256,9 @@ plt.show()
 
 
 
-np.savetxt(filename[:-4] + "_Angle_diff.txt", tosavefinaldata, fmt='%.1f')
+np.savetxt(filename[:-4] + "_Angle_diff.txt", tosavefinaldata, fmt='%.d' +'\t'+ '%.1f', delimiter='\t')
 
-print("final data saved as" + filename[:-4] + "_Angle_diff.txt" )
+print("final data saved as " + filename[:-4] + "_Angle_diff.txt")
 
 #%% 
 
