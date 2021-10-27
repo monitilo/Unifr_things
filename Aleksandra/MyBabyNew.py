@@ -86,9 +86,9 @@ for i in range(len(origami_number)):
 
 origami_angle_m = file_origami[:,1]
 
-all_posibles_oris = np.arange(columns)
-
-not_in_superres = np.delete(all_posibles_oris, origami_number)
+#all_posibles_oris = np.arange(columns)
+#
+#not_in_superres = np.delete(all_posibles_oris, origami_number)
 
 
 fits = dict()
@@ -104,7 +104,7 @@ try:
         fig, axs = plt.subplots(plot_files, plot_columns)
         for i in range(plot_files):
             for j in range(plot_columns):
-                if t not in not_in_superres:
+                if t in origami_number:
                     V = avgdata[:,t]
                     
                     guess_peroid= 180
@@ -135,8 +135,14 @@ plt.show()
 
 add_to_delete = [11, 16]
 
+#todelete = np.sort(np.concatenate((not_in_superres, add_to_delete)))
 
-todelete = np.sort(np.concatenate((not_in_superres, add_to_delete)))
+good_origamis = np.copy(origami_number)
+
+for i in range(len(add_to_delete)):
+#    print(i,add_to_delete[i])
+    good_origamis = np.delete(good_origamis, np.where(good_origamis == add_to_delete[i])[0])
+
 
 cy5_angle = np.zeros(columns)
 
@@ -146,7 +152,7 @@ try:
         fig, axs = plt.subplots(plot_files, plot_columns)
         for i in range(plot_files):
             for j in range(plot_columns):
-                if t not in todelete:
+                if t  in good_origamis:
                     V = avgdata[:,t]
                     
                     data_fit = my_sin2(x1,*fits[t])
@@ -192,11 +198,9 @@ Then, calculate the difference between origami_angle_ok and cy5_angle
 """
 
 
-good_origamis = np.delete(origami_number, add_to_delete)
-
-difference = np.zeros(len(origami_number))
-for p in range(len(origami_number)):
-    difference[p] = cy5_angle[int(origami_number[p])] - origami_angle_ok[p]
+difference = np.zeros(len(good_origamis))
+for p in range(len(good_origamis)):
+    difference[p] = cy5_angle[int(good_origamis[p])] - origami_angle_ok[p]
 
 #
 #"""
@@ -233,7 +237,7 @@ for i in range(len(difference)):
 bines = len(relative_angle)//4
 plt.hist(relative_angle, bins=bines, alpha=0.8, label="relative")
 #plt.hist(diff_angles, bins=bines, alpha=0.3, label="dif from sr")
-plt.hist(cy5_angle[origami_number], bins=bines, alpha=0.3, label="cy5 angle")
+plt.hist(cy5_angle[good_origamis], bins=bines, alpha=0.3, label="cy5 angle")
 plt.legend()
 #print(diff_angles, "\n")
 
@@ -244,14 +248,16 @@ Colum 1: #traces  || column2: relative_angle || Column 3 modulation
     
 """
 
-tosavefinaldata = np.zeros(( file_origami.shape[0], 2))
-tosavefinaldata[:,0] = file_origami[:,0]
+tosavefinaldata = np.zeros(( len(good_origamis), 2))
+tosavefinaldata[:,0] = good_origamis
 tosavefinaldata[:,1] = relative_angle
+plt.show()
+
+
 
 np.savetxt(filename[:-4] + "_Angle_diff.txt", tosavefinaldata, fmt='%.1f')
 
 print("final data saved as" + filename[:-4] + "_Angle_diff.txt" )
 
-#%% Functions defined:
-
+#%% 
 
