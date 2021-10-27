@@ -8,28 +8,6 @@ Created on Tue Jun 15 18:41:42 2021
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy, scipy.optimize
-# =============================================================================
-# 
-# def fit_sin(tt, yy):
-#     '''Fit sin to the input time sequence, and return fitting parameters "amp", "omega", "phase", "offset", "freq", "period" and "fitfunc"'''
-#     tt = numpy.array(tt)
-#     yy = numpy.array(yy)
-#     ff = numpy.fft.fftfreq(len(tt), (tt[1]-tt[0]))   # assume uniform spacing
-#     Fyy = abs(numpy.fft.fft(yy))
-#     guess_freq = abs(ff[numpy.argmax(Fyy[1:])+1])/2  # excluding the zero frequency "peak", which is related to offset. Is /2 because is sin^2
-#     guess_amp = numpy.std(yy) * 2. **0.5  # it works
-#     guess_offset = numpy.mean(yy)*2
-#     guess = numpy.array([guess_amp, 2.*numpy.pi*guess_freq, 0., guess_offset])
-# 
-#     def sin2func(t, A, w, t0, y0):  return A * numpy.sin((np.pi/w)*(t-t0))**2 + y0
-#     popt, pcov = scipy.optimize.curve_fit(sin2func, tt, yy, p0=guess)
-#     A, w, t0, y0 = popt
-#     f =  w/(2.*numpy.pi)
-#     fitfunc = lambda t: A * numpy.sin((np.pi/w)*(t-t0))**2 + y0
-#     return {"amp": A, "period": w, "phase": t0, "offset": y0, "freq": f, "aaa": 1./f, "fitfunc": fitfunc, "maxcov": numpy.max(pcov), "rawres": (guess,popt,pcov)}
-# 
-# =============================================================================
-
 
 
 #%% Here I take the data and bin it by 25
@@ -65,50 +43,16 @@ for i in range(columns):
 # tosavedata[:,1:] = avgdata
 # 
 # np.savetxt('C:/Users/AdamczyA/Desktop/Pythons/Single_molecule/'+"average curves_"+name, tosavedata, fmt='%.3e')
-# =============================================================================
-
-
-#%%
-#load the data saved before if needed
-#avgdata = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/average curves_e 2bp_traces-39.txt')
-
-
-#for i in range(columns):
-#    plt.plot(theta, avgdata[:,i]) #Plot all the curves together
-#    print(np.mean(avgdata[:,i]))
-
-
-#%% Plot all of them in a matrix to see them easy
-
-# =============================================================================
-# plot_columns =  5  #  int(np.sqrt(columns))
-# plot_files =  4  #   int(np.ceil(columns/plot_columns))
-# graphs = int(np.ceil(columns / (plot_columns*plot_files)))
 # 
-# try:
-#     t=0
-#     for n in range(graphs):
-#         print("n",n)
-#         fig, axs = plt.subplots(plot_files, plot_columns)
-#         for i in range(plot_files):
-# #            print("i,j", i,j)
-#             for j in range(plot_columns):
-# #                print("i,j", i,j)
-# #                print("t",t)
-#                 axs[i,j].plot(theta, avgdata[:,t],
-#                                label="{}".format((t)))
-#         #        axs[j,i].set_title("main{}".format(i+plot_columns*j))
-#                 axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
-#                 t+=1
-# except: pass
-# #except IOError as e:
-# #    print("I/O error({0}): {1}".format(e.errno, e.strerror))
-# plt.show()
+# load the data saved before if needed
+# avgdata = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/average curves_e 2bp_traces-39.txt')
+# 
 # =============================================================================
 
 
 
-#%%
+
+
 # =============================================================================
 # Find the max of each trace (old method. Now we use the fit)
 # cy5_angle = np.zeros(columns)
@@ -122,8 +66,6 @@ for i in range(columns):
 # plt.show()
 # =============================================================================
 
-
-#%%
 """
 calculate modulation
 fiting sin2(data). {A*sin(pi*(x-xc)/w1)**2 + y0 } ==> get amplitud and mean.
@@ -222,11 +164,17 @@ Colum 1: #traces  || column2: origamis_angles_m
 """
 
 file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt',skiprows=1) #  fake data np.copy(cy5_angle)
+
+origami_number = np.zeros(len(file_origami[:,0]),dtype=int)
+for i in range(len(origami_number)):
+    origami_number[i] = int(file_origami[i,0])
+
 origami_angle_m = file_origami[:,1]
 #diff_angles = np.zeros(len(cy5_angle))
 #for i in range(len(origami_angle_m)):
 #    diff_angles[i] =  (np.random.rand()*180)*(-1)**i
 #    origami_angle_m[i] = cy5_angle[i] + diff_angles[i]
+
 
 origami_angle_ok = np.copy(origami_angle_m)
 
@@ -239,7 +187,11 @@ for i in range(len(origami_angle_m)):
 """
 Then, calculate the difference between origami_angle_ok and cy5_angle
 """
-difference = cy5_angle - origami_angle_ok
+
+difference = np.zeros(len(origami_number))
+for p in range(len(origami_number)):
+    difference[p] = cy5_angle[int(origami_number[p])] - origami_angle_ok[p]
+
 #
 #"""
 #difference goes between -180_180 les change it to 0_180
@@ -272,10 +224,10 @@ for i in range(len(difference)):
     else:
         relative_angle[i] = 180+difference[i]
 
-bines = len(cy5_angle)//4
+bines = len(relative_angle)//4
 plt.hist(relative_angle, bins=bines, alpha=0.8, label="relative")
 #plt.hist(diff_angles, bins=bines, alpha=0.3, label="dif from sr")
-plt.hist(cy5_angle, bins=bines, alpha=0.3, label="cy5 angle")
+plt.hist(cy5_angle[origami_number], bins=bines, alpha=0.3, label="cy5 angle")
 plt.legend()
 #print(diff_angles, "\n")
 
