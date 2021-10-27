@@ -14,7 +14,7 @@ import os
 
 #folder_path = "C:/Projects/FLAKES/Figuras Intensidad circles"
 
-filename = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_IN FLAKE 66 origamis.hdf5'
+filename = 'C:/Origami testing Widefield/2021-10-22 Staples seal test 1/C_Core&Staples_532nm_12mW(40F4)_2x2_100ms_10kf_slow_Circular_1/25 origamis info.hdf5'
 
 #DATAFROM = "Test"
 
@@ -98,11 +98,12 @@ for l in range(len(samples)):
         alldata[parameters[9]][j]  = (data[j][9])  # ellipticity
         alldata[parameters[10]][j] = (data[j][10])  # net_gradient
         alldata[parameters[11]][j] = (data[j][11])  # group
+#        print("group", (data[j][11]))
 
 
     print( time.time()-tic)
 
-    h1 = plt.hist(alldata["photons"], bins=200, range=(0,3000))
+    h1 = plt.hist(alldata["photons"], bins=200)#, range=(0,3000))
 
 
 
