@@ -92,7 +92,7 @@ origami_angle_m = file_origami[:,1]
 fits = dict()
 x=theta
 def my_sin2(t,peroid,amplitude,phase,offset):
-           return (amplitude*(sp.sin((t-phase)*sp.pi/peroid)))**2 + offset
+           return amplitude*((sp.sin((t-phase)*sp.pi/peroid)))**2 + offset
 
 x1 = sp.linspace(0,180,100000)
 
@@ -106,10 +106,11 @@ try:
                     V = avgdata[:,t]
                     
                     guess_peroid= 180
-                    guess_amplitude = np.max(V)/2.
+
                     minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
                     guess_phase = minimo
-                    guess_offset = 2
+                    guess_offset = np.min(V)
+                    guess_amplitude = np.max(V) - guess_offset
                     guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
                     p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
                     fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)

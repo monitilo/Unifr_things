@@ -254,34 +254,38 @@ from scipy.optimize import curve_fit
 
 x=theta
 def my_sin2(t,peroid,amplitude,phase,offset):
-           return (amplitude*(sp.sin((t-phase)*sp.pi/peroid)))**2 + offset
+           return amplitude*((sp.sin((t-phase)*sp.pi/peroid)))**2 + offset
 
-def fit_sin2(x_data, y_data):
-    guess_peroid = 180  # could be better
-    guess_amplitude = np.max(avgdata[:,i])/2.
-    minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
-    guess_phase = minimo
-    guess_offset = np.min(avgdata[:,i])
-    guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
+# =============================================================================
+# def fit_sin2(x_data, y_data):
+#     guess_peroid = 180  # could be better
+#     guess_amplitude = np.max(avgdata[:,i])/2.
+#     minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
+#     guess_phase = minimo
+#     guess_offset = np.min(avgdata[:,i])
+#     guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
+#     
+#     p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
+#     fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
+# =============================================================================
     
-    p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
-    fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
-    
 
 
-for i in range(len(avgdata)-17):
+for i in range(len(avgdata)-10):
     V=avgdata[:,i]
 
     
     guess_peroid= 180
-    guess_amplitude = np.max(avgdata[:,i])/2.
+
     minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
     guess_phase = minimo
-    guess_offset = 2
+    guess_offset = np.min(V)
+    guess_amplitude = np.max(avgdata[:,i]) - guess_offset
     guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
     
     p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
     fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
+    print("the guess are --> Period | Amplitude | phase | offset \n")
     print ('Guess paramters are:', p0)
     print ('The fit paramters are:', fit[0])
     x1 = sp.linspace(0,170,1000)
@@ -292,8 +296,9 @@ for i in range(len(avgdata)-17):
     plt.errorbar(x,V,fmt='x')
     plt.show()
     
+    
     print("the guess max is in {}".format(minimo+90))
-    print("the fitted max is in {}".format(fit[0][2]+90))
+    print("the fitted max is in {} \n".format(fit[0][2]+90))
 
 #%%
 
@@ -394,7 +399,7 @@ first: change the angle range from -180 _ 180 to 0_360
 """ Data in "origamis_angles_m": 
 Colum 1: #traces  || column2: origamis_angles_m
     """
-file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt',skiprows=1) #  fake data np.copy(cy5_angle)
+file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt') #  fake data np.copy(cy5_angle)
 origami_angle_m = file_origami[:,1]
 #diff_angles = np.zeros(len(cy5_angle))
 #for i in range(len(origami_angle_m)):
