@@ -73,7 +73,7 @@ import scipy as sp
 from scipy.optimize import curve_fit
 
 
-plot_columns =  5  #  int(np.sqrt(columns))
+plot_columns =  4  #  int(np.sqrt(columns))
 plot_files =  4  #   int(np.ceil(columns/plot_columns))
 graphs = int(np.ceil(columns / (plot_columns*plot_files)))
 
@@ -94,45 +94,54 @@ x=theta
 def my_sin2(t,peroid,amplitude,phase,offset):
            return amplitude*((sp.sin((t-phase)*sp.pi/peroid)))**2 + offset
 
-x1 = sp.linspace(0,180,100000)
+x1 = sp.linspace(0,170,100000)
 
 try:
-    t=0
+    t = 1
+    n = 0
+    l = 1
+    plt.figure(n)
+    plt.title("figure N {}".format(n))
+    plt.suptitle("From super Res", fontsize="x-large")
     for n in range(graphs):
-        fig, axs = plt.subplots(plot_files, plot_columns)
-        for i in range(plot_files):
-            for j in range(plot_columns):
-                if t in origami_number:
-                    V = avgdata[:,t]
-                    
-                    guess_peroid= 180
+        for i in range(len(origami_number)):
+            if t in origami_number:
+                V = avgdata[:,t]
+                plt.subplot(plot_columns, plot_files, l)
 
-                    minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
-                    guess_phase = minimo
-                    guess_offset = np.min(V)
-                    guess_amplitude = np.max(V) - guess_offset
-                    guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
-                    p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
-                    fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
-                    data_fit = my_sin2(x1,*fit[0])
-    
-                    fits[t] = fit[0]  # fit[0] = Period, amplitud, phase, offset
-    
-                    axs[i,j].plot(x, V, linewidth=2,
-                                   label="{}".format((t)))
-                    axs[i,j].plot(x1, data_fit, "r--", linewidth=1)  # ,
-                    axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
-                t+=1
-except: pass
-#except IOError as e:
-#    print("I/O error({0}): {1}".format(e.errno, e.strerror))
+                guess_peroid= 180
+                minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
+                guess_phase = minimo
+                guess_offset = np.min(V)
+                guess_amplitude = np.max(V) - guess_offset
+                guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
+                p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
+                fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
+                data_fit = my_sin2(x1,*fit[0])
+        
+                fits[t] = fit[0]  # fit[0] = Period, amplitud, phase, offset
+        
+                plt.plot(x, V, linewidth=2,
+                               label="{}".format((t)))
+                plt.plot(x1, data_fit, "r--", linewidth=1)  # ,
+                plt.legend(handlelength=0, handletextpad=0, fancybox=True)
+                l += 1
+                if l > plot_columns*plot_files:
+                    plt.figure("new{}".format(n))
+                    plt.title("figure new N {}".format(n))
+                    l = 1
+            t += 1
+
+#except: pass
+except IOError as e:
+    print("I/O error({0}): {1}".format(e.errno, e.strerror))
 
 plt.show()
 
 #%% Delete the ones That look bad
 
 
-add_to_delete = [11, 16]
+add_to_delete = [1]
 
 #todelete = np.sort(np.concatenate((not_in_superres, add_to_delete)))
 
@@ -147,22 +156,33 @@ for i in range(len(add_to_delete)):
 cy5_angle = np.zeros(columns)
 
 try:
-    t=0
+    t = 1
+    n = 0
+    l = 1
+    plt.figure(n)
+    plt.title("figure N {}".format(n))
+    plt.suptitle("Only good ones", fontsize="x-large")
+
     for n in range(graphs):
-        fig, axs = plt.subplots(plot_files, plot_columns)
-        for i in range(plot_files):
-            for j in range(plot_columns):
-                if t  in good_origamis:
-                    V = avgdata[:,t]
-                    
-                    data_fit = my_sin2(x1,*fits[t])
-                    cy5_angle[t] = fits[t][2]+90
-    
-                    axs[i,j].plot(x, V, linewidth=2,
-                                   label="{}".format((t)))
-                    axs[i,j].plot(x1, data_fit, "r--", linewidth=1)  # , label="angle_{:0.3f}".format(cy5_angle))  # ,
-                    axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
-                t+=1
+#        fig, axs = plt.subplots(plot_files, plot_columns)
+        for i in range(len(origami_number)):
+            if t  in good_origamis:
+                V = avgdata[:,t]
+                plt.subplot(plot_columns, plot_files, l)
+
+                data_fit = my_sin2(x1,*fits[t])
+                cy5_angle[t] = fits[t][2]+90
+
+                plt.plot(x, V, linewidth=2,
+                               label="{}".format((t)))
+                plt.plot(x1, data_fit, "r--", linewidth=1)  # , label="angle_{:0.3f}".format(cy5_angle))  # ,
+                plt.legend(handlelength=0, handletextpad=0, fancybox=True)
+                l += 1
+                if l > plot_columns*plot_files:
+                    plt.figure("new{}".format(n))
+                    plt.title("figure new N {}".format(n))
+                    l = 1
+            t+=1
 
 except: pass
 #except IOError as e:
@@ -198,7 +218,7 @@ for i in range(columns):
 
 print("modulation=", modulation)
 print("periods =", periods)
-#%%
+
 """
 Determine the Relative_angle:
 first: change the angle range from -180 _ 180 to 0_360
