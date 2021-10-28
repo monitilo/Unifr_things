@@ -15,7 +15,7 @@ import numpy, scipy.optimize
 filename = 'C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/b 2bp _traces-45.txt'
 data = np.loadtxt(filename)
 
-file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt',skiprows=1)
+file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt')
 
 length=data.shape[0]
 columns=data.shape[1]
@@ -65,12 +65,10 @@ for i in range(columns):
 # =============================================================================
 
 """
-calculate modulation
-fiting sin2(data). {A*sin(pi*(x-xc)/w1)**2 + y0 } ==> get amplitud and mean.
-w1 should be 180 ± 10
-modulation = (Amp/2) / (y0 + Amp/2)
+Fitting and ploting
 
 """
+
 import scipy as sp
 from scipy.optimize import curve_fit
 
@@ -173,8 +171,35 @@ plt.show()
 
 
 
-#%% Determine the Relative_angle:
+
+
+#%% Determine the interested parameters:
+
 """
+calculate modulation
+fiting sin2(data). {A*sin(pi*(x-xc)/w1)**2 + y0 } ==> get amplitud and mean.
+w1 should be 180 ± 10
+modulation = (Amp/2) / (y0 + Amp/2)
+
+"""
+
+periods = np.zeros(len(good_origamis))
+modulation = np.zeros(len(good_origamis))
+
+t=0
+for i in range(columns):
+    if i in good_origamis:
+        amp = fits[i][1]  # fits[i] = Period, amplitud, phase, offset
+        y0 = fits[i][3]
+        periods[t] = fits[i][0]
+        modulation[t] = 0.5*amp/(y0 + (0.5*amp))
+        t +=1
+
+print("modulation=", modulation)
+print("periods =", periods)
+#%%
+"""
+Determine the Relative_angle:
 first: change the angle range from -180 _ 180 to 0_360
 """
 
@@ -249,14 +274,19 @@ Colum 1: #traces  || column2: relative_angle || Column 3 modulation
     
 """
 
-tosavefinaldata = np.zeros(( len(good_origamis), 2))
+tosavefinaldata = np.zeros(( len(good_origamis), 4))
 tosavefinaldata[:,0] = good_origamis
 tosavefinaldata[:,1] = relative_angle
+tosavefinaldata[:,2] = modulation
+tosavefinaldata[:,3] = periods
 plt.show()
 
 
 
-np.savetxt(filename[:-4] + "_Angle_diff.txt", tosavefinaldata, fmt='%.d' +'\t'+ '%.1f', delimiter='\t')
+np.savetxt(filename[:-4] + "_Angle_diff.txt", tosavefinaldata,
+           fmt='%.d' +'\t'+ '%.1f'+'\t'+ '%.3f'+'\t'+ '%.1f',
+           header="origami"+ "\t"+ "Angle_Diff"+ "\t"+ "Modulation"+ "\t"+ "Period",
+           delimiter='\t')
 
 print("final data saved as " + filename[:-4] + "_Angle_diff.txt")
 
