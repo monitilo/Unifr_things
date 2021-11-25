@@ -340,10 +340,77 @@ ax[0].hist(origami_angle_ok, bins=bines, color="green", label="Origami orientati
 ax[1].set_title("Ori orientation vs ori index")
 ax[1].plot(good_origamis,origami_angle_ok,'o-')
 ax[1].grid()
-ax[1].set_xticks(np.arange(min(good_origamis)-1, max(good_origamis)+2, 5.0))
+
 fig_ori.tight_layout()
 plt.show()
 print("good origamis: ", good_origamis)
 
+#%% Other plots
 
+names = ["Origami angle Theun", "relative_angle", "Modulation", "Periods"]
+y_for_plot = dict()
+y_for_plot[names[0]] = origami_angle_ok
+y_for_plot[names[1]] = relative_angle
+y_for_plot[names[2]] = modulation
+y_for_plot[names[3]] = periods
+
+colors = ["green", "blue", "orange", "magenta"]
+
+for idx, val in enumerate(names):
+    y = y_for_plot[val]
+    plt.title(val)
+    plt.plot(good_origamis, y, 'o-', color=colors[idx], label=val)
+    plt.hlines(np.mean(y), 0, np.max(good_origamis)+1, color="red",
+               label="Mean")
+    plt.xlabel("Index origami")
+    plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+
+#%% The old not automatized way
+    
+# =============================================================================
+# plt.title("Origami angle Theun")
+# plt.plot(good_origamis, origami_angle_ok, 'o-', color="green", label="Origami angle from imageJ")
+# plt.hlines(np.mean(origami_angle_ok), 0, np.max(good_origamis)+1, color="red",
+#            label="Mean")
+# plt.xlabel("Index origami")
+# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+# plt.grid()
+# plt.legend()
+# plt.show()
+# 
+# plt.title("relative_angle")
+# plt.plot(good_origamis, relative_angle, 'o-',color="blue", label="relative_angle")
+# plt.hlines(np.mean(relative_angle), 0, np.max(good_origamis)+1, color="red",
+#            label="Mean")
+# plt.xlabel("Index origami")
+# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+# plt.grid()
+# plt.legend()
+# plt.show()
+# 
+# plt.title("modulation")
+# plt.plot(good_origamis, modulation, 'o-', color="orange", label="modulation")
+# plt.hlines(np.mean(modulation), 0, np.max(good_origamis)+1, color="red",
+#            label="Mean")
+# plt.xlabel("Index origami")
+# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+# plt.grid()
+# plt.legend()
+# plt.show()
+# 
+# plt.title("periods")
+# plt.plot(good_origamis, periods, 'o-', color="magenta", label="periods")
+# plt.hlines(np.mean(periods), 0, np.max(good_origamis)+1, color="red",
+#            label="Mean")
+# plt.xlabel("Index origami")
+# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+# plt.grid()
+# plt.legend()
+# plt.show()
+# =============================================================================
 
