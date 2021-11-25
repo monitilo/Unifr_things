@@ -157,7 +157,7 @@ print("Failed fits: ",failed_fits)
 #%% Delete the ones That look bad
 
 
-add_to_delete = [2] + failed_fits
+add_to_delete = [25] + failed_fits
 
 print("Traces to NOT analyse: ", add_to_delete)
 
@@ -292,7 +292,7 @@ for i in range(len(difference)):
 
 
 """ Data out: 
-Colum 1: #traces  || column2: relative_angle || Column 3 modulation
+Colum1: #traces  || column2: relative_angle || Column3: modulation || Col4: period
     
 """
 
@@ -312,6 +312,19 @@ np.savetxt(filename[:-4] + "_Angle_diff.txt", tosavefinaldata,
 
 print("final data saved as " + filename[:-4] + "_Angle_diff.txt")
 
+"""
+Origami orientation filtered from the imput
+Colum 1: #traces  || column2: Angle origami from image 
+"""
+
+data_for_teun = np.zeros(( len(good_origamis), 2))
+data_for_teun[:,0] = good_origamis
+data_for_teun[:,1] = origami_angle_ok
+
+np.savetxt(filename[:-4] + "_Ori_angle_Teun.txt", data_for_teun,
+           fmt='%.d' +'\t'+ '%.1f',
+           header="origami"+ "\t"+ "Angle from image",
+           delimiter='\t')
 #%%  PLOTS!!!
 
 fig, axs = plt.subplots(3)
@@ -334,83 +347,73 @@ axs[2].legend()
 fig.tight_layout()
 plt.show()
 
-fig_ori, ax = plt.subplots(2)
-ax[0].set_title("origami orientation")
-ax[0].hist(origami_angle_ok, bins=bines, color="green", label="Origami orientation")
-ax[1].set_title("Ori orientation vs ori index")
-ax[1].plot(good_origamis,origami_angle_ok,'o-')
-ax[1].grid()
-
-fig_ori.tight_layout()
-plt.show()
-print("good origamis: ", good_origamis)
 
 #%% Other plots
 
-names = ["Origami angle Theun", "relative_angle", "Modulation", "Periods"]
-y_for_plot = dict()
-y_for_plot[names[0]] = origami_angle_ok
-y_for_plot[names[1]] = relative_angle
-y_for_plot[names[2]] = modulation
-y_for_plot[names[3]] = periods
+#plt.title("Origami angle Teun")
+#plt.plot(good_origamis, origami_angle_ok, 'o-', color="green", label="Origami angle from imageJ")
+#plt.hlines(np.mean(origami_angle_ok), 0, np.max(good_origamis)+1, color="red",
+#           label="Mean")
+#plt.xlabel("Index origami")
+#plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+#plt.grid()
+#plt.legend()
+#plt.show()
 
-colors = ["green", "blue", "orange", "magenta"]
+plt.title("relative_angle")
+plt.plot(good_origamis, relative_angle, 'o-',color="blue", label="relative_angle")
+plt.hlines(np.mean(relative_angle), 0, np.max(good_origamis)+1, color="red",
+           label="Mean")
+plt.xlabel("Index origami")
+plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+plt.grid()
+plt.legend()
+plt.show()
 
-for idx, val in enumerate(names):
-    y = y_for_plot[val]
-    plt.title(val)
-    plt.plot(good_origamis, y, 'o-', color=colors[idx], label=val)
-    plt.hlines(np.mean(y), 0, np.max(good_origamis)+1, color="red",
-               label="Mean")
-    plt.xlabel("Index origami")
-    plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
-    plt.grid()
-    plt.legend()
-    plt.show()
+plt.title("modulation")
+plt.plot(good_origamis, modulation, 'o-', color="orange", label="modulation")
+plt.hlines(np.mean(modulation), 0, np.max(good_origamis)+1, color="red",
+           label="Mean")
+plt.xlabel("Index origami")
+plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+plt.grid()
+plt.legend()
+plt.show()
+
+plt.title("periods")
+plt.plot(good_origamis, periods, 'o-', color="magenta", label="periods")
+plt.hlines(np.mean(periods), 0, np.max(good_origamis)+1, color="red",
+           label="Mean")
+plt.xlabel("Index origami")
+plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+plt.grid()
+plt.legend()
+plt.show()
 
 
 
-#%% The old not automatized way
-    
+#%% bad automatic way
+
 # =============================================================================
-# plt.title("Origami angle Theun")
-# plt.plot(good_origamis, origami_angle_ok, 'o-', color="green", label="Origami angle from imageJ")
-# plt.hlines(np.mean(origami_angle_ok), 0, np.max(good_origamis)+1, color="red",
-#            label="Mean")
-# plt.xlabel("Index origami")
-# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
-# plt.grid()
-# plt.legend()
-# plt.show()
+# names = ["Origami angle Theun", "relative_angle", "Modulation", "Periods"]
+# y_for_plot = dict()
+# y_for_plot[names[0]] = origami_angle_ok
+# y_for_plot[names[1]] = relative_angle
+# y_for_plot[names[2]] = modulation
+# y_for_plot[names[3]] = periods
 # 
-# plt.title("relative_angle")
-# plt.plot(good_origamis, relative_angle, 'o-',color="blue", label="relative_angle")
-# plt.hlines(np.mean(relative_angle), 0, np.max(good_origamis)+1, color="red",
-#            label="Mean")
-# plt.xlabel("Index origami")
-# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
-# plt.grid()
-# plt.legend()
-# plt.show()
+# colors = ["green", "blue", "orange", "magenta"]
 # 
-# plt.title("modulation")
-# plt.plot(good_origamis, modulation, 'o-', color="orange", label="modulation")
-# plt.hlines(np.mean(modulation), 0, np.max(good_origamis)+1, color="red",
-#            label="Mean")
-# plt.xlabel("Index origami")
-# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
-# plt.grid()
-# plt.legend()
-# plt.show()
-# 
-# plt.title("periods")
-# plt.plot(good_origamis, periods, 'o-', color="magenta", label="periods")
-# plt.hlines(np.mean(periods), 0, np.max(good_origamis)+1, color="red",
-#            label="Mean")
-# plt.xlabel("Index origami")
-# plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
-# plt.grid()
-# plt.legend()
-# plt.show()
+# for idx, val in enumerate(names):
+#     y = y_for_plot[val]
+#     plt.title(val)
+#     plt.plot(good_origamis, y, 'o-', color=colors[idx], label=val)
+#     plt.hlines(np.mean(y), 0, np.max(good_origamis)+1, color="red",
+#                label="Mean")
+#     plt.xlabel("Index origami")
+#     plt.xticks(np.arange(0, max(good_origamis)+2, 5.0))
+#     plt.grid()
+#     plt.legend()
+#     plt.show()
 # =============================================================================
 
