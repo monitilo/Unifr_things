@@ -14,9 +14,17 @@ import os
 
 #folder_path = "C:/Projects/FLAKES/Figuras Intensidad circles"
 
-filename = 'C:/Origami testing Widefield/2021-10-22 Staples seal test 1/C_Core&Staples_532nm_12mW(40F4)_2x2_100ms_10kf_slow_Circular_1/25 origamis info.hdf5'
+#filename = 'C:/Origami testing Widefield/2021-05-11 3spots CFret/Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1__1/18 origamis info.hdf5'
 
 #DATAFROM = "Test"
+
+from tkinter import Tk, filedialog
+
+root = Tk()
+filename = filedialog.askopenfilename(filetypes=(("", "*.hdf5"), ("", "*.")))
+root.withdraw()
+folder = os.path.dirname(filename)
+only_name = os.path.basename(filename)
 
 
 names = [filename]  #, filename_inflake2, finelame_outflake2]

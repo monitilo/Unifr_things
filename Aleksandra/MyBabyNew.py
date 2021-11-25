@@ -10,12 +10,26 @@ Created on Tue Jun 15 18:41:42 2021
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy, scipy.optimize
+import os
+from tkinter import Tk, filedialog
 
-
-filename = 'C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/b 2bp _traces-45.txt'
+root = Tk()
+filename = filedialog.askopenfilename(title="Choose your long Traces", filetypes=(("", "*.txt"), ("", "*.")))
+root.withdraw()
+folder = os.path.dirname(filename)
+only_name = os.path.basename(filename)
+print("Load traces from: ", filename, "\n")
 data = np.loadtxt(filename)
 
-file_origami = np.loadtxt('C:/Analizando Imagenes/code/Aleksandra/odp_stretchprojectdataanalysispythoncode/ori_m table.txt')
+
+root = Tk()
+nametoload_ori = filedialog.askopenfilename(title="Choose Origami orientation", filetypes=(("", "*.txt"), ("", "*.")))
+root.withdraw()
+folder_ori = os.path.dirname(nametoload_ori)
+only_name_ori = os.path.basename(nametoload_ori)
+print("Load origami from:", nametoload_ori, "\n")
+file_origami = np.loadtxt(nametoload_ori)
+
 
 length=data.shape[0]
 columns=data.shape[1]
@@ -37,6 +51,7 @@ theta=(np.linspace(0,170,len(avgdata)))  # angle vector
 for i in range(columns):
     plt.plot(theta, avgdata[:,i]) #Plot all the curves together
 
+    
 # =============================================================================
 # # Save intermediate data already bin by 25
 # tosavedata = np.zeros(((int(length/25)),data.shape[1] + 1))
@@ -73,7 +88,7 @@ import scipy as sp
 from scipy.optimize import curve_fit
 
 
-plot_columns =  4  #  int(np.sqrt(columns))
+plot_columns =  5  #  int(np.sqrt(columns))
 plot_files =  4  #   int(np.ceil(columns/plot_columns))
 graphs = int(np.ceil(columns / (plot_columns*plot_files)))
 
@@ -94,54 +109,57 @@ x=theta
 def my_sin2(t,peroid,amplitude,phase,offset):
            return amplitude*((sp.sin((t-phase)*sp.pi/peroid)))**2 + offset
 
-x1 = sp.linspace(0,170,100000)
+x1 = sp.linspace(0,180,100000)
 
-try:
-    t = 1
-    n = 0
-    l = 1
-    plt.figure(n)
-    plt.title("figure N {}".format(n))
-    plt.suptitle("From super Res", fontsize="x-large")
-    for n in range(graphs):
-        for i in range(len(origami_number)):
+failed_fits = []
+
+t=0
+for n in range(graphs):
+    fig, axs = plt.subplots(plot_files, plot_columns)
+    for i in range(plot_files):
+
+        for j in range(plot_columns):
             if t in origami_number:
-                V = avgdata[:,t]
-                plt.subplot(plot_columns, plot_files, l)
+                try:
+                    V = avgdata[:,t]
+                    axs[i,j].plot(x, V, linewidth=2,
+                                   label="{}".format((t)))
+                    
+                    guess_peroid= 180
+                    minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
+                    guess_phase = minimo
+                    guess_offset = np.min(V)
+                    guess_amplitude = np.max(V) - guess_offset
+                    guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
+                    p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
+                    fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
+                    data_fit = my_sin2(x1,*fit[0])
+    
+                    fits[t] = fit[0]  # fit[0] = Period, amplitud, phase, offset
+    
 
-                guess_peroid= 180
-                minimo = np.array(x[np.where(V==np.min(V))[0]])[0]
-                guess_phase = minimo
-                guess_offset = np.min(V)
-                guess_amplitude = np.max(V) - guess_offset
-                guess_bounds = ([100,0,0,0], [260, numpy.max(V), 180, numpy.max(V)])
-                p0 =[guess_peroid, guess_amplitude, guess_phase, guess_offset]
-                fit = curve_fit(my_sin2,x, V, p0=p0, bounds=guess_bounds)
-                data_fit = my_sin2(x1,*fit[0])
-        
-                fits[t] = fit[0]  # fit[0] = Period, amplitud, phase, offset
-        
-                plt.plot(x, V, linewidth=2,
-                               label="{}".format((t)))
-                plt.plot(x1, data_fit, "r--", linewidth=1)  # ,
-                plt.legend(handlelength=0, handletextpad=0, fancybox=True)
-                l += 1
-                if l > plot_columns*plot_files:
-                    plt.figure("new{}".format(n))
-                    plt.title("figure new N {}".format(n))
-                    l = 1
-            t += 1
+                    axs[i,j].plot(x1, data_fit, "r--", linewidth=1)  # ,
+                    axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
+                except: 
+                    print("failed fit trace N = ", t)
+                    failed_fits.append(t)
+            t+=1
 
-#except: pass
-except IOError as e:
-    print("I/O error({0}): {1}".format(e.errno, e.strerror))
+#except IOError as e:
+#    print("I/O error({0}): {1}".format(e.errno, e.strerror))
+
+
 
 plt.show()
 
+
+print("Failed fits: ",failed_fits)
 #%% Delete the ones That look bad
 
 
-add_to_delete = [1]
+add_to_delete = [2] + failed_fits
+
+print("Traces to NOT analyse: ", add_to_delete)
 
 #todelete = np.sort(np.concatenate((not_in_superres, add_to_delete)))
 
@@ -156,33 +174,22 @@ for i in range(len(add_to_delete)):
 cy5_angle = np.zeros(columns)
 
 try:
-    t = 1
-    n = 0
-    l = 1
-    plt.figure(n)
-    plt.title("figure N {}".format(n))
-    plt.suptitle("Only good ones", fontsize="x-large")
-
+    t=0
     for n in range(graphs):
-#        fig, axs = plt.subplots(plot_files, plot_columns)
-        for i in range(len(origami_number)):
-            if t  in good_origamis:
-                V = avgdata[:,t]
-                plt.subplot(plot_columns, plot_files, l)
-
-                data_fit = my_sin2(x1,*fits[t])
-                cy5_angle[t] = fits[t][2]+90
-
-                plt.plot(x, V, linewidth=2,
-                               label="{}".format((t)))
-                plt.plot(x1, data_fit, "r--", linewidth=1)  # , label="angle_{:0.3f}".format(cy5_angle))  # ,
-                plt.legend(handlelength=0, handletextpad=0, fancybox=True)
-                l += 1
-                if l > plot_columns*plot_files:
-                    plt.figure("new{}".format(n))
-                    plt.title("figure new N {}".format(n))
-                    l = 1
-            t+=1
+        fig, axs = plt.subplots(plot_files, plot_columns)
+        for i in range(plot_files):
+            for j in range(plot_columns):
+                if t  in good_origamis:
+                    V = avgdata[:,t]
+                    
+                    data_fit = my_sin2(x1,*fits[t])
+                    cy5_angle[t] = fits[t][2]+90
+    
+                    axs[i,j].plot(x, V, linewidth=2,
+                                   label="{}".format((t)))
+                    axs[i,j].plot(x1, data_fit, "r--", linewidth=1)  # , label="angle_{:0.3f}".format(cy5_angle))  # ,
+                    axs[i,j].legend(handlelength=0, handletextpad=0, fancybox=True)
+                t+=1
 
 except: pass
 #except IOError as e:
@@ -218,7 +225,7 @@ for i in range(columns):
 
 print("modulation=", modulation)
 print("periods =", periods)
-
+#%%
 """
 Determine the Relative_angle:
 first: change the angle range from -180 _ 180 to 0_360
@@ -244,10 +251,12 @@ for i in range(len(origami_angle_ok)):
 Then, calculate the difference between origami_angle_ok and cy5_angle
 """
 
-
+cy5_angle_pro = np.copy(cy5_angle)
 difference = np.zeros(len(good_origamis))
 for p in range(len(good_origamis)):
-    difference[p] = cy5_angle[int(good_origamis[p])] - origami_angle_ok[p]
+    if cy5_angle[int(good_origamis[p])] > 180:
+        cy5_angle_pro[int(good_origamis[p])] = cy5_angle[int(good_origamis[p])] - 180
+    difference[p] = cy5_angle_pro[int(good_origamis[p])] - origami_angle_ok[p]
 
 #
 #"""
@@ -277,17 +286,9 @@ for i in range(len(difference)):
     if difference[i] > (0):
         relative_angle[i] = difference[i]
     elif difference[i] < (-180):
-        relative_angle[i] = abs(360+difference[i])
+        relative_angle[i] = abs( 360 + difference[i] )
     else:
-        relative_angle[i] = 180+difference[i]
-
-bines = len(relative_angle)//2
-plt.hist(relative_angle, bins=bines, alpha=0.8, label="Relative")
-plt.hist(origami_angle_ok, bins=bines, alpha=0.3, label="SuperRes_Angles")
-plt.hist(cy5_angle[good_origamis], bins=bines, alpha=0.3, label="Cy5 angle")
-plt.legend()
-#print(diff_angles, "\n")
-
+        relative_angle[i] = 180 + difference[i]
 
 
 """ Data out: 
@@ -311,5 +312,38 @@ np.savetxt(filename[:-4] + "_Angle_diff.txt", tosavefinaldata,
 
 print("final data saved as " + filename[:-4] + "_Angle_diff.txt")
 
-#%% 
+#%%  PLOTS!!!
+
+fig, axs = plt.subplots(3)
+
+bines = None # len(relative_angle)// 2
+axs[0].hist(relative_angle, bins=bines, color="blue", label="Relative angle")
+axs[0].set_title("Relative angle")
+#axs[0].set_xlabel("relative angle °")
+axs[0].legend()
+axs[1].hist(periods, bins=bines, color="Orange", label="Period")
+axs[1].set_title("Period")
+#axs[1].set_xlabel("Period 1/s")
+axs[1].legend()
+axs[2].hist(modulation, bins=bines, color="magenta", label="Modulation")
+axs[2].set_title("Modulation")
+axs[2].legend()
+#axs[3].hist(origami_angle_ok, bins=bines, color="green", label="Origami orientation")
+#axs[3].set_title("Origami orientation")
+#axs[3].legend()
+fig.tight_layout()
+plt.show()
+
+fig_ori, ax = plt.subplots(2)
+ax[0].set_title("origami orientation")
+ax[0].hist(origami_angle_ok, bins=bines, color="green", label="Origami orientation")
+ax[1].set_title("Ori orientation vs ori index")
+ax[1].plot(good_origamis,origami_angle_ok,'o-')
+ax[1].grid()
+ax[1].set_xticks(np.arange(min(good_origamis)-1, max(good_origamis)+2, 5.0))
+fig_ori.tight_layout()
+plt.show()
+print("good origamis: ", good_origamis)
+
+
 

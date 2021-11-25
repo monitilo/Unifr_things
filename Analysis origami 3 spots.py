@@ -20,17 +20,24 @@ folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center"
 
 parameters = ["frame", "x", "y", "photons", "sx", "sy", "bg", "lpx", "lpy", "ellipticity", "net_gradient", "group"]
 
-file = 'C:/Origami testing Widefield/2021-10-22 Staples seal test 1/C_Core&Staples_532nm_12mW(40F4)_2x2_100ms_10kf_slow_Circular_1/25 origamis info.hdf5'
+#file = 'C:/Origami testing Widefield/2021-05-11 3spots CFret/Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1__1/36 origamis info.hdf5'
 
 #file = 'C:/Origami testing Widefield/2021-07-02 Flake 22 biotin/sample22_488_1638uW_tirf2540_imager1nM_trolox-glox_ultimate_2lvl_biotin_2/Automatic_OUT flake 72 origamis.hdf5'
 
+from tkinter import Tk, filedialog
 
-tic = time.time()
-nametoload = file[:-5] + ".npz"
-with open(nametoload,"r") as f:
-    data = np.load(nametoload)  #,allow_pickle=True)
+root = Tk()
+nametoload = filedialog.askopenfilename(filetypes=(("", "*.npz"), ("", "*.")))
+root.withdraw()
+folder = os.path.dirname(nametoload)
+only_name = os.path.basename(nametoload)
 
-print("time one load = ", time.time()-tic)
+#tic = time.time()
+#nametoload = file[:-5] + ".npz"
+#with open(nametoload,"r") as f:
+#    data = np.load(nametoload)  #,allow_pickle=True)
+data = np.load(nametoload)
+#print("time one load = ", time.time()-tic)
 hout = plt.hist2d(data["x"],data["y"], bins=500)
 plt.colorbar(hout[3])
 
@@ -42,6 +49,7 @@ photons = data["photons"]
 pick_number = np.unique(pick_list)
 locs_of_picked = np.zeros(len(pick_number))
 photons_of_groups = dict()
+frame_of_groups = dict()
 
 tic = time.time()
 for i in range(len(pick_number)):
@@ -50,17 +58,18 @@ for i in range(len(pick_number)):
     frame_of_picked = frame[index_picked]
     locs_of_picked[i] = len(frame_of_picked)
     photons_of_groups[i] = photons[index_picked]
+    frame_of_groups[i] = frame[index_picked]
     
-    plt.hist(photons_of_groups[i],alpha=0.5, label="pick {}".format(pick_id))
-    plt.legend()
-    plt.xlabel("Photons")
+#    plt.hist(photons_of_groups[i],alpha=0.5, label="pick {}".format(pick_id))
+#    plt.legend()
+#    plt.xlabel("Photons")
 
 print("time goruping the photons = ", time.time()-tic)
 
 #%%
 
 #for i in range(3):
-#    plt.hist(photons_of_groups[i],bins=50, label="pick {}".format(i), range=(0,3000), alpha=0.5)
+#    plt.hist(frame_of_groups[i],bins=50, label="pick {}".format(i), range=(0,15000), alpha=0.5)
 #    plt.legend()
 #    plt.xlabel("Photons")
 
@@ -102,12 +111,12 @@ for i in range(len(subgroups)):
         plt.close()
 print("saved {} origamis in: \n".format(nsamples), folder_path_save)
 
-#%% Filter one: keep only more than 400 locs
+#%% Filter one: keep only more than "threshold" locs
 
 good_picks = []
 
-threshold = 100
-photon_treshold = 10000
+threshold = 1 
+photon_treshold = np.max(photons_of_groups[0])
 for i in range(len(photons_of_groups)):
     if len(np.where(photons_of_groups[i]<photon_treshold)[0]) > threshold:
         good_picks.append(i)
@@ -120,9 +129,9 @@ plt.title("origamis with enough locs")
 plt.show()
 print(len(good_picks)//3)
 
-#%% Filter two, the sides have to be simetric in locs , ± 50 %
+#%% Filter two, the sides have to be simetric in locs , ± 50 % for example
 
-delta = 10
+delta = 100
 simetric_picks = []
 multiples3 = (np.arange(nsamples))*3
 for i in multiples3:
@@ -153,8 +162,19 @@ print(len(simetric_picks)//3)
 
 #DATAFROM = "OutFlake_Filtered_{}locs_{}%delta".format(threshold, int(delta*100))
 #DATAFROM = "OUTFlake_RAW"
-DATAFROM = "Raw_Epi FRETx4"
-folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center/FRETx4"
+
+frame_limit = 15000 # 15k tipically is the max
+
+if frame_limit < 15000:
+    DATAFROM = "Raw_Epi FRETx4 only first {} frames".format(frame_limit)
+    framebool = True
+else:
+    DATAFROM = "Raw_Epi FRETx4"
+    framebool = False
+
+
+
+folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center/FRETx4/Labteck 05-11-21/Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_2x2_1"
 
 #
 #nsamples = int((data["group"][-1]+1)//3)
@@ -169,12 +189,21 @@ folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center/FRETx4
 multi3 = ((np.arange(nsamples)+1)*3)-1
 good_origamis = []
 
-photon_treshold = 6000
+#photon_treshold = 6000
 for i in range(len(photons_of_groups)):
+
     if i in simetric_picks:
-        h1 = plt.hist(photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)], bins=50,
+
+        if framebool ==  True:
+            photons_to_plot = photons_of_groups[i][np.where(frame_of_groups[i]< frame_limit)]
+        else:
+            photons_to_plot = photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)]  # 
+
+        h1 = plt.hist(photons_to_plot, bins=50,
                       range=(0,photon_treshold), density=False, alpha=0.5,
-                      label=(str(i)+subgroups[i]+"; "+str(len(photons_of_groups[i]))+" locs"))
+                      label=(str(i)+subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))
+
+
 #        mean_values[i] = np.mean(photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)])
         if i in multi3: 
     #            print(i)
@@ -188,52 +217,109 @@ for i in range(len(photons_of_groups)):
             figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
 #            plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
             plt.show()
-#            plt.close()
+            plt.close()
             good_origamis.append(Norigami)
+                
+print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
+
+#%%
+
+#interesting_picks = [81,82,83,84,85,86]
+interesting_picks = [84]
+
+color = dict()
+color["left"] = "blue"
+color["center"] = "orange"
+color["right"] = "green"
+
+frame_limit = 15000 # 15k tipically is the max
+
+if frame_limit < 15000:
+    DATAFROM = "Separate sidesaa FRETx4 only first {} frames".format(frame_limit)
+    framebool = True
+else:
+    DATAFROM = "Separate sidesaa FRETx4 "
+    framebool = False
+
+folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center/FRETx4/Labteck 05-11-21/Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1"
+
+for i in interesting_picks:
+    aux = i
+    for j in range(3):
+        i = aux+j
+        
+        if framebool == True:
+            photons_to_plot = photons_of_groups[i][np.where(frame_of_groups[i]< frame_limit)]
+        else:
+            photons_to_plot = photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)]  # 
+
+        if subgroups[i] == "left":  # "right":
+                    h1 = plt.hist(photons_to_plot, bins=50,
+                      range=(0,photon_treshold), density=False, alpha=0.8,
+                      label=(str(i)+subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+        else:
+            h1 = plt.hist(photons_to_plot, bins=50,
+                          range=(0,photon_treshold), density=False, alpha=0.2,
+                          label=(str(i)+subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+
+    Norigami = (i+1)//3
+    figure_name = '{}_{}_{}'.format(Norigami, DATAFROM,subgroups[i])
+    plt.title(figure_name)
+    plt.legend()
+    plt.xlabel("photons")
+    plt.gca().get_xticklabels()[-2].set_color('red')
+#    figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
+    plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
+    plt.show()
+#        plt.close()
+    good_origamis.append(Norigami)
+                
 print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
 
 #%% Now do analysis of the good ones only
 
 #mean_values = np.zeros(len(photons_of_groups))
 
-left_picks = np.arange(0,len(photons_of_groups),3)
-#center_picks = np.arange(1,len(photons_of_groups),3)
-#right_picks = np.arange(2,len(photons_of_groups),3)
-
-#multiples3 = (np.arange(nsamples))*3 is above
-
-#photon_treshold = 10000
-mean_values = np.zeros(len(photons_of_groups))
-counting = 0
-for i in left_picks:  # in multiples3:
-    if i in simetric_picks[:-2]:
-        left_mean = np.mean(photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)])
-        right_mean = np.mean(photons_of_groups[i+2][np.where(photons_of_groups[i+2]<photon_treshold)])
-        if left_mean > right_mean*0.8 and left_mean < right_mean*1.2:
-            counting += 1
-#            print("i",i)
-            new_photon_treshold = (np.max([left_mean,right_mean]))*1.3
-            center_mean = np.mean(photons_of_groups[i+1][np.where(photons_of_groups[i+1]<new_photon_treshold)])
-        
-            plt.plot(["left","center","right"],[left_mean, center_mean, right_mean],'*-',
-                     label=(str(i)+subgroups[i]+"; "+str(len(photons_of_groups[i])))+" locs" + "\n" +
-                     (str(i+1)+subgroups[i+1]+"; "+str(len(photons_of_groups[i+1])))+" locs"+ "\n" +
-                     (str(i+2)+subgroups[i+2]+"; "+str(len(photons_of_groups[i+2])))+" locs" + "\n" +
-                     "center_photons_treshold= " +str(int(new_photon_treshold)))
-    
-    #        print(i,"i")
-            Norigami = ((i+1)//3)+1
-            figure_name = '{}_{}_MeanPhotons_{}cutted'.format(DATAFROM, Norigami,photon_treshold)
-            plt.title(figure_name)
-            plt.legend()
-            plt.ylabel("mean photons")
-    
-            figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
-#            plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
-#            plt.show()
-            plt.close()
-
-print("saved {} mean origamis out of {} \nin: ".format(counting, nsamples), folder_path_save)
+# =============================================================================
+# left_picks = np.arange(0,len(photons_of_groups),3)
+# #center_picks = np.arange(1,len(photons_of_groups),3)
+# #right_picks = np.arange(2,len(photons_of_groups),3)
+# 
+# #multiples3 = (np.arange(nsamples))*3 is above
+# 
+# #photon_treshold = 10000
+# mean_values = np.zeros(len(photons_of_groups))
+# counting = 0
+# for i in left_picks:  # in multiples3:
+#     if i in simetric_picks[:-2]:
+#         left_mean = np.mean(photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)])
+#         right_mean = np.mean(photons_of_groups[i+2][np.where(photons_of_groups[i+2]<photon_treshold)])
+#         if left_mean > right_mean*0.5 and left_mean < right_mean*1.5:
+#             counting += 1
+# #            print("i",i)
+#             new_photon_treshold = (np.max([left_mean,right_mean]))*1.3
+#             center_mean = np.mean(photons_of_groups[i+1][np.where(photons_of_groups[i+1]<new_photon_treshold)])
+#         
+#             plt.plot(["left","center","right"],[left_mean, center_mean, right_mean],'*-',
+#                      label=(str(i)+subgroups[i]+"; "+str(len(photons_of_groups[i])))+" locs" + "\n" +
+#                      (str(i+1)+subgroups[i+1]+"; "+str(len(photons_of_groups[i+1])))+" locs"+ "\n" +
+#                      (str(i+2)+subgroups[i+2]+"; "+str(len(photons_of_groups[i+2])))+" locs" + "\n" +
+#                      "center_photons_treshold= " +str(int(new_photon_treshold)))
+#     
+#     #        print(i,"i")
+#             Norigami = ((i+1)//3)+1
+#             figure_name = '{}_{}_MeanPhotons_{}cutted'.format(DATAFROM, Norigami,photon_treshold)
+#             plt.title(figure_name)
+#             plt.legend()
+#             plt.ylabel("mean photons")
+#     
+#             figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
+# #            plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
+#             plt.show()
+#             plt.close()
+# 
+# print("saved {} mean origamis out of {} \nin: ".format(counting, nsamples), folder_path_save)
+# =============================================================================
 
 
 
@@ -248,16 +334,16 @@ SAVE_FIGS = False
 DATAFROM = "Epi_FRETx4_{}locs_{}%delta".format(threshold, int(delta*100))
 
 
-folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center/"
+folder_path_save = "C:/Projects/FLAKES/Origami photons laterals vs center/FRETx4"
 
 
 left_picks = np.arange(0,len(photons_of_groups),3)
-#photon_treshold = 10000
+#photon_treshold = 4000
 mean_values = np.zeros(len(photons_of_groups))
 counting = 0
 
 mean_shift = 1.5
-delta2 = 0.2
+delta2 = 10.2
 
 
 for i in left_picks:  # in multiples3:
@@ -314,11 +400,11 @@ for i in left_picks:  # in multiples3:
             figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
             if SAVE_FIGS == True:
                 plt.savefig(figure_path, dpi = 300, bbox_inches='tight')
-            plt.show()
+#            plt.show()
             plt.close()
 
 print("saved {} origamis out of {} \nin: ".format(counting, nsamples), folder_path_save)
-print(file)
+print(nametoload)
 
 
 #%%
