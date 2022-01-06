@@ -23,9 +23,12 @@ con los tiempos On y Off calculados de las "good traces".
 es el indice de la traza, en la segunda columna se va a guardar un 1 si la
 traza es buena y un -1 si la traza es mala. En la tercera columna inicialmente, 
 se carga un umbral determinado como la moda (fondo) + std de cada traza que luego se
-ira cambiando. En la cuarta y quinta columna se guardan la seleccion de frames realizada 
-con el programa para hacer un post analisis. 
-En las ultimas columnas va el "Step intensity". Primero el de las areas (Verde-rojo), luego el del umbral ("step2")
+ira cambiando.
+En la cuarta y quinta columna se guardan la seleccion de frames realizada 
+para la zona verde
+Sexta y septima para la zona roja. De esta manera se puede reprodicir el step obtenido 
+En las ultimas (8 y 9) columnas va el "Step intensity". Primero el de las areas (Verde-rojo), luego el del umbral ("step2")
+
 OJO: Si no ponen el exposure time, el programa no va a calcular los tiempos On y Off
 
 Bugs detectados:
@@ -271,6 +274,11 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.avgmax = np.nanmean(self.data[int(minX):int(maxX), (int(self.traceSlider.value()))])
         self.avgmin = np.nanmean(self.data[int(minX2):int(maxX2), (int(self.traceSlider.value()))])
 
+        self.selection[int(self.traceSlider.value()), 3] = minX
+        self.selection[int(self.traceSlider.value()), 4] = maxX
+        self.selection[int(self.traceSlider.value()), 5] = minX2
+        self.selection[int(self.traceSlider.value()), 6] = maxX2
+
         self.stepintensity = (self.avgmax-self.avgmin)
         self.labelmax.setText("<span style='font-size: 12pt'> <span style='color: green'>LeftMean=%0.1f</span>" % (self.avgmax))
         self.labelmin.setText("<span style='font-size: 12pt'> <span style='color: red'>RigthMean=%0.1f</span>" % (self.avgmin))
@@ -302,9 +310,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.traceSlider.setMaximum(self.data.shape[1]-1)
         
         self.graph.clear()
-        self.selection = np.zeros((self.data.shape[1], 7))  # + Steps columns (5 ==> 7)
+        self.selection = np.zeros((self.data.shape[1], 9))  # +color + Steps columns (5 ==> 9)
         self.selection[:,0] = np.arange(0,self.data.shape[1])
-        self.selection[:,4] = self.data.shape[0]
+#        self.selection[:,4] = self.data.shape[0]
 
         self.colorgraph = (100, 150, 255)
 # =============================================================================
@@ -315,6 +323,13 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         
         starting = int(self.selection[(int(self.traceSlider.value())),3])
         ending = int(self.selection[(int(self.traceSlider.value())),4])
+        starting = 0
+        ending = self.data.shape[0]
+
+#        self.selection[:,3] = np.zeros(len(self.selection[:,3]) 
+        self.selection[:,4] = np.ones(len(self.selection[:,4]))*((starting+ending)//8)
+        self.selection[:,5] =  np.ones(len(self.selection[:,5]))*(ending - ((starting+ending)//4))
+        self.selection[:,6] =  np.ones(len(self.selection[:,6]))*ending
         
         self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//8], pen='g',
                                           bounds=[0, self.data.shape[0]],
@@ -352,6 +367,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 
         self.lrmax.sigRegionChanged.connect(self.updatelr)
         self.lrmin.sigRegionChanged.connect(self.updatelr)
+
+        self.update_trace()
     
     # Select a trace to plot    
     def showTrace(self):
@@ -408,16 +425,23 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #         self.graph.addItem(self.lr)
 # =============================================================================
         
-        starting = int(self.selection[(int(self.traceSlider.value())),3])
-        ending = int(self.selection[(int(self.traceSlider.value())),4])
-        
-        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//8], pen='g',
+#        starting = int(self.selection[(int(self.traceSlider.value())),3])
+#        ending = int(self.selection[(int(self.traceSlider.value())),4])
+        starting = self.selection[int(self.traceSlider.value()), 3]
+        ending = self.selection[int(self.traceSlider.value()), 4]
+
+
+        self.lrmax = pg.LinearRegionItem([starting, ending], pen='g',
                                           bounds=[0, self.data.shape[0]],
                                           brush=(5,200,5,25),
                                           hoverBrush=(50,200,50,50))
         self.lrmax.setZValue(10)
         self.graph.addItem(self.lrmax)
-        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r',
+
+        starting2 = self.selection[int(self.traceSlider.value()), 5]
+        ending2 = self.selection[int(self.traceSlider.value()), 6]
+
+        self.lrmin = pg.LinearRegionItem([starting2, ending2], pen='r',
                                           bounds=[0, self.data.shape[0]],
                                           brush=(200,5,5,25),
                                           hoverBrush=(200,50,50,50))
@@ -621,7 +645,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         print('[Filtered Traces Saved]: Amount of Good Traces: '+str(amount_goodTraces)[0:3]+'%')
         np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
         np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
-        np.savetxt(folder+'/selection_'+file_traces_name, self.selection, header="yes_no"+"\t"+"Threshold"+"\t"+"start"+"\t"+"ending"+"\t"+"step(colors)"+"\t"+"step(Threshold)")
+        np.savetxt(folder+'/selection_'+file_traces_name, self.selection, header="yes_no"+"\t"+"Threshold"+"\t"+"start Green"+"\t"+"end Green"+"start Red"+"\t"+"end Red"+"\t"+"step(colors)"+"\t"+"step(Threshold)")
         print("[selection saved]", folder+'/selection_'+file_traces_name)
         print(self.selection)
         print('and, [Ton and Toff saved]')
