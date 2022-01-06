@@ -25,7 +25,13 @@ traza es buena y un -1 si la traza es mala. En la tercera columna inicialmente,
 se carga un umbral determinado como la moda (fondo) + std de cada traza que luego se
 ira cambiando. En la cuarta y quinta columna se guardan la seleccion de frames realizada 
 con el programa para hacer un post analisis. 
+En las ultimas columnas va el "Step intensity". Primero el de las areas (Verde-rojo), luego el del umbral ("step2")
 OJO: Si no ponen el exposure time, el programa no va a calcular los tiempos On y Off
+
+Bugs detectados:
+  - No muestra correctamente la traza cuando se carga el archivo, es necesario mover el slider para actualizar
+  - Si se cierra la ventana y corre el codigo de nuevo, no anda bien la visualizacion.
+
 """
 import numpy as np
 import pyqtgraph as pg
@@ -294,10 +300,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.file_name = filedialog.askopenfilename(filetypes=(("", "*.txt"), ("", "*.txt")))
         self.data = np.loadtxt(self.file_name)
         self.traceSlider.setMaximum(self.data.shape[1]-1)
+        
         self.graph.clear()
         self.selection = np.zeros((self.data.shape[1], 7))  # + Steps columns (5 ==> 7)
         self.selection[:,0] = np.arange(0,self.data.shape[1])
         self.selection[:,4] = self.data.shape[0]
+
         self.colorgraph = (100, 150, 255)
 # =============================================================================
 #         self.lr = pg.LinearRegionItem([0,int(self.selection[0,4])], brush=None)
@@ -322,11 +330,18 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.graph.addItem(self.lrmin, ignoreBounds=True)
         
         self.graph.plot(self.data[:, 0], pen=pg.mkPen(color=self.colorgraph, width=1))
+
         # Define initial Threshold
         print('[Initial Threshold Calculation]')
         for i in range(0, self.data.shape[1]):
-            initial_threshold = stats.mode(self.data[:, i]) + 5*np.std(self.data[:, i])
+#            initial_threshold = stats.mode(self.data[:, i]) + 5*np.std(self.data[:, i])
+#            self.selection[i, 2] = initial_threshold[0]
+
+            short = int(len(self.data[:, i])//4)  # improved auto threshold looking only at the end
+            initial_threshold = stats.mode(self.data[-short:, i]) + 5*np.std(self.data[-short:, i])  # there is the initial Threshold
             self.selection[i, 2] = initial_threshold[0]
+
+
         self.thresholdSlider.setMaximum(((np.max(self.data[:,int(self.traceindexEdit.text())]))))
         self.thresholdSlider.setValue(int(self.selection[0, 2]))
 #        self.EndFrameEdit.setText(str(self.data.shape[0]))

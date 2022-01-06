@@ -27,6 +27,11 @@ ira cambiando. En la cuarta y quinta columna se guardan la seleccion de frames r
 con el programa para hacer un post analisis. 
 OJO: Si no ponen el exposure time, el programa no va a calcular los tiempos On y Off
 
+Bugs detectados:
+  - No muestra correctamente la traza cuando se carga el archivo, es necesario mover el slider para actualizar
+  - Las zonas verde y roja esta siempre compactadas de un lado.
+
+
 ## ENGLISH
 
 This program is a user interface that allows you to inspect and select 
@@ -55,7 +60,9 @@ with the calculated On and Off times of the good traces(if the calculate ON OFF 
 WARNING: If you do not set the exposure time, the program will not calculate the On and Off times
 
 
-
+Detected  Bugs:
+  - The graph do not load correctly with the file, moving the slider is needed to update it.
+  - The green / red zone are colapsed into a side.    
 
 """
 import numpy as np
@@ -379,7 +386,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
             fake_trace = self.data[:,i]
             self.sum_on_trace[i] =  np.sum(fake_trace[np.where(fake_trace > initial_threshold[0])])
 
-        self.another_threshold = self.selection[:,2]
+#        self.another_threshold = self.selection[:,2]
 
         self.thresholdSlider.setMaximum(((np.max(self.data[:,int(self.traceindexEdit.text())]))))
 #        self.thresholdSlider.setMaximum(50)
