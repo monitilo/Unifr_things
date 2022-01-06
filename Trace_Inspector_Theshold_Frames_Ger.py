@@ -110,6 +110,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.btnTonTimes = QtGui.QPushButton('Calculate Ton and Toff')
         self.btnExport = QtGui.QPushButton('Export Trace Selection and T')
         self.btnautomatic_detect = QtGui.QPushButton('Automatic find threshold ')
+        self.btn_import_selection = QtGui.QPushButton('Choose and existing selection matrix')
 
         # Create parameter fields with labels
         self.traceindex = QtGui.QLabel('Show Trace:')
@@ -183,8 +184,9 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.Trace_grid.addWidget(self.traceindex,                  4.5, 0, 1, 1)
         self.Trace_grid.addWidget(self.traceindexEdit,              4.5, 1, 1, 2)
         self.Trace_grid.addWidget(self.btnShow,                     5, 0, 1, 3)        
-        self.Trace_grid.addWidget(self.btnautomatic_detect,             6, 0, 1, 3)
-        
+        self.Trace_grid.addWidget(self.btnautomatic_detect,         6, 0, 1, 3)
+        self.Trace_grid.addWidget(self.btn_import_selection,        7, 0, 1, 3)
+
 #        self.Trace_grid.addWidget(self.StartFrame,                  6, 0, 1, 1)
 #        self.Trace_grid.addWidget(self.StartFrameEdit,              6, 1, 1, 2)
 #        self.Trace_grid.addWidget(self.EndFrame,                    7, 0, 1, 1)
@@ -243,7 +245,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.btnExport.clicked.connect(self.exportTraces)
 
         self.btnautomatic_detect.clicked.connect(self.calculate_threshold)  #  self.step_detection)
-
+        self.btn_import_selection.clicked.connect(self.importselection)
+        
 #        self.btnmaxmin.clicked.connect(self.calculate_max_min)
 #        self.btnmaxmin.clicked.connect(self.make_histogram)
 
@@ -310,7 +313,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         minX2, maxX2 = self.lrmin.getRegion()
         self.avgmax = np.nanmean(self.data[int(minX):int(maxX), (int(self.traceSlider.value()))])
         self.avgmin = np.nanmean(self.data[int(minX2):int(maxX2), (int(self.traceSlider.value()))])
-    
+
+        self.selection[int(self.traceSlider.value()), 3] = minX
+        self.selection[int(self.traceSlider.value()), 4] = maxX
+        self.selection[int(self.traceSlider.value()), 5] = minX2
+        self.selection[int(self.traceSlider.value()), 6] = maxX2
+
         self.stepintensity = (self.avgmax-self.avgmin)
         self.labelmax.setText("<span style='font-size: 12pt'> <span style='color: green'>LeftMean=%0.1f</span>" % (self.avgmax))
         self.labelmin.setText("<span style='font-size: 12pt'> <span style='color: red'>RigthMean=%0.1f</span>" % (self.avgmin))
@@ -328,10 +336,17 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        print(self.stepintensity)
         self.selection[int(self.traceSlider.value()), 5] = self.step_intensity  # stepintensity
 
+
+    def importselection(self):
+        # Select image from file
+        self.selection_file_name = filedialog.askopenfilename(filetypes=(("", "*.txt"), ("", "*.txt")))
+        self.selection = np.loadtxt(self.selection_file_name)
+
+
     # Define Actions    
     def importTrace(self):
-        """ data.shape[0] = amount of frames (500, 1000, 10k)
-        data.shape[1] = amount of traces (the spot you find)
+        """ data.shape[0] = amount of frames (i.e. 1000 or 10k)
+        data.shape[1] = amount of traces (the spot you picked)
 """
         # Remove annoying empty window
         root = Tk()
@@ -342,12 +357,13 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.data = np.loadtxt(self.file_name)
         self.traceSlider.setMaximum(self.data.shape[1]-1)
 
+        
         self.sum_on_trace = np.zeros(self.data.shape[1])
         self.signal2noise = np.zeros(self.data.shape[1])
         self.intensity = np.zeros(self.data.shape[1])
 
         self.graph.clear()
-        self.selection = np.zeros((self.data.shape[1], 6))  # + Step column (5 ==> 6)
+        self.selection = np.zeros((self.data.shape[1], 9))  # +color + Steps columns (5 ==> 9)
         self.selection[:,0] = np.arange(0,self.data.shape[1])
 #        self.selection[:,4] = self.data.shape[0]
         self.colorgraph = (100, 150, 255)
@@ -357,8 +373,15 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #         self.graph.addItem(self.lr)
 # =============================================================================
         
-        starting = int(self.selection[(int(self.traceSlider.value())),3])
-        ending = int(self.selection[(int(self.traceSlider.value())),4])
+#        starting = int(self.selection[(int(self.traceSlider.value())),3])
+#        ending = int(self.selection[(int(self.traceSlider.value())),4])
+        starting = 0
+        ending = self.data.shape[0]
+
+#        self.selection[:,3] = np.zeros(len(self.selection[:,3]) 
+        self.selection[:,4] = np.ones(len(self.selection[:,4]))*((starting+ending)//8)
+        self.selection[:,5] =  np.ones(len(self.selection[:,5]))*(ending - ((starting+ending)//4))
+        self.selection[:,6] =  np.ones(len(self.selection[:,6]))*ending
         
         self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//8], pen='g',
                                           bounds=[0, self.data.shape[0]],
@@ -388,7 +411,11 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 
 #        self.another_threshold = self.selection[:,2]
 
-        self.thresholdSlider.setMaximum(((np.max(self.data[:,int(self.traceindexEdit.text())]))))
+#        self.thresholdSlider.setMaximum(((np.max(self.data[:,int(self.traceindexEdit.text())]))))
+#        self.thresholdSlider.setMinimun(((0.5*np.min(self.data[:,int(self.traceindexEdit.text())]))))
+        minimo = np.min(self.data[:,int(self.traceindexEdit.text())])
+        maximo = np.max(self.data[:,int(self.traceindexEdit.text())])
+        self.thresholdSlider.setRange(minimo*10, maximo*10)
 #        self.thresholdSlider.setMaximum(50)
         self.thresholdSlider.setValue(int(self.selection[0, 2])*10)
 #        self.EndFrameEdit.setText(str(self.data.shape[0]))
@@ -425,8 +452,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         mode=0
         self.BinaryTrace.setLabel('left', "Normalized Intensity")
         self.BinaryTrace.setLabel('bottom', "Frame")
-        binary_trace = np.zeros(self.data.shape[0])
         trace = self.data[:,(int(self.traceSlider.value()))]
+#        binary_trace = np.ones(self.data.shape[0])*np.min(trace)*10
         threshold = int(self.thresholdSlider.value())
         threshold_vector = threshold*np.ones(self.data.shape[0])
 
@@ -438,7 +465,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        self.BinaryTrace.plot((self.data[:,(int(self.traceSlider.value()))]-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=self.colorgraph, width=1))
 #        self.BinaryTrace.plot((threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
 
-        binary_trace = np.where(trace*10 < threshold, binary_trace, np.max(trace)*10)
+        binary_trace = np.where(trace*10 < threshold, np.min(trace)*10, np.max(trace)*10)
         self.BinaryTrace.plot(binary_trace, pen=pg.mkPen(color=(125,50,150), width=1))
         self.BinaryTrace.plot(trace*10, pen=pg.mkPen(color=self.colorgraph, width=1))
         self.BinaryTrace.plot((threshold_vector), pen=pg.mkPen(color=(255,60,60), width=3))
@@ -454,9 +481,15 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
             self.colorgraph = (100, 150, 255)
         self.graph.plot(self.data[:, (int(self.traceSlider.value()))], pen=pg.mkPen(color=self.colorgraph, width=1))
         self.threshold_index_Slider_Edit.setText(format(int(self.selection[int(self.traceSlider.value()), 2])))
-        self.thresholdSlider.setMaximum(10*(np.max(self.data[:, int(self.traceSlider.value())])))
+#        self.thresholdSlider.setMaximum(10*(np.max(self.data[:, int(self.traceSlider.value())])))
+#        self.thresholdSlider.setMaximum(50)
+        
+        minimo = np.min(self.data[:, int(self.traceSlider.value())])
+        maximo = np.max(self.data[:, int(self.traceSlider.value())])
+        self.thresholdSlider.setRange(minimo*10, maximo*10)
 #        self.thresholdSlider.setMaximum(50)
         self.thresholdSlider.setValue(10*float(self.selection[int(self.traceSlider.value()), 2]))
+
 #        print("1threshold = ", self.selection[int(self.traceSlider.value()),2])
         self.step_detection()
         self.PlotBinaryTrace()
@@ -466,16 +499,21 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #         self.graph.addItem(self.lr)
 # =============================================================================
         
-        starting = int(self.selection[(int(self.traceSlider.value())),3])
-        ending = int(self.selection[(int(self.traceSlider.value())),4])
-        
-        self.lrmax = pg.LinearRegionItem([starting,(starting+ending)//8], pen='g',
+        starting = self.selection[int(self.traceSlider.value()), 3]
+        ending = self.selection[int(self.traceSlider.value()), 4]
+
+
+        self.lrmax = pg.LinearRegionItem([starting, ending], pen='g',
                                           bounds=[0, self.data.shape[0]],
                                           brush=(5,200,5,25),
                                           hoverBrush=(50,200,50,50))
         self.lrmax.setZValue(10)
         self.graph.addItem(self.lrmax)
-        self.lrmin = pg.LinearRegionItem([ending - ((starting+ending)//4), ending], pen='r',
+
+        starting2 = self.selection[int(self.traceSlider.value()), 5]
+        ending2 = self.selection[int(self.traceSlider.value()), 6]
+
+        self.lrmin = pg.LinearRegionItem([starting2, ending2], pen='r',
                                           bounds=[0, self.data.shape[0]],
                                           brush=(200,5,5,25),
                                           hoverBrush=(200,50,50,50))
@@ -494,7 +532,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         mode = stats.mode(self.data[:, int(self.traceSlider.value())])[0]
         mode=0
         trace = self.data[:, (int(self.traceSlider.value()))]
-        new_binary_trace = np.zeros(self.data.shape[0])
+#        new_binary_trace = np.ones(self.data.shape[0])*np.min(trace)
         new_threshold = float(self.thresholdSlider.value())
         new_threshold_vector = new_threshold*np.ones(self.data.shape[0])
 #        new_binary_trace = np.where(trace < new_threshold, new_binary_trace, 1)
@@ -502,7 +540,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        self.BinaryTrace.plot((self.data[:,(int(self.traceSlider.value()))]-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=self.colorgraph, width=1))
 #        self.BinaryTrace.plot((new_threshold_vector-mode)/np.max(self.data[:,(int(self.traceSlider.value()))]-mode), pen=pg.mkPen(color=(255,60,60), width=3))
 
-        new_binary_trace = np.where(trace*10 < new_threshold, new_binary_trace, np.max(trace)*10)
+        new_binary_trace = np.where(trace*10 < new_threshold, np.min(trace)*10, np.max(trace)*10)
         self.BinaryTrace.plot(new_binary_trace, pen=pg.mkPen(color=(125,50,150), width=1))
         self.BinaryTrace.plot(trace*10, pen=pg.mkPen(color=self.colorgraph, width=1))
         self.BinaryTrace.plot((new_threshold_vector), pen=pg.mkPen(color=(255,60,60), width=3))
@@ -675,7 +713,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
             step = 2
             trace = self.data[:, i]*10
             new_binary_trace = np.zeros(self.data.shape[0])
-            old_threshold = 10  # float(self.selection[i, 2])
+            old_threshold = 10 + float(self.selection[i, 2])
 
 #            converge = False
 #            while converge == False:
@@ -697,7 +735,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
                 old_threshold += step
                 
             the_i = np.where(np.array(distance)==np.max(np.nan_to_num(distance)))
-            print(np.min((the_i)), "the_i")
+            print((the_i), "the_i")
             old_threshold = 10 + step*int(np.mean(the_i)-2)
             new_binary_trace = np.where(trace< old_threshold, new_binary_trace, np.max(trace))
 

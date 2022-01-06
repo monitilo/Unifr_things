@@ -81,6 +81,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.btnTonTimes = QtGui.QPushButton('Calculate Ton and Toff')
         self.btnExport = QtGui.QPushButton('Export Trace Selection and T')
         self.btnautomatic_detect = QtGui.QPushButton('Automatic takes step ')
+        self.btn_import_selection = QtGui.QPushButton('Choose and existing selection matrix')
 
         # Create parameter fields with labels
         self.traceindex = QtGui.QLabel('Show Trace:')
@@ -154,7 +155,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.Trace_grid.addWidget(self.traceindex,                  4.5, 0, 1, 1)
         self.Trace_grid.addWidget(self.traceindexEdit,              4.5, 1, 1, 2)
         self.Trace_grid.addWidget(self.btnShow,                     5, 0, 1, 3)        
-        self.Trace_grid.addWidget(self.btnautomatic_detect,             6, 0, 1, 3)
+        self.Trace_grid.addWidget(self.btn_import_selection,        6, 0, 1, 3)
         
 #        self.Trace_grid.addWidget(self.StartFrame,                  6, 0, 1, 1)
 #        self.Trace_grid.addWidget(self.StartFrameEdit,              6, 1, 1, 2)
@@ -214,6 +215,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.btnExport.clicked.connect(self.exportTraces)
 
         self.btnautomatic_detect.clicked.connect(self.step_detection)
+        self.btn_import_selection.clicked.connect(self.importselection)
+        
 
 #        self.btnmaxmin.clicked.connect(self.calculate_max_min)
 #        self.btnmaxmin.clicked.connect(self.make_histogram)
@@ -297,6 +300,12 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.selection[int(self.traceSlider.value()), 5] = self.stepintensity  # stepintensity
         self.selection[int(self.traceSlider.value()), 6] = self.step_intensity
 
+
+    def importselection(self):
+        # Select image from file
+        self.selection_file_name = filedialog.askopenfilename(filetypes=(("", "*.txt"), ("", "*.txt")))
+        self.selection = np.loadtxt(self.selection_file_name)
+
     # Define Actions    
     def importTrace(self):
 
@@ -313,7 +322,6 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         self.selection = np.zeros((self.data.shape[1], 9))  # +color + Steps columns (5 ==> 9)
         self.selection[:,0] = np.arange(0,self.data.shape[1])
 #        self.selection[:,4] = self.data.shape[0]
-
         self.colorgraph = (100, 150, 255)
 # =============================================================================
 #         self.lr = pg.LinearRegionItem([0,int(self.selection[0,4])], brush=None)
@@ -321,8 +329,6 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #         self.graph.addItem(self.lr)
 # =============================================================================
         
-        starting = int(self.selection[(int(self.traceSlider.value())),3])
-        ending = int(self.selection[(int(self.traceSlider.value())),4])
         starting = 0
         ending = self.data.shape[0]
 
