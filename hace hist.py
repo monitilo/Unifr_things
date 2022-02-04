@@ -1224,19 +1224,22 @@ print(np.array(mapping))
 
 
 #%% Ploting Fret Energy
+
 import numpy as np
 import matplotlib.pyplot as plt
 
-r = np.linspace(0, 12, 100)
 ro = 6.46
+r = np.linspace(0, 3*ro, 100)
 E = 1-(1 / (1+(r/ro)**6))
+E2 = 1-(1 / (1+(r/ro)**4))
 
-
-plt.plot(r,E,".-")
-plt.xlabel("Distance [nm]")
-plt.ylabel(" 1-FRET Eff")
-plt.xlim([4,8])
+plt.plot(r,E,".-", label="1/6 (FRET)")
+plt.plot(r,E2,".-", label="1/4 (MIET)")
+plt.xlabel("Distance [nm] (R0 = {})".format(ro))
+plt.ylabel(" 1 - FRET / MIET Eff")
+#plt.xlim([4,8])
 plt.ylim([0,1])
+plt.legend()
 plt.grid()
 plt.show()
 
