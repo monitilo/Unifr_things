@@ -23,7 +23,7 @@ folder = os.path.dirname(video_file)
 video_name = os.path.basename(video_file)
 #%%
 filename = video_file
-number_frames = 20000
+number_frames = 10000
 with h5py.File(filename, 'r') as f:
     print('hola')
     # List all groups
@@ -85,3 +85,5 @@ print('Termine baby :D')
 
 #%%
 
+
+plt.plot(traces[:,1])

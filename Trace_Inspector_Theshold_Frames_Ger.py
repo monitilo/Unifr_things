@@ -230,7 +230,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        viewDock.hideTitleBar()
         self.dockArea.addDock(TraceDock)
 
-        self.setWindowTitle("Trazer Molecuzer")  # windows name
+        self.setWindowTitle("Trace inspector V2")  # windows name
         self.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
 
 #        layout.setColumnStretch(0,1)
@@ -695,17 +695,24 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
                     else:
                         times_frames_off = indexes
 
-#                self.times_frames_total_on = np.append(self.times_frames_total_on, times_frames_on)
-#                self.times_frames_total_off = np.append(self.times_frames_total_off, times_frames_off)
-                self.times_frames_total_on = np.append(self.times_frames_total_on, np.sum(times_frames_on))
-                self.times_frames_total_off = np.append(self.times_frames_total_off, np.sum(times_frames_off))
+                self.times_frames_total_on = np.append(self.times_frames_total_on, times_frames_on)
+                self.times_frames_total_off = np.append(self.times_frames_total_off, times_frames_off)
+#                self.times_frames_total_on = np.append(self.times_frames_total_on, np.sum(times_frames_on))
+#                self.times_frames_total_off = np.append(self.times_frames_total_off, np.sum(times_frames_off))
 
         self.times_frames_total_on = np.trim_zeros(self.times_frames_total_on)
         self.times_frames_total_off = np.trim_zeros(self.times_frames_total_off)
         self.times_frames_total_on = self.times_frames_total_on*Exposure_time
         self.times_frames_total_off = self.times_frames_total_off*Exposure_time
         print('[Ton and Toff Calculation finished]')
-
+        try:
+            folder = os.path.dirname(self.file_name)
+            file_traces_name = os.path.basename(self.file_name)
+            np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
+            np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
+            print('and, [Ton and Toff saved]')
+        except:
+            pass
     def calculate_threshold(self):
 
         for i in range(len(self.selection[:, 2])):

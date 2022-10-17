@@ -1138,10 +1138,10 @@ plt.show()
 print("\n", X)
 
 #%% Simple code To evaluate diferent angles for Dye that makes fret
-    """ 
-    for now is only in 2D,
-    I am not sure how to do it in 3D ( or if make sense to lose time doing it)
-    """
+""" 
+for now is only in 2D,
+I am not sure how to do it in 3D ( or if make sense to lose time doing it)
+"""
     
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1228,19 +1228,327 @@ print(np.array(mapping))
 import numpy as np
 import matplotlib.pyplot as plt
 
-ro = 6.46
-r = np.linspace(0, 3*ro, 100)
-E = 1-(1 / (1+(r/ro)**6))
-E2 = 1-(1 / (1+(r/ro)**4))
+R0 = 6.46
+r = np.linspace(0, 3*R0, 100)
+E = 1-(1 / (1+(r/R0)**6))
+E2 = 1-(1 / (1+(r/R0)**4))
+E3 = 1-(1 / (1+(r**6/((2*R0)**6))))
+
+
+fix_r0 = min(r, key=lambda x:abs(x-R0))
+E_r0 = E[np.where(r==fix_r0)][0]
+E3_r0 =E3[np.where(r==fix_r0)][0]
+
+
+E3_R2 = min(E3, key=lambda x:abs(x-E_r0))
+R2 = r[np.where(E3==E3_R2)][0]
+print( "\n", R0, R2,"\n", E_r0,E3_r0)
 
 plt.plot(r,E,".-", label="1/6 (FRET)")
-plt.plot(r,E2,".-", label="1/4 (MIET)")
-plt.xlabel("Distance [nm] (R0 = {})".format(ro))
+plt.plot(r,E3,".-", label="FRET2")
+#plt.plot(r,E2,".-", label="1/4 (MIET)")
+plt.xlabel("Distance [nm] (R0 = {})".format(R0))
 plt.ylabel(" 1 - FRET / MIET Eff")
+x_aux = [r[np.where(r==fix_r0)[0]],r[np.where(r==fix_r0)[0]],r[np.where(E3==E3_R2)[0]]]
+plt.plot(x_aux,[E_r0,E3_r0,E3[np.where(E3==E3_R2)]], 'o')
 #plt.xlim([4,8])
 plt.ylim([0,1])
 plt.legend()
 plt.grid()
 plt.show()
+
+#%% 2 dyes Fret
+
+Eff = 0.6
+r0 = R0
+#respuesta = np.sqrt(np.sqrt(np.sqrt(((1/Eff)-1))))*r0
+respuesta = (((1/Eff)-1)**(1/6))*r0
+
+e=0.5 # r/R0 =
+((1-e)/e)**(-1/6)
+
+e=0.5
+(2*((1-e)/e))**(1/6)
+
+# E / 1-E = (R0/r1 )^6 + (R0/r2 )^6
+e/(1-e)
+
+same_distance = ((e/((1-e)*2))**(1/6))*R0
+print(same_distance)
+
+import numpy as np
+from matplotlib import pyplot as plt
+
+p = np.linspace(R0-2 , R0+2 ,200)
+p = np.linspace(0.5 , 2 ,200)
+q = np.linspace(0.5 , 2 ,200)
+
+p,q = np.meshgrid(p,q)
+#P = (R0 * (p**-6)) 
+#Q = (R0 * (q**-6))
+F = (R0/p)**6 + (R0/q)**6 - e/(1-e)
+F = (1/p)**-1 + (1/q)**-1 - e/(1-e)
+plt.contour(p, q, F, [0], cmap='coolwarm', vmin=-5, vmax=5)
+plt.colorbar()
+plt.xlabel("Dye 1 position (nm)")
+plt.ylabel("Dye 2 position (nm)")
+#plt.plot(same_distance,same_distance,'o')
+
+plt.show()
+#%%
+import numpy as np
+import matplotlib.pyplot as plt
+
+z = np.linspace(0 , 2 ,200)
+x = np.linspace(0 , 2 ,200)
+
+x,z = np.meshgrid(x,z)
+
+Z = z**2 - 1
+X = x
+
+plt.contour(x,z,(X+Z), [0])
+#plt.xlim([-1.5,1.5])
+#plt.ylim([-1.5,1.5])
+plt.show()
+#%%
+from sympy import plot_implicit, symbols, Eq, And
+r0 = R0
+e = 0.6
+lowlim = 0.9*R0
+maxlim = 1.2*R0
+x, y = symbols('x y')
+p1 = plot_implicit(Eq((r0/x)**6 + (r0/y)**6, e/(1-e)), (x, lowlim, maxlim), (y, lowlim, maxlim))
+# plt.xlabel("Dye 1 position (r/R0)")
+# plt.ylabel("Dye 2 position (r/R0)")
+# plt.title("Distances 2 dyes with R0={}, to have E={}".format(R0,e))
+#%%
+import numpy as np
+import matplotlib.pyplot as plt
+# R0**6 (1/x**6)+(1/y**6) = e/(1-e)
+#==> 1/y**6 =( e/(1-e) )*(R0**-6) - (1/x**6)
+R0 = 6.46  # 6.46
+e = 0.6
+r1 = np.linspace(R0-0.121 , R0+1.14 ,201)
+r2 =(( e/(1-e) )*(R0**-6) - (1/r1**6))**-(1/6)
+tolerance = 0.1
+plt.grid()
+plt.plot(r1,r2)
+# plt.fill_between(r1, r2-tolerance, r2+tolerance, alpha = 0.2)
+
+plt.xlabel("Acceptor 1 position (nm)")
+plt.ylabel("Acceptor 2 position (nm)")
+# plt.title("Distances 2 dyes with R0={}, to have E={}".format(R0,e))
+plt.vlines(R0,min(r2),max(r2), linestyles="dashed", color="orange")
+plt.hlines(R0,min(r1),max(r1), linestyles="dashed", color="orange")
+plt.text(min(r1),min(r2),"R0", color="orange")
+plt.show()
+
+#%% if r1 = r2
+# HERRRREEEEEEEE  29.07.2022 TODO:
+import numpy as np
+import matplotlib.pyplot as plt
+# R0**6 2* (1/same**6) = e/(1-e)
+#==> 1/same**6 =( e/(1-e) )*(R0**-6)*(1/2)
+R0 = 6.46  # 6.46
+e = np.array([0.5,0.6,0.7])
+# e=0.6
+error_e = 0.25
+one = (((1-e)/e)**(1/6))*(R0)
+two_same = (((2*(1-e)/e))**(1/6)) * (R0)
+# error_propagation = (-(1/((6*((1/e)-1)**(5/6) )* e**2)))*error_e
+error_propagation = -(1/(3*((2**(5/6))*((1/e)-1)**(5/6))*e**2))*error_e
+print(one,"\n", two_same, "±", abs(error_propagation))
+
+#%%
+
+
+import cv2
+
+video_file = "C:/Origami testing Widefield/Test_morgane.mp4"
+
+import cv2
+
+vidcap = cv2.VideoCapture(video_file)
+success,image = vidcap.read()
+count = 0
+while success:
+  cv2.imwrite("frame%d.jpg" % count, image)     # save frame as JPEG file      
+  success,image = vidcap.read()
+  print('Read a new frame: ', success)
+  count += 1
+
+#%%
+
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+
+video_file = "C:/Origami testing Widefield/Test_morgane.mp4"
+
+cap = cv2.VideoCapture(video_file)
+
+N = 100
+frames = np.zeros((N,1080,1920,3))
+i=0
+
+
+
+#cap = cv2.VideoCapture(0)
+
+#fourcc = cv2.VideoWriter_fourcc(*'XVID')
+#out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640,480))
+
+total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+
+n=0
+while(cap.isOpened()):
+    total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    n+=1
+    ret, frame = cap.read()
+    if ret==True:
+        frame = cv2.flip(frame,0)
+#        out.write(frame)
+        
+#        cv2.imshow('frame',frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    else:
+        break
+cap.release()
+
+#out.release()
+
+cv2.destroyAllWindows()
+print(n, total)
+
+#%%
+
+import numpy as np
+import matplotlib.pyplot as plt
+import cv2
+from skimage import io
+
+
+
+#video_file = "C:/Origami testing Widefield/Test_morgane.mp4"
+video_file = 'C:/Origami testing Widefield/MOV_2022_06_20_17_39_04_monochrome.mp4'
+
+cap = cv2.VideoCapture(video_file)
+total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+print("total frames", total_frames)
+
+width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH) )  # float `width`
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT) ) # float `height`
+
+#ret0, frame0 = cap.read()
+#cap.release()
+#mp4_channels = len(frame0[0][0])
+#print("amount of channels in mp4 = ", mp4_channels)
+
+#frames = np.zeros((total_frames,height,width,mp4_channels))
+frames = np.zeros((total_frames,1080,1920,3))
+i=0
+for i in range(total_frames):
+#    cap.isOpened()
+    ret,frame = cap.read()
+    if ret == True:
+        frames[i] = frame
+
+
+
+
+# =============================================================================
+# while(cap.isOpened()):
+#     i+=1
+#     ret,frame = cap.read()
+#     if ret == True:
+#         frames[i] = frame
+#     else:
+#         break
+# =============================================================================
+#    frame2 = cv2.resize(frame,(1200,700))
+   
+    
+#    cv2.imshow("video", frame2)
+    
+#    if cv2.waitKey(1) & 0xFF == ord('q'):
+#        break
+cap.release()
+
+cv2.destroyAllWindows()
+
+print("finish with",i, "or", total_frames )
+
+
+#print(np.sum(frames[238]))
+#%%
+
+frame[0,0,:]
+frame.shape
+frames[0].shape
+frames[0,0,0].shape
+newframe = np.sum(frame,axis=2)
+newframe.shape
+
+
+plt.plot(frame)
+plt.hist2d(frame)
+plt.contourf(frame)
+plt.imshow(newframe)
+plt.plot(newframe[100:500,200:600])
+plt.imshow(newframe[100:500,200:600])
+
+plt.imshow(frame)
+plt.imshow(np.sum(frames[100],axis=2))
+
+plt.figure()
+plt.imshow(frames[100,:,:,0])
+plt.figure()
+plt.imshow(frames[10,:,:,1])
+plt.figure()
+plt.imshow(frames[10,:,:,2])
+
+
+data = np.sum(frames,axis=3)
+plt.imshow(data)
+data.shape
+
+
+#%%
+def plot_with_colorbar(imv,data):
+    
+    # Display the data and assign each frame a number
+    x = np.linspace(1., data.shape[0], data.shape[0])
+
+    # Load array as an image
+    imv.setImage(data, xvals=x)
+
+    # Set a custom color map
+    colors = [
+            (0, 0, 0),
+            (45, 5, 61),
+            (84, 42, 55),
+            (150, 87, 60),
+            (208, 171, 141),
+            (255, 255, 255)
+            ]
+    cmap = pg.ColorMap(pos=np.linspace(0.0, 1.0, 6), color=colors)
+    imv.setColorMap(cmap)
+
+
+
+
+
+#%% Some test for Tau on Atto488
+#from a file data
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.hist(data, bins=25)
+
 
 

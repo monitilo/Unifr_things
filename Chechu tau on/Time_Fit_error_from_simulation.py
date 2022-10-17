@@ -60,10 +60,12 @@ binwidth = 2*scipy.stats.iqr(data)*(data.shape[0])**(-1/3)
 if binwidth < 0.10:
     binwidth = 0.101
 else:
-    binwidth = 0.3#2*scipy.stats.iqr(data)*(data.shape[0])**(-1/3)
+    binwidth = 2*scipy.stats.iqr(data)*(data.shape[0])**(-1/3)
     
-bindwidth = 10
-    
+print("binwidth = ", binwidth  )
+#binwidth = 1000
+binwidth = 30000
+
 bins = np.arange(0, (int(max(Events_total)/binwidth)+2)*binwidth, binwidth)
 
 #entries, bin_edges, patches = plt.hist(Events, bins, normed=False, histtype = 'step', cumulative=False, label=['1 N='+np.str(len(Events))], log=False)
@@ -71,22 +73,23 @@ entries, bin_edges = np.histogram(Events_total, bins)
 bin_middles = 0.5*(bin_edges[1:] + bin_edges[:-1])
 errors = np.sqrt(entries)
 
-bin_middles = 0.5*(bin_edges[1:] + bin_edges[:-1])
-errors = np.sqrt(entries)
+
 plt.bar(bin_edges[:-1], entries, align = 'edge', width = binwidth)
 plt.grid()
 plt.yscale('log')
 
-#%% corto la data
+# =============================================================================
+# #%% corto la data
+# =============================================================================
 
-SACO_BIN = 1
+SACO_START_BIN = 1
+SACO_END_BIN = None
 
+#bins = np.arange(0, (int(max(data)/binwidth)+2)*binwidth, binwidth)
 
-bins = np.arange(0, (int(max(data)/binwidth)+2)*binwidth, binwidth)
-
-entries, bin_edges = np.histogram(data, bins)
-bin_middles = 0.5*(bin_edges[1:] + bin_edges[:-1])
-errors = np.sqrt(entries)
+#entries, bin_edges = np.histogram(data, bins)
+#bin_middles = 0.5*(bin_edges[1:] + bin_edges[:-1])
+#errors = np.sqrt(entries)
 plt.bar(bin_edges[:-1], entries, align = 'edge', width = binwidth, fill=False)
 plt.grid()
 plt.yscale('log')
@@ -103,9 +106,10 @@ proba10 = bin_fit[np.where(entries<10)[0][1]]
 #entries_fit_cut = entries_fit[bin_fit < proba10]
 #errors_fit_cut = errors_fit[bin_fit < proba10]
 
-bin_fit_cut = bin_fit[SACO_BIN:]
-entries_fit_cut = entries_fit[SACO_BIN:]
-errors_fit_cut = errors_fit[SACO_BIN:]
+bin_fit_cut = bin_fit[SACO_START_BIN:SACO_END_BIN]
+entries_fit_cut = entries_fit[SACO_START_BIN:SACO_END_BIN]
+errors_fit_cut = errors_fit[SACO_START_BIN:SACO_END_BIN]
+
 
 #plt.figure()
 plt.plot(bin_fit,entries_fit, label='1')
@@ -119,20 +123,35 @@ Tau_tentativo = np.mean(data)
 parameters_1, cov_matrix = curve_fit(exponential, bin_fit_cut, entries_fit_cut, p0 = [np.max(entries)-np.min(entries), Tau_tentativo], maxfev = 20000) 
 parameters, cov_matrix = curve_fit(exponential, bin_fit_cut, entries_fit_cut, p0 = parameters_1, absolute_sigma = True, sigma = errors_fit_cut, maxfev = 20000) 
 plt.plot(bin_middles, exponential(bin_middles, *parameters), color = 'C3')
-plt.plot(bin_fit_cut, exponential(bin_fit_cut, *parameters), '-.')
+plt.plot(bin_fit_cut, exponential(bin_fit_cut, *parameters), '-.', label="{:.6}".format(parameters[1]))
 plt.yscale('log')
 plt.ylim((0.9, max(entries)+1000))
+plt.legend()
 
 londa_medida = parameters[1]
 error_ajuste = np.sqrt(cov_matrix[1,1])
-print('SIN BIN', SACO_BIN)
+print('SIN Start BIN', SACO_START_BIN)
+print('SIN End BIN', SACO_END_BIN)
 print('londa exp', londa_medida)
 print('error londa exp', error_ajuste)
-print(len(data))
+print(len(data), "len data")
 
 
 ene_ajustado = round(len(data) - entries[0]) + int(round(exponential(bin_middles, *parameters)[0]))#si trabajo sacando solo un bin
 ene_corto = len(data) - ene_ajustado
+
+print("\n valor medio = ", np.mean(data[np.where(data>=bin_fit[0])]), Tau_tentativo)
+print("file",trace_name)
+# =============================================================================
+# #%% 
+# =============================================================================
+
+x = np.linspace(0, 400, 1000)
+a = parameters[0]
+tau = parameters[1]
+y = (a/tau) * np.exp(-x/tau)
+plt.plot(x,y, '--', color="r")
+plt.grid()
 
 #%% calculo error a parir de una simulacion de una biexponencial perfecta
 

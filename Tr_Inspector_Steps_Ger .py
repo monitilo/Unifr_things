@@ -200,7 +200,7 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #        viewDock.hideTitleBar()
         self.dockArea.addDock(TraceDock)
 
-        self.setWindowTitle("Trazer Molecuzer")  # windows name
+        self.setWindowTitle("Trace inspectro V3.1")  # windows name
         self.setGeometry(10, 40, 1600, 800)  # (PosX, PosY, SizeX, SizeY)
 
 #        layout.setColumnStretch(0,1)
@@ -514,8 +514,8 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
 #         self.selection[int(self.traceSlider.value()), 4] = int(self.lr.getRegion()[1])
 # =============================================================================
 
-        self.selection[int(self.traceSlider.value()), 5] = self.stepintensity
-        self.selection[int(self.traceSlider.value()), 6] = self.step_intensity
+        self.selection[int(self.traceSlider.value()), 7] = self.stepintensity
+        self.selection[int(self.traceSlider.value()), 8] = self.step_intensity
 
         print("GOODselection traces")
 #        print(self.selection)
@@ -649,12 +649,17 @@ class Trace_Inspector(pg.Qt.QtGui.QMainWindow):  # pg.Qt.QtGui.QMainWindow
         np.savetxt(folder+'/FILTERED_'+file_traces_name, filtered_traces)
         amount_goodTraces = (np.count_nonzero(self.selection[:, 1] == 1)/int(self.data.shape[1]))*100
         print('[Filtered Traces Saved]: Amount of Good Traces: '+str(amount_goodTraces)[0:3]+'%')
-        np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
-        np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
-        np.savetxt(folder+'/selection_'+file_traces_name, self.selection, header="yes_no"+"\t"+"Threshold"+"\t"+"start Green"+"\t"+"end Green"+"start Red"+"\t"+"end Red"+"\t"+"step(colors)"+"\t"+"step(Threshold)")
+        try:
+            np.savetxt(folder+'/ON_TIMES_'+file_traces_name,self.times_frames_total_on)
+            np.savetxt(folder+'/OFF_TIMES_'+file_traces_name,self.times_frames_total_off)
+            print('[Ton and Toff saved]')
+        except:
+            print("no Times on or of calculated")
+            pass        
+        np.savetxt(folder+'/selection_'+file_traces_name, self.selection, header="yes_no"+"\t"+"Threshold"+"\t"+"start Green"+"\t"+"end Green"+"\t"+"start Red"+"\t"+"end Red"+"\t"+"step(colors)"+"\t"+"step(Threshold)")
         print("[selection saved]", folder+'/selection_'+file_traces_name)
         print(self.selection)
-        print('and, [Ton and Toff saved]')
+        
 
         
 if __name__ == '__main__':

@@ -8,173 +8,188 @@ import pyqtgraph.examples
 pyqtgraph.examples.run()
 """
 
-# -*- coding: utf-8 -*-
 """
-Demonstrates a variety of uses for ROI. This class provides a user-adjustable
-region of interest marker. It is possible to customize the layout and 
-function of the scale/rotate handles in very flexible ways. 
-"""
+This example demonstrates the use of pyqtgraph's dock widget system.
 
-#import initExample ## Add path to library (just for examples; you do not need this)
+The dockarea system allows the design of user interfaces which can be rearranged by
+the user at runtime. Docks can be moved, resized, stacked, and torn out of the main
+window. This is similar in principle to the docking system built into Qt, but 
+offers a more deterministic dock placement API (in Qt it is very difficult to 
+programatically generate complex dock arrangements). Additionally, Qt's docks are 
+designed to be used as small panels around the outer edge of a window. Pyqtgraph's 
+docks were created with the notion that the entire window (or any portion of it) 
+would consist of dockable components.
+
+"""
 
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
+#import pyqtgraph.console
 import numpy as np
 
-pg.setConfigOptions(imageAxisOrder='row-major')
+from pyqtgraph.dockarea import DockArea, Dock
 
-## Create image to display
-arr = np.ones((100, 100), dtype=float)
-arr[45:55, 45:55] = 0
-#arr[25, :] = 5
-#arr[:, 25] = 5
-#arr[75, :] = 5
-#arr[:, 75] = 5
-#arr[50, :] = 10
-#arr[:, 50] = 10
-#arr += np.sin(np.linspace(0, 20, 100)).reshape(1, 100)
-#arr += np.random.normal(size=(100,100))
+import os
+from tkinter import Tk, filedialog
 
-# add an arrow for asymmetry
-#arr[10, :50] = 10
-#arr[9:12, 44:48] = 10
-#arr[8:13, 44:46] = 10
-
-
-## create GUI
 app = QtGui.QApplication([])
-w = pg.GraphicsLayoutWidget(show=True, size=(1000,800), border=True)
-w.setWindowTitle('pyqtgraph example: ROI Examples')
+win = QtGui.QMainWindow()
+area = DockArea()
+win.setCentralWidget(area)
+win.resize(1000,500)
+win.setWindowTitle('pyqtgraph example: dockarea')
 
-text = """Data Selection From Image.<br>\n
-Drag an ROI or its handles to update the selected image.<br>
-Hold CTRL while dragging to snap to pixel boundaries<br>
-and 15-degree rotation angles.
-"""
-w1 = w.addLayout(row=0, col=0)
-label1 = w1.addLabel(text, row=0, col=0)
-v1a = w1.addViewBox(row=1, col=0, lockAspect=True)
-v1b = w1.addViewBox(row=2, col=0, lockAspect=True)
-img1a = pg.ImageItem(arr)
-v1a.addItem(img1a)
-img1b = pg.ImageItem()
-v1b.addItem(img1b)
-v1a.disableAutoRange('xy')
-v1b.disableAutoRange('xy')
-v1a.autoRange()
-v1b.autoRange()
+## Create docks, place them into the window one at a time.
+## Note that size arguments are only a suggestion; docks will still have to
+## fill the entire dock area and obey the limits of their internal widgets.
+d1 = Dock("Dock1", size=(1, 1))     ## give this dock the minimum possible size
+#d2 = Dock("Dock2 - Console", size=(500,300), closable=True)
+d3 = Dock("Dock3", size=(500,400))
+d4 = Dock("Dock4 (tabbed) - Plot", size=(500,200))
+d5 = Dock("Dock5 - Image", size=(500,200))
+d6 = Dock("Dock6 (tabbed) - Plot", size=(500,200))
+area.addDock(d1, 'left')      ## place d1 at left edge of dock area (it will fill the whole space since there are no other docks yet)
+#area.addDock(d2, 'right')     ## place d2 at right edge of dock area
+area.addDock(d3, 'right', d1)## place d3 at bottom edge of d1
+area.addDock(d4, 'right')     ## place d4 at right edge of dock area
+area.addDock(d5, 'left', d1)  ## place d5 at left edge of d1
+area.addDock(d6, 'top', d4)   ## place d5 at top edge of d4
 
-rois = []
-rois.append(pg.RectROI([20, 20], [20, 20], pen=(0,9)))
-rois[-1].addRotateHandle([1,0], [0.5, 0.5])
-rois.append(pg.LineROI([0, 60], [20, 80], width=5, pen=(1,9)))
-rois.append(pg.MultiRectROI([[20, 90], [50, 60], [60, 90]], width=5, pen=(2,9)))
-rois.append(pg.EllipseROI([60, 10], [30, 20], pen=(3,9)))
-rois.append(pg.CircleROI([80, 50], [20, 20], pen=(4,9)))
-#rois.append(pg.LineSegmentROI([[110, 50], [20, 20]], pen=(5,9)))
-rois.append(pg.PolyLineROI([[80, 60], [90, 30], [60, 40]], pen=(6,9), closed=True))
+## Test ability to move docks programatically after they have been placed
+area.moveDock(d4, 'top', d3)     ## move d4 to top edge of d2
+area.moveDock(d6, 'above', d4)   ## move d6 to stack on top of d4
+area.moveDock(d5, 'bottom', d4)     ## move d5 to top edge of d2
 
-print(rois)
-print(rois[3])
-#aaa = rois[3].getArrayRegion(arr, img1a)
 
-#print(aaa.shape(), len(aaa))
+## Add widgets into each dock
 
-def update(roi):
-    img1b.setImage(roi.getArrayRegion(arr, img1a), levels=(0, arr.max()))
-    v1b.autoRange()
-    print(np.sum(roi.getArrayRegion(arr, img1a)))
+## first dock gets save/restore buttons
+w1 = pg.LayoutWidget()
+label = QtGui.QLabel(""" -- DockArea Example -- 
+This window has 6 Dock widgets in it. Each dock can be dragged
+by its title bar to occupy a different space within the window 
+but note that one dock has its title bar hidden). Additionally,
+the borders between docks may be dragged to resize. Docks that are dragged on top
+of one another are stacked in a tabbed layout. Double-click a dock title
+bar to place it in its own window.
+""")
+saveBtn = QtGui.QPushButton('Save dock state')
+restoreBtn = QtGui.QPushButton('Restore dock state')
+w1.addWidget(label, row=0, col=0) 
+w1.addWidget(saveBtn, row=1, col=0)
+w1.addWidget(restoreBtn, row=2, col=0)
+
+loadfileBtn = QtGui.QPushButton('load file')
+w1.addWidget(loadfileBtn, 5,0,1,2) # row, col, height, width
+
+nextpickBtn = QtGui.QPushButton('Next pick ')
+w1.addWidget(nextpickBtn, row=7, col=0)
+previouspickBtn = QtGui.QPushButton('Previous pick')
+w1.addWidget(previouspickBtn, row=7, col=1)
+
+d1.addWidget(w1)
+
+state = None
+def save():
+    global state
+    state = area.saveState()
+    restoreBtn.setEnabled(True)
+def load():
+    global state
+    area.restoreState(state)
+def load_file(self):
+    root = Tk()
+    nametoload = filedialog.askopenfilename(filetypes=(("", "*.npz"), ("", "*.")))
+    root.withdraw()
+    folder = os.path.dirname(nametoload)
+    only_name = os.path.basename(nametoload)
+    print("file loaded: ", nametoload)
+
+    open_data(nametoload)
+#    make_hist(data, w3)
+    return folder, only_name
+
+def open_data(nametoload):
+    data = np.load(nametoload)    
+    pick_list = data["group"]
+    frame = data["frame"]
+    photons = data["photons"]
+    pick_number = np.unique(pick_list)
+    locs_of_picked = np.zeros(len(pick_number))
+    photons_of_groups = dict()
+    frame_of_groups = dict()
     
-for roi in rois:
-    roi.sigRegionChanged.connect(update)
-    v1a.addItem(roi)
+    for i in range(len(pick_number)):
+        pick_id = pick_number[i]
+        index_picked = np.where(pick_list == pick_id)
+        frame_of_picked = frame[index_picked]
+        locs_of_picked[i] = len(frame_of_picked)
+        photons_of_groups[i] = photons[index_picked]
+        frame_of_groups[i] = frame[index_picked]
+    make_hist(photons_of_groups, w3)
+    return photons_of_groups
 
-update(rois[-1])
+def make_hist(data, widget):
+    print("making hist")
+    y,x = np.histogram(data[0], bins=np.linspace(0, np.max(data[0]), 50))
+    widget.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150),edgecolor='red', linewidth=10 )
     
+def next_pick():
+    print("next pick")
+    
+def previous_pick():
+    print("previous_pick")
+
+saveBtn.clicked.connect(save)
+restoreBtn.clicked.connect(load)
+loadfileBtn.clicked.connect(load_file)
+nextpickBtn.clicked.connect(next_pick)
+previouspickBtn.clicked.connect(previous_pick)
 
 
-text = """User-Modifiable ROIs<br>
-Click on a line segment to add a new handle.
-Right click on a handle to remove.
-"""
-w2 = w.addLayout(row=0, col=1)
-label2 = w2.addLabel(text, row=0, col=0)
-v2a = w2.addViewBox(row=1, col=0, lockAspect=True)
-r2a = pg.PolyLineROI([[0,0], [10,10], [10,30], [30,10]], closed=True)
-v2a.addItem(r2a)
-r2b = pg.PolyLineROI([[0,-20], [10,-10], [10,-30]], closed=False)
-v2a.addItem(r2b)
-v2a.disableAutoRange('xy')
-#v2b.disableAutoRange('xy')
-v2a.autoRange()
-#v2b.autoRange()
+#w2 = pg.console.ConsoleWidget()
+#d2.addWidget(w2)
 
-text = """Building custom ROI types<Br>
-ROIs can be built with a variety of different handle types<br>
-that scale and rotate the roi around an arbitrary center location
-"""
-w3 = w.addLayout(row=1, col=0)
-label3 = w3.addLabel(text, row=0, col=0)
-v3 = w3.addViewBox(row=1, col=0, lockAspect=True)
+## Dock 3
+#d3.hideTitleBar()
+w3 = pg.PlotWidget(title="Plot inside dock with no title bar (no me gusto)")
+#w3.plot(np.random.normal(size=100))
 
-r3a = pg.ROI([0,0], [10,10])
-v3.addItem(r3a)
-## handles scaling horizontally around center
-r3a.addScaleHandle([1, 0.5], [0.5, 0.5])
-r3a.addScaleHandle([0, 0.5], [0.5, 0.5])
-
-## handles scaling vertically from opposite edge
-r3a.addScaleHandle([0.5, 0], [0.5, 1])
-r3a.addScaleHandle([0.5, 1], [0.5, 0])
-
-## handles scaling both vertically and horizontally
-r3a.addScaleHandle([1, 1], [0, 0])
-r3a.addScaleHandle([0, 0], [1, 1])
-
-r3b = pg.ROI([20,0], [10,10])
-v3.addItem(r3b)
-## handles rotating around center
-r3b.addRotateHandle([1, 1], [0.5, 0.5])
-r3b.addRotateHandle([0, 0], [0.5, 0.5])
-
-## handles rotating around opposite corner
-r3b.addRotateHandle([1, 0], [0, 1])
-r3b.addRotateHandle([0, 1], [1, 0])
-
-## handles rotating/scaling around center
-r3b.addScaleRotateHandle([0, 0.5], [0.5, 0.5])
-r3b.addScaleRotateHandle([1, 0.5], [0.5, 0.5])
-
-v3.disableAutoRange('xy')
-v3.autoRange()
+# make interesting distribution of values
+vals = np.hstack([np.random.normal(size=500), np.random.normal(size=260, loc=4)])
+# compute standard histogram
+y,x = np.histogram(vals, bins=np.linspace(-3, 8, 40))
+# Using stepMode=True causes the plot to draw two lines for each sample.
+# notice that len(x) == len(y)+1
+w3.plot(x, y, stepMode=True, fillLevel=0, brush=(0,0,255,150),edgecolor='red', linewidth=10 )
+# Now draw all points as a nicely-spaced scatter plot
+y = pg.pseudoScatter(vals, spacing=0.15)
+#plt2.plot(vals, y, pen=None, symbol='o', symbolSize=5)
+w3.plot(vals, y, pen=None, symbol='o', symbolSize=5, symbolPen=(255,255,255,200), symbolBrush=(255,0,0,150))
 
 
-text = """Transforming objects with ROI"""
-w4 = w.addLayout(row=1, col=1)
-label4 = w4.addLabel(text, row=0, col=0)
-v4 = w4.addViewBox(row=1, col=0, lockAspect=True)
-g = pg.GridItem()
-v4.addItem(g)
-r4 = pg.ROI([0,0], [100,100], resizable=False, removable=True)
-r4.addRotateHandle([1,0], [0.5, 0.5])
-r4.addRotateHandle([0,1], [0.5, 0.5])
-img4 = pg.ImageItem(arr)
-v4.addItem(r4)
-img4.setParentItem(r4)
+d3.addWidget(w3)
 
-v4.disableAutoRange('xy')
-v4.autoRange()
 
-# Provide a callback to remove the ROI (and its children) when
-# "remove" is selected from the context menu.
-def remove():
-    v4.removeItem(r4)
-r4.sigRemoveRequested.connect(remove)
+
+## Dock 4
+w4 = pg.PlotWidget(title="Dock 4 plot")
+w4.plot(np.random.normal(size=100))
+d4.addWidget(w4)
+
+w5 = pg.ImageView()
+w5.setImage(np.random.normal(size=(100,100)))
+d5.addWidget(w5)
+
+w6 = pg.PlotWidget(title="Dock 6 plot")
+w6.plot(np.random.normal(size=100))
+d6.addWidget(w6)
 
 
 
 
-
+state = area.saveState()
+win.show()
 
 
 
@@ -183,5 +198,3 @@ if __name__ == '__main__':
     import sys
     if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
         QtGui.QApplication.instance().exec_()
-
-

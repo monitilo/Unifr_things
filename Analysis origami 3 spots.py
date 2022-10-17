@@ -14,7 +14,7 @@ import os
 
 SAVE_FIGS = False
 
-folder_path_save = "C:\Projects\Super resolution\Photons quenching two color super res\Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1__1\Histograms"
+folder_path_save = "C:\Projects\Super resolution\Photons quenching two color super res\Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1__1\Histograms/New"
 #folder_path_save = 'C:/Projects/FLAKES/Origami photons laterals vs center/Sample 22_ 2lvlBio _2 INFLAKE'
 
 
@@ -50,7 +50,7 @@ pick_number = np.unique(pick_list)
 locs_of_picked = np.zeros(len(pick_number))
 photons_of_groups = dict()
 frame_of_groups = dict()
-
+print("amount of frames =", len(np.unique(frame)))
 tic = time.time()
 for i in range(len(pick_number)):
     pick_id = pick_number[i]
@@ -59,10 +59,11 @@ for i in range(len(pick_number)):
     locs_of_picked[i] = len(frame_of_picked)
     photons_of_groups[i] = photons[index_picked]
     frame_of_groups[i] = frame[index_picked]
-    
-#    plt.hist(photons_of_groups[i],alpha=0.5, label="pick {}".format(pick_id))
-#    plt.legend()
-#    plt.xlabel("Photons")
+
+i=0
+plt.hist(photons_of_groups[i],alpha=0.5, label="pick {}".format(pick_id))
+plt.legend()
+plt.xlabel("Photons")
 
 print("time goruping the photons = ", time.time()-tic)
 
@@ -146,6 +147,7 @@ plt.plot(simetric_picks,'*', label="N={}".format(len(simetric_picks)//3))
 plt.legend()
 plt.title("origamis with simetric laterals")
 plt.show()
+plt.close()
 print(len(simetric_picks)//3)
 # =============================================================================
 
@@ -217,10 +219,11 @@ for density in [True, False]:
                 plt.gca().get_xticklabels()[-2].set_color('red')
         #            plt.xticks()
                 figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
-                plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
-                plt.show()
-                plt.close()
+#                plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
+#                plt.show()
+                
                 good_origamis.append(Norigami)
+            plt.close()
                 
 print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
 
@@ -275,7 +278,7 @@ for i in interesting_picks:
 #    figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
 #    plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
     plt.show()
-#        plt.close()
+    plt.close()
     good_origamis.append(Norigami)
                 
 print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
@@ -300,6 +303,11 @@ color["left"] = "blue"
 color["center"] = "orange"
 color["right"] = "green"
 
+
+maxnumber = 1500
+
+photons_to_dict = dict()
+
 frame_limit = 15000 # 15k tipically is the max
 
 if frame_limit < 15000:
@@ -309,7 +317,7 @@ else:
     DATAFROM = " FRETx4 "
     framebool = False
 
-folder_path_save = "C:\Projects\Super resolution\Photons quenching two color super res\Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1__1\Histograms\Change on time"
+folder_path_save = "C:\Projects\Super resolution\Photons quenching two color super res\Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1__1\Histograms/New"
 
 for i in interesting_picks:
     aux = i
@@ -322,13 +330,21 @@ for i in interesting_picks:
             photons_to_plot = photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)]  # 
 
         if subgroups[i] == "left":  # "right":
+
                     h1 = plt.hist(photons_to_plot, bins=bines, 
-                      range=(0,photon_treshold), density=density, alpha=0.8,edgecolor='black', linewidth=0.5,
+                      range=(0,photon_treshold), density=density, alpha=1,
                       label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+        elif subgroups[i] == "right":
+            h1 = plt.hist(photons_to_plot, bins=bines,
+                          range=(0,photon_treshold), density=density, alpha=1,
+                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
         else:
             h1 = plt.hist(photons_to_plot, bins=bines,
-                          range=(0,photon_treshold), density=density, alpha=0.2,
+                          range=(0,photon_treshold), density=density, alpha=1,
                           label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+
+#        np.savetxt("ori27_first5k_{}_part.txt".format(subgroups[i]), photons_to_plot)
+
 
     Norigami = (i+1)//3
     figure_name = '{}_{}'.format(Norigami, DATAFROM)
@@ -338,12 +354,15 @@ for i in interesting_picks:
     plt.ylabel("# Events")
 #    plt.ylim(0, 120)
 #    plt.gca().get_xticklabels()[-2].set_color('red')
-    figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
+    figure_path = os.path.join(folder_path_save, '%s.pdf' % figure_name)
     if SAVE_FIGS == True:
         plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
-    plt.show()
+#    plt.show()
 #        plt.close()
     good_origamis.append(Norigami)
+    plt.savefig('AAAAAorigami{}_all frames.pdf'.format(interesting_picks[0])) 
+    plt.show()
+
                 
 print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
 
@@ -369,13 +388,19 @@ for i in interesting_picks:
 
         if subgroups[i] == "left":  # "right":
                     h1 = plt.hist(photons_to_plot, bins=bines,
-                      range=(0,photon_treshold), density=density, alpha=0.8,edgecolor='black', linewidth=0.5,
+                      range=(0,photon_treshold), density=density, alpha=1,
                       label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+        elif subgroups[i] == "right":
+            h1 = plt.hist(photons_to_plot, bins=bines,
+                          range=(0,photon_treshold), density=density, alpha=1,
+                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
         else:
             h1 = plt.hist(photons_to_plot, bins=bines,
-                          range=(0,photon_treshold), density=density, alpha=0.2,
-                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+                          range=(0,photon_treshold), density=density, alpha=1,
+                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])        
+#        np.savetxt("ori27_full_{}_part.txt".format(subgroups[i]), photons_to_plot)
 
+        
     Norigami = (i+1)//3
     figure_name = '{}_{}'.format(Norigami, DATAFROM)
 #    plt.title(figure_name)
@@ -384,14 +409,16 @@ for i in interesting_picks:
     plt.ylabel("# Events")
 #    plt.ylim(0, 120)
 #    plt.gca().get_xticklabels()[-2].set_color('red')
-    figure_path = os.path.join(folder_path_save, '%s.png' % figure_name)
+    figure_path = os.path.join(folder_path_save, '%s.pdf' % figure_name)
     if SAVE_FIGS == True:
         plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
-    plt.show()
+#    plt.show()
 #        plt.close()
     good_origamis.append(Norigami)
-                
+    plt.savefig('AAAorigami{}_first 5k frames.pdf'.format(interesting_picks[0])) 
+    
 print("saved {} origamis in: \n".format(len(interesting_picks)), folder_path_save)
+
 
 
 #%%
@@ -399,7 +426,7 @@ print("saved {} origamis in: \n".format(len(interesting_picks)), folder_path_sav
 
 
 #interesting_picks = [81,84,87]  # only the left
-interesting_picks = [3]
+interesting_picks = [27]
 
 photon_treshold = 5500
 
@@ -466,7 +493,7 @@ for i in interesting_picks:
 print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
 #%%
 density = False
-i = 3
+i = 27
 photons_to_plot_start = photons_of_groups[i][np.where(frame_of_groups[i]< frame_limit)]
 photons_to_plot_after = photons_of_groups[i][np.where(frame_of_groups[i]>frame_limit)]  # 
 photons_to_plot = photons_of_groups[i+1][np.where(photons_of_groups[i+1]<photon_treshold)]  # 
@@ -598,5 +625,252 @@ for i in left_picks:  # in multiples3:
 print("saved {} origamis out of {} \nin: ".format(counting, nsamples), folder_path_save)
 print(nametoload)
 
+#%% Exporting histograms for ilustrator
+
+
+#interesting_picks = [81,84,87]  # only the left
+interesting_picks = [120] # 15,27, 39?, 78?, 93?, 102, 108, 120!
+
+photon_treshold = 4500
+
+density = False
+
+SAVE_FIGS = True
+#SAVE_FIGS = False
+
+bines = 18
+
+blue = (79/255,134/255,198/255)
+green = (104/255,153/255,93/255) 
+yellow = (222/255,157/255,38/255)
+
+darker_blue = (51/255,102/255,153/255)
+darker_green = (104/255,153/255,93/255) 
+darker_yellow = (222/255,157/255,38/255)
+
+color = dict()
+color["left"] = yellow # "#DE9D26"
+color["center"] =  blue # '#4F86C6'
+color["right"] =  green #"#68995D"
+
+edgecolor = dict()
+edgecolor["left"] = "#996633"  #"orange" #"#DE9D26"
+edgecolor["center"] = "#336699"  # "blue" #  '#4F86C6'
+edgecolor["right"] =  "#336633"  # "#344D2E" #"black" # "#68995D"
+
+
+photons_to_dict = dict()
+
+norm = "norm"
+DATAFROM = " FRETx4 "
+framebool = False
+
+density = None
+alfa = dict()
+alfas = [0.9, 0.5, 0.5]  # left center rigth
+for i in range(len(alfas)):
+    alfa[subgroups[i]] = alfas[i]
+    
+folder_path_save = "C:\Projects\Super resolution\Photons quenching two color super res\Ch2_PAINTepi_532nm_13mW(40F4)_spli2channels_100ms_1x1__1\Histograms/New"
+
+
+frame_limit = 5000
+DATAFROM = "Presentation FRETx4 all frames"
+framebool = False
+
+for i in interesting_picks:
+    aux = i
+    for j in range(3):
+        i = aux+j
+        
+        if framebool == True:
+            photons_to_plot = photons_of_groups[i][np.where(frame_of_groups[i]> frame_limit)]
+        else:
+            photons_to_plot = photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)]  # 
+
+        if subgroups[i] == "left":  # "right":
+
+                    hleft = plt.hist(photons_to_plot, bins=bines, 
+                      range=(0,photon_treshold), density=density,
+                      label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"),color=color[subgroups[i]],width=10,edgecolor=edgecolor[subgroups[i]],linewidth=1)  #, color = color[subgroups[i]])
+
+        elif subgroups[i] == "right":
+            hright = plt.hist(photons_to_plot, bins=bines,
+                          range=(0,photon_treshold), density=density,
+                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"),color=color[subgroups[i]],width=10,edgecolor=edgecolor[subgroups[i]],linewidth=1)  #, color = color[subgroups[i]])
+
+
+
+        else:
+            hcenter = plt.hist(photons_to_plot, bins=bines,
+                          range=(0,photon_treshold), density=density,
+                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"),color=color[subgroups[i]],width=10,edgecolor=edgecolor[subgroups[i]],linewidth=1)  #, color = color[subgroups[i]])
+
+#        np.savetxt("ori27_first5k_{}_part.txt".format(subgroups[i]), photons_to_plot)
+    plt.close()
+
+    Norigami = (i+1)//3
+# =============================================================================
+#     figure_name = '{}_{}'.format(Norigami, DATAFROM)
+# #    plt.title(figure_name)
+#     plt.legend(loc="upper right")
+#     plt.xlabel("Photons")
+#     plt.ylabel("# Events")
+# #    plt.ylim(0, 120)
+# #    plt.gca().get_xticklabels()[-2].set_color('red')
+#     figure_path = os.path.join(folder_path_save, '%s.pdf' % figure_name)
+#     if SAVE_FIGS == True:
+#         plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
+#     plt.show()
+# #        plt.close()
+#     good_origamis.append(Norigami)
+# #    plt.savefig('AAAAAorigami{}_all frames.pdf'.format(interesting_picks[0])) 
+#     plt.show()
+# =============================================================================
+    
+    figure_name = 'presentation {}_{}_NORM'.format(Norigami, DATAFROM)
+    
+    i=aux
+    i+=1
+    stepright = abs(hright[1][0]-hright[1][1] )/2
+    plt.bar(hright[1][:-1]+stepright,hright[0]/max(hright[0]),width=stepright*2, alpha=alfa[subgroups[i]],color=color[subgroups[i]],edgecolor=edgecolor[subgroups[i]])
+    i+=1
+    stepcenter = abs(hcenter[1][0]-hcenter[1][1] )/2
+    plt.bar(hcenter[1][:-1]+stepcenter,hcenter[0]/max(hcenter[0]),width=stepcenter*2, alpha=alfa[subgroups[i]],color=color[subgroups[i]],edgecolor=edgecolor[subgroups[i]])
+    i=aux
+    stepleft = abs(hleft[1][0]-hleft[1][1] )/2
+    plt.bar(hleft[1][:-1]+stepleft,hleft[0]/max(hleft[0]),width=stepleft*2, alpha=alfa[subgroups[i]],color=color[subgroups[i]],edgecolor=edgecolor[subgroups[i]])
+    
+    
+    # plt.legend(loc="upper right")
+    plt.xlabel("Photons")
+    plt.ylabel("Normalized # Events")
+    plt.title("full video")
+    figure_path = os.path.join(folder_path_save, '%s.pdf' % figure_name)
+    if SAVE_FIGS == True:
+        plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
+
+    plt.show()
+
+                
+print("saved {} origamis in: \n".format(len(simetric_picks)//3), folder_path_save)
+
+frame_limit = 5000
+DATAFROM = "Presentation FRETx4 only first {} frames".format(frame_limit)
+framebool = True
+
+
+for i in interesting_picks:
+    aux = i
+    for j in range(3):
+        i = aux+j
+        
+        if framebool == True:
+            photons_to_plot = photons_of_groups[i][np.where(frame_of_groups[i]< frame_limit)]
+        else:
+            photons_to_plot = photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)]  # 
+
+        if subgroups[i] == "left":  # "right":
+
+                    hleft = plt.hist(photons_to_plot, bins=bines, 
+                      range=(0,photon_treshold), density=density,
+                      label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+
+        elif subgroups[i] == "right":
+            hright = plt.hist(photons_to_plot, bins=bines,
+                          range=(0,photon_treshold), density=density,
+                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+
+
+
+        else:
+            hcenter = plt.hist(photons_to_plot, bins=bines,
+                          range=(0,photon_treshold), density=density,
+                          label=(subgroups[i]+"; "+str(len(photons_to_plot))+" locs"))  #, color = color[subgroups[i]])
+
+        plt.close()
+    Norigami = (i+1)//3
+# =============================================================================
+#     figure_name = '{}_{}'.format(Norigami, DATAFROM)
+# #    plt.title(figure_name)
+#     plt.legend()
+#     plt.xlabel("photons")
+#     plt.ylabel("# Events")
+# #    plt.ylim(0, 120)
+# #    plt.gca().get_xticklabels()[-2].set_color('red')
+#     figure_path = os.path.join(folder_path_save, '%s.pdf' % figure_name)
+#     if SAVE_FIGS == True:
+#         plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
+#     plt.show()
+# =============================================================================
+
+    figure_name = '{}_{}_NORM'.format(Norigami, DATAFROM)
+
+    i=aux
+    i+=1
+    stepright = abs(hright[1][0]-hright[1][1] )/2
+    plt.bar(hright[1][:-1]+stepright,hright[0]/max(hright[0]),width=stepright*2, alpha=alfa[subgroups[i]],color=color[subgroups[i]],edgecolor=edgecolor[subgroups[i]])
+    i+=1
+    stepcenter = abs(hcenter[1][0]-hcenter[1][1] )/2
+    plt.bar(hcenter[1][:-1]+stepcenter,hcenter[0]/max(hcenter[0]),width=stepcenter*2, alpha=alfa[subgroups[i]],color=color[subgroups[i]],edgecolor=edgecolor[subgroups[i]])
+    i=aux
+    stepleft = abs(hleft[1][0]-hleft[1][1] )/2
+    plt.bar(hleft[1][:-1]+stepleft,hleft[0]/max(hleft[0]),width=stepleft*2, alpha=alfa[subgroups[i]],color=color[subgroups[i]],edgecolor=edgecolor[subgroups[i]])
+    
+
+    # plt.legend()
+    plt.title("first 5 k frames #{} ".format(Norigami))
+    plt.xlabel("Photons")
+    plt.ylabel("Normalized # Events")
+    figure_path = os.path.join(folder_path_save, '%s.pdf' % figure_name)
+    if SAVE_FIGS == True:
+        plt.savefig(figure_path,  dpi = 300, bbox_inches='tight')
+
+    plt.show()
+#        plt.close()
+    good_origamis.append(Norigami)
+#    plt.savefig('AAAorigami{}_first 5k frames.pdf'.format(interesting_picks[0])) 
+    
+print("saved {} origamis in: \n".format(len(interesting_picks)), folder_path_save)
+#%% Try to make the events from the locs
+
+#photons_of_groups[]
+
+#frame_of_groups[]
+
+interesting_picks = [27,28,29]
+binding_photons = dict()
+
+for i in interesting_picks:
+    binding_photons[i] = [photons_of_groups[i][0]]
+    
+    for j in range(len(frame_of_groups[i])-1):
+        if frame_of_groups[i][j+1] < frame_of_groups[i][j]+3:
+            binding_photons[i][-1] = binding_photons[i][-1] + photons_of_groups[i][j]
+        else:
+            binding_photons[i].append(photons_of_groups[i][j])
+
+    print("raw", np.mean(photons_of_groups[i]),"grouped", np.mean(binding_photons[i]))
+    print("\n",len(photons_of_groups[i]),len(binding_photons[i]))
+
 #%%
+for i in interesting_picks:
+    #photons_to_plot = photons_of_groups[i][np.where(photons_of_groups[i]<photon_treshold)] 
+    binding_photons[i] = np.array(binding_photons[i])
+    toplot =np.where(binding_photons[i] > 2)[0]
+    toplot =np.where(binding_photons[i][toplot] < 2000000)[0]
+    print("raw", np.mean(photons_of_groups[i][toplot]),"grouped", np.mean(binding_photons[i][toplot]))
+    plt.hist(binding_photons[i][toplot], alpha=0.5, label=subgroups[i]) #, bins=50, range=(0,5e+3) )
+    plt.legend()
+    plt.yscale("log")
+    plt.xlabel("Photons per Event")
+    plt.ylabel("log scale Events")
+#    plt.show()
+
+#    plt.ylim(0,10)
+#    plt.hist(photons_of_groups[i],alpha=0.1)
+
+#plt.hist(binding_photons)
+
+
 
